@@ -12,8 +12,8 @@ export const menuItems: MenuItem[] = [
   { title: "รายการเช่ารถ", href: "/bookings", roles: ["admin", "manager", "agent", "user"] },
   // { title: "การชำระเงิน", href: "/payments", roles: ["admin", "manager", "agent", "user"] },
   { title: "ตั้งค่าระบบ", href: "/setting/users", roles: ["admin", "manager"] },
-  { title: "ตั้งค่าระบบ", href: "/setting/roles", roles: ["admin", "manager"] },
-  { title: "ตั้งค่าระบบ", href: "/setting/permissions", roles: ["admin", "manager"] },
+  // { title: "ตั้งค่าระบบ", href: "/setting/roles", roles: ["admin", "manager"] },
+  // { title: "ตั้งค่าระบบ", href: "/setting/permissions", roles: ["admin", "manager"] },
 ];
 
 export default menuItems;
