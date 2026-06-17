@@ -10,6 +10,7 @@ import Input from '@/components/ui/input'
 import Label from '@/components/ui/label'
 import Select from '@/components/ui/select'
 import Textarea from '@/components/ui/textarea'
+import { useRouter } from 'next/navigation'
 
 const statusOptions = ['Pending', 'Confirmed', 'InProgress', 'Completed', 'Cancelled', 'Rejected'] as const
      
@@ -71,31 +72,32 @@ export default function BookingsDrawer({
 }: BookingsDrawerProps) {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState(errorIn || '')
-    const empty = {
-      productId: '',
-      carId: '',
-      userId: currentUserId,
-      driverId: '',
-      dateStart: '',
-      dateEnd: '',
-      price: '0',
-      discountAmount: '0',
-      taxAmount: '0',
-      bookingStatus: 'Pending',
-      bookingRemark: '',
-      paymentImageId: '',
-      healthCheck01ImageId: '',
-      healthCheck02ImageId: '',
-    }
-    const [form, setForm] = useState(formIn || empty)
-  
-    const selectedProduct = useMemo(() => products?.find((p) => p.id === form.productId), [form.productId, products])
-    const days = useMemo(() => dateCount(form.dateStart, form.dateEnd), [form.dateStart, form.dateEnd])
-    const dailyRate = Number(form.price || selectedProduct?.price || 0)
-    const gross = Number((dailyRate * days).toFixed(2))
-    const discount = Number(form.discountAmount || 0)
-    const tax = Number(form.taxAmount || 0)
-    const total = Number(Math.max(gross - discount + tax, 0).toFixed(2))
+  const empty = {
+    productId: '',
+    carId: '',
+    userId: currentUserId,
+    driverId: '',
+    dateStart: '',
+    dateEnd: '',
+    price: '0',
+    discountAmount: '0',
+    taxAmount: '0',
+    bookingStatus: 'Pending',
+    bookingRemark: '',
+    paymentImageId: '',
+    healthCheck01ImageId: '',
+    healthCheck02ImageId: '',
+  }
+  const [form, setForm] = useState(formIn || empty)
+
+  const selectedProduct = useMemo(() => products?.find((p) => p.id === form.productId), [form.productId, products])
+  const days = useMemo(() => dateCount(form.dateStart, form.dateEnd), [form.dateStart, form.dateEnd])
+  const dailyRate = Number(form.price || selectedProduct?.price || 0)
+  const gross = Number((dailyRate * days).toFixed(2))
+  const discount = Number(form.discountAmount || 0)
+  const tax = Number(form.taxAmount || 0)
+  const total = Number(Math.max(gross - discount + tax, 0).toFixed(2))
+  const router = useRouter()
  
   async function persistImage(payload: { key: string; url: string; name: string; size?: number; type?: string }) {
     const res = await fetch('/api/booking-images', {
@@ -133,6 +135,7 @@ export default function BookingsDrawer({
       const row = data.booking
       setBookings((current) => editingId ? current.map((item) => (item.id === row.id ? row : item)) : [row, ...current])
       setDrawerOpen(false)
+      router.refresh()
     } catch (err: any) {
       setError(err?.message ?? 'บันทึกไม่สำเร็จ')
     } finally {

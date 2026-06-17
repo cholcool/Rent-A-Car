@@ -10,7 +10,6 @@ import { formatBaht, formatThaiDate, getStatusBadgeClass, getStatusLabel } from 
 import { AlertDialogDestructive } from '@/components/AlertDialogDestructive'
 import BookingsDrawer from '@/components/BookingsDrawer'
 
-
 type Row = any
 type Option = { id: string; label: string; price?: number }
 
