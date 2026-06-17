@@ -284,7 +284,7 @@ export default function DriverPageClient({ initialDrivers }: { initialDrivers: D
                     </div>
                     <div className="md:col-span-2">
                       <Label htmlFor="driver_phone">เบอร์โทรศัพท์ *</Label>
-                      <Input id="driver_phone" maxLength={10} value={form.driver_phone} onChange={(e) => updateField('driver_phone', e.target.value)} required />
+                      <Input id="driver_phone" maxLength={10} minLength={10} value={form.driver_phone} onChange={(e) => updateField('driver_phone', e.target.value)} required />
                     </div>
                     <div className="md:col-span-2">
                       <Label htmlFor="driver_remark">หมายเหตุ</Label>

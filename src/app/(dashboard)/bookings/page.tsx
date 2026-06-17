@@ -1,6 +1,6 @@
 import prisma from '@/lib/prisma'
 import { auth } from '@/lib/auth'
-import BookingsClient from './BookingsClient'
+import BookingsClient from './bookings-client'
 
 export const dynamic = 'force-dynamic'
 
