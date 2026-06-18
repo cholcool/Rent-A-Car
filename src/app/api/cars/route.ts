@@ -3,19 +3,42 @@ import { auth } from '@/lib/auth';
 import prisma from '@/lib/prisma';
 
 
-export async function GET() {
-  const session = await auth();
-  if (!session?.user?.email) return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+async function getUserId() {
+  const session = await auth()
+  if (!session?.user?.email) return null
+  const user = await prisma.user.findUnique({ where: { email: session.user.email }, select: { id: true, roles: { select: { role: { select: { code: true } } } } } })
+  const roles = (user?.roles ?? []).map((entry) => entry.role.code)
+  if (!user?.id || !roles.some((role) => ['ADMIN', 'MANAGER', 'AGENT'].includes(role))) return null
+  return user.id
+}
 
-  const user = await prisma.user.findUnique({
-    where: { email: session.user.email },
-    include: { roles: { include: { role: true } } },
-  });
-  const roles = (user?.roles ?? []).map((ur: any) => ur.role.code);
-  const allowed = ['ADMIN', 'MANAGER', 'AGENT'];
-  if (!roles.some((r) => allowed.includes(r)))
-    return NextResponse.json({ message: 'Forbidden' }, { status: 403 });
+function normalize(value: unknown) {
+  return typeof value === 'string' ? value.trim() : ''
+}
+
+export async function GET() {
+  const userId = await getUserId()
+  if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const cars = await prisma.car.findMany({ orderBy: { createdAt: 'desc' } });
   return NextResponse.json(cars);
+}
+
+export async function DELETE(request: Request) {
+  const userId = await getUserId()
+  if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  const body = await request.json().catch(() => ({}))
+  const id = normalize(body.id)
+  if (!id) return NextResponse.json({ error: 'id is required' }, { status: 400 })
+
+  await prisma.car.update({
+    where: { id },
+    data: {
+      isDeleted: true,
+      updatedBy: userId,
+    },
+  })
+
+  return NextResponse.json({ ok: true })
 }

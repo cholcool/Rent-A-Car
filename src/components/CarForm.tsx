@@ -100,9 +100,11 @@ export default function CarForm({ vehicleTypes, brands, onSuccess }: CarFormProp
       })
 
       if (result.success) {
-        onSuccess()
-
         router.refresh()
+
+        setTimeout(() => {
+          onSuccess() 
+        }, 60)
       } else {
         setErrors({ form: result.error || 'เกิดข้อผิดพลาดในการสร้างรถ' })
       }

@@ -1,11 +1,11 @@
 import Link from 'next/link'
 import { notFound, redirect } from 'next/navigation'
-import { ArrowLeft, CalendarDays, Car, Save, Sparkles } from 'lucide-react'
+import { ArrowLeft, CalendarDays, Car, Save, Sparkles, Gauge, RectangleEllipsis } from 'lucide-react'
 import prisma from '@/lib/prisma'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
-import { getStatusBadgeClass, getStatusLabel } from '@/lib/ui-format'
+import { getStatusBadgeClass, getStatusLabel, formatCompactNumber, toNumber } from '@/lib/ui-format'
 import { updateCar } from '../cars-actions'
 import MaintenanceCreateDrawer, { type MaintenanceRow } from '@/components/MaintenanceCreateDrawer'
 import { Input } from '@/components/ui/input'
@@ -115,7 +115,7 @@ export default async function CarDetailPage({ params }: PageProps) {
               </h1>
               <Badge className={getStatusBadgeClass(car.status)}>{getStatusLabel(car.status)}</Badge>
             </div>
-            <p className="mt-2 text-base font-medium text-slate-500">ทะเบียน {car.license}</p>
+            <p className="mt-2 text-base font-medium text-slate-500 flex gap-3"><RectangleEllipsis/> ทะเบียน {car.license}  <Gauge/> เลขไมล์ {formatCompactNumber(toNumber(car.mileage))}</p>
           </div>
         </div>
 
@@ -161,7 +161,7 @@ export default async function CarDetailPage({ params }: PageProps) {
             </CardContent>
           </Card>
 
-          <MaintenanceCreateDrawer carId={car.id} maintenances={maintenanceRows} />
+          <MaintenanceCreateDrawer carId={car.id} carMileage={car.mileage} maintenances={maintenanceRows} />
         </div>
 
         <aside>
