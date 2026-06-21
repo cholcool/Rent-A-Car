@@ -2,6 +2,7 @@
 
 import prisma from '@/lib/prisma'
 import { getSessionAndRoles } from '@/lib/auth-server'
+import { CarStatus } from '@/lib/types'
 
 interface CreateCarInput {
   vehicleTypeId: string
@@ -11,7 +12,7 @@ interface CreateCarInput {
   color: string
   license: string
   mileage: number
-  status: 'Available' | 'Booked' | 'Maintenance' | 'Unavailable' | 'Reserved'
+  status: CarStatus
   remark: string | null
 }
 

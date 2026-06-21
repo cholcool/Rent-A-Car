@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { createCar } from '@/app/(dashboard)/cars/cars-actions'
 import { useRouter } from 'next/navigation'
+import { CarStatusOptions, CarStatus } from '@/lib/types'
 
 interface VehicleType {
   id: string
@@ -24,14 +25,6 @@ interface CarFormProps {
   brands: Brand[]
   onSuccess: () => void
 }
-
-const carStatuses = [
-  { value: 'Available', label: 'พร้อมให้เช่า' },
-  { value: 'Booked', label: 'จองแล้ว' },
-  { value: 'Maintenance', label: 'บำรุงรักษา' },
-  { value: 'Unavailable', label: 'ไม่พร้อมใช้' },
-  { value: 'Reserved', label: 'จองสำรอง' },
-]
 
 export default function CarForm({ vehicleTypes, brands, onSuccess }: CarFormProps) {
   const [isLoading, setIsLoading] = useState(false)
@@ -95,7 +88,7 @@ export default function CarForm({ vehicleTypes, brands, onSuccess }: CarFormProp
         color: formData.color,
         license: formData.license.trim(),
         mileage: parseFloat(formData.mileage),
-        status: formData.status as 'Available' | 'Booked' | 'Maintenance' | 'Unavailable' | 'Reserved',
+        status: formData.status as CarStatus,
         remark: formData.remark || null,
       })
 
@@ -281,7 +274,7 @@ export default function CarForm({ vehicleTypes, brands, onSuccess }: CarFormProp
             onChange={handleChange}
             className="mt-2 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
           >
-            {carStatuses.map((status) => (
+            {CarStatusOptions.map((status) => (
               <option key={status.value} value={status.value}>
                 {status.label}
               </option>

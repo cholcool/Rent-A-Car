@@ -7,24 +7,17 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { getStatusBadgeClass, getStatusLabel, formatCompactNumber, toNumber } from '@/lib/ui-format'
 import { updateCar } from '../cars-actions'
-import MaintenanceCreateDrawer, { type MaintenanceRow } from '@/components/MaintenanceCreateDrawer'
+import MaintenanceCreateDrawer from '@/components/MaintenanceCreateDrawer'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import Select from '@/components/ui/select'
+import { MaintenanceRow, CarStatusOptions, CarStatus } from '@/lib/types'
 
 export const dynamic = 'force-dynamic'
 
 interface PageProps {
   params: Promise<{ id: string }>
 }
-
-const carStatuses = [
-  { value: 'Available', label: 'พร้อมให้เช่า' },
-  { value: 'Booked', label: 'จองแล้ว' },
-  { value: 'Maintenance', label: 'บำรุงรักษา' },
-  { value: 'Unavailable', label: 'ไม่พร้อมใช้' },
-  { value: 'Reserved', label: 'จองสำรอง' },
-] as const
 
 export async function generateMetadata({ params }: PageProps) {
   const { id } = await params
@@ -56,20 +49,20 @@ export default async function CarDetailPage({ params }: PageProps) {
   if (!car) return notFound()
 
   const images = car.images.map((carImage) => ({ url: carImage.image.url, alt: `${car.brand.name} ${car.model}` }))
-  const maintenanceRows: MaintenanceRow[] = maintenances.map((item) => ({
+  const maintenanceRows: MaintenanceRow[] = (maintenances || []).map((item) => ({
     id: item.id,
     type: item.type,
     name: item.name,
     description: item.description,
     remark: item.remark,
     status: item.status,
-    mileage: item.mileage,
-    mileageTarget: item.mileageTarget,
-    mileageAlert: item.mileageAlert,
+    mileage: item.mileage ?? 0,
+    mileageTarget: item.mileageTarget ?? 0,
+    mileageAlert: item.mileageAlert ?? 0,
     dateAlert: item.dateAlert ? item.dateAlert.toISOString().slice(0, 10) : null,
-    dateStart: item.dateStart.toISOString().slice(0, 10),
-    dateEnd: item.dateEnd.toISOString().slice(0, 10),
-    dateCount: item.dateCount,
+    dateStart: item.dateStart ? item.dateStart.toISOString().slice(0, 10) : null,
+    dateEnd: item.dateEnd ? item.dateEnd.toISOString().slice(0, 10) : null,
+    dateCount: item.dateCount ?? 0,
   }))
 
   async function saveCar(formData: FormData) {
@@ -84,12 +77,7 @@ export default async function CarDetailPage({ params }: PageProps) {
       color: String(formData.get('color') ?? '').trim(),
       license: String(formData.get('license') ?? '').trim(),
       mileage: Number(formData.get('mileage') ?? 0),
-      status: String(formData.get('status') ?? 'Available') as
-        | 'Available'
-        | 'Booked'
-        | 'Maintenance'
-        | 'Unavailable'
-        | 'Reserved',
+      status: String(formData.get('status') ?? 'Available') as CarStatus,
       remark: String(formData.get('remark') ?? '').trim() || null,
     })
 
@@ -225,7 +213,7 @@ export default async function CarDetailPage({ params }: PageProps) {
                 <div className="space-y-2">
                   <label className="text-sm font-semibold text-slate-700">สถานะ <span className="text-red-600">*</span></label>
                   <Select name="status" defaultValue={car.status} required>
-                    {carStatuses.map((status) => (
+                    {CarStatusOptions.map((status) => (
                       <option key={status.value} value={status.value}>
                         {status.label}
                       </option>

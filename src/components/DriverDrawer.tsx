@@ -11,39 +11,7 @@ import Textarea from '@/components/ui/textarea'
 import { UploadButton } from "@uploadthing/react";
 import type { OurFileRouter } from "@/app/api/uploadthing/core";
 import { useRouter } from 'next/navigation'
-
-type UploadedImage = {
-  id: string
-  url: string
-  name: string
-}
-
-export type DriverRow = {
-  id: string
-  driver_full_name: string
-  driver_phone: string
-  driver_remark: string
-  driver_card_images_id: string
-  driver_license_images_id: string
-  cardImage: UploadedImage | null
-  licenseImage: UploadedImage | null
-}
-
-type DriverFormState = {
-  driver_full_name: string
-  driver_phone: string
-  driver_remark: string
-  driver_card_images_id: string
-  driver_license_images_id: string
-}
-
-const emptyForm: DriverFormState = {
-  driver_full_name: '',
-  driver_phone: '',
-  driver_remark: '',
-  driver_card_images_id: '',
-  driver_license_images_id: '',
-}
+import { DriverFormState, DriverRow, UploadedImage, DriverEmptyForm, ImageType } from '@/lib/types'
 
 interface DriverDrawerProps {
   initialDrivers: DriverRow[]
@@ -72,7 +40,7 @@ export default function DriverDrawer({
 } : DriverDrawerProps) {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState(errorIn)
-  const [form, setForm] = useState(formIn || emptyForm)
+  const [form, setForm] = useState(formIn || DriverEmptyForm)
   const router = useRouter()
   
   const editingDriver = useMemo(
@@ -95,13 +63,7 @@ export default function DriverDrawer({
     return digits
   }
 
-  async function persistImage(payload: {
-    key: string
-    url: string
-    name: string
-    size?: number
-    type?: string
-  }) {
+  async function persistImage(payload: ImageType) {
     const res = await fetch('/api/driver-images', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -113,7 +75,7 @@ export default function DriverDrawer({
   }
 
   function updateField<K extends keyof DriverFormState>(key: K, value: DriverFormState[K]) {
-    if (key === 'driver_phone') {
+    if (key === 'phone') {
       value = formatePhoneNumber(value as string) as DriverFormState[K]
     }
 
@@ -124,11 +86,11 @@ export default function DriverDrawer({
     event.preventDefault()
     setError('')
 
-    if (!form.driver_full_name.trim()) {
+    if (!form.fullName.trim()) {
       setError('กรุณากรอกชื่อ-นามสกุลคนขับ')
       return
     }
-    if (!form.driver_phone.trim()) {
+    if (!form.phone.trim()) {
       setError('กรุณากรอกเบอร์โทรศัพท์')
       return
     }
@@ -177,16 +139,16 @@ export default function DriverDrawer({
             <form className="mt-6 flex-1 space-y-6 overflow-auto pr-1" onSubmit={submitForm}>
               <div className="grid gap-5 md:grid-cols-2">
                 <div className="md:col-span-2">
-                  <Label htmlFor="driver_full_name">ชื่อ-นามสกุลคนขับ *</Label>
-                  <Input id="driver_full_name" maxLength={150} value={form.driver_full_name} onChange={(e) => updateField('driver_full_name', e.target.value)} required />
+                  <Label htmlFor="fullName">ชื่อ-นามสกุลคนขับ *</Label>
+                  <Input id="fullName" maxLength={150} value={form.fullName} onChange={(e) => updateField('fullName', e.target.value)} required />
                 </div>
                 <div className="md:col-span-2">
-                  <Label htmlFor="driver_phone">เบอร์โทรศัพท์ *</Label>
-                  <Input id="driver_phone" maxLength={10} minLength={10} value={form.driver_phone} onChange={(e) => updateField('driver_phone', e.target.value)} required />
+                  <Label htmlFor="phone">เบอร์โทรศัพท์ *</Label>
+                  <Input id="phone" maxLength={10} minLength={10} value={form.phone} onChange={(e) => updateField('phone', e.target.value)} required />
                 </div>
                 <div className="md:col-span-2">
-                  <Label htmlFor="driver_remark">หมายเหตุ</Label>
-                  <Textarea id="driver_remark" maxLength={500} value={form.driver_remark} onChange={(e) => updateField('driver_remark', e.target.value)} />
+                  <Label htmlFor="remark">หมายเหตุ</Label>
+                  <Textarea id="remark" maxLength={500} value={form.remark ?? ''} onChange={(e) => updateField('remark', e.target.value)} />
                 </div>
 
                 <div className="rounded-2xl border border-slate-200 p-4">
@@ -194,7 +156,7 @@ export default function DriverDrawer({
                     <div>
                       <div className="text-sm font-bold text-slate-950">รูปบัตรประชาชน</div>
                     </div>
-                    {form.driver_card_images_id ? <Badge variant="success">อัปโหลดแล้ว</Badge> : <Badge variant="destructive">ยังไม่มี</Badge>}
+                    {form.cardImageId ? <Badge variant="success">อัปโหลดแล้ว</Badge> : <Badge variant="destructive">ยังไม่มี</Badge>}
                   </div>
                   <div className="overflow-hidden rounded-lg border bg-slate-300 text-start flex items-start justify-start text-sm font-medium text-black/50 px-2">
                     <UploadButton<OurFileRouter, "driverImage">
@@ -211,7 +173,7 @@ export default function DriverDrawer({
                           size: cardFile?.size ?? uploaded.size,
                           type: cardFile?.type ?? uploaded.type,
                         })
-                        updateField('driver_card_images_id', image.id)
+                        updateField('cardImageId', image.id)
                       }}
                       onUploadError={(err: any) => setError(err.message || 'อัปโหลดรูปบัตรไม่สำเร็จ')} 
                     />
@@ -223,7 +185,7 @@ export default function DriverDrawer({
                     <div>
                       <div className="text-sm font-bold text-slate-950">รูปใบขับขี่</div>
                     </div>
-                    {form.driver_license_images_id ? <Badge variant="success">อัปโหลดแล้ว</Badge> : <Badge variant="destructive">ยังไม่มี</Badge>}
+                    {form.licenseImageId ? <Badge variant="success">อัปโหลดแล้ว</Badge> : <Badge variant="destructive">ยังไม่มี</Badge>}
                   </div>
                   <div className="overflow-hidden rounded-lg border bg-slate-300 text-start flex items-start justify-start text-sm font-medium text-black/50 px-2">
                     <UploadButton<OurFileRouter, "driverImage">
@@ -240,7 +202,7 @@ export default function DriverDrawer({
                           size: licenseFile?.size ?? uploaded.size,
                           type: licenseFile?.type ?? uploaded.type,
                         })
-                        updateField('driver_license_images_id', image.id)
+                        updateField('licenseImageId', image.id)
                       }}
                       onUploadError={(err: any) => setError(err.message || 'อัปโหลดรูปใบขับขี่ไม่สำเร็จ')}
                     />
@@ -255,8 +217,8 @@ export default function DriverDrawer({
                     <div>อัปโหลดไฟล์ครบแล้วค่อยบันทึกข้อมูล</div>
                   </div>
                   <div className="flex gap-2">
-                    <Badge variant={form.driver_card_images_id ? 'success' : 'destructive'}>Card</Badge>
-                    <Badge variant={form.driver_license_images_id ? 'success' : 'destructive'}>License</Badge>
+                    <Badge variant={form.cardImageId ? 'success' : 'destructive'}>Card</Badge>
+                    <Badge variant={form.licenseImageId ? 'success' : 'destructive'}>License</Badge>
                   </div>
                 </div>
                 {error ? <div className="mt-4 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-700">{error}</div> : null}

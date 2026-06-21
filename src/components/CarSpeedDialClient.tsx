@@ -8,7 +8,8 @@ import { cn } from '@/lib/utils'
 import CarCreateDrawer from '@/components/CarCreateDrawer'
 import BrandCreateDrawer from '@/components/BrandCreateDrawer'
 import VehicleTypeCreateDrawer from '@/components/VehicleTypeCreateDrawer'
-import MaintenanceCreateDrawer, { type MaintenanceRow } from '@/components/MaintenanceCreateDrawer'
+import MaintenanceCreateDrawer from '@/components/MaintenanceCreateDrawer'
+import type { MaintenanceRow } from '@/lib/types'
 
 interface VehicleType {
   id: string

@@ -9,9 +9,9 @@ import { cn } from '@/lib/utils'
 import { formatBaht, formatThaiDate, getStatusBadgeClass, getStatusLabel } from '@/lib/ui-format'
 import { AlertDialogDestructive } from '@/components/AlertDialogDestructive'
 import BookingsDrawer from '@/components/BookingsDrawer'
+import { BookingOption } from '@/lib/types'
 
 type Row = any
-type Option = { id: string; label: string; price?: number }
 
 function toDatetimeLocal(value?: string | Date | null) {
   if (!value) return ''
@@ -19,19 +19,22 @@ function toDatetimeLocal(value?: string | Date | null) {
   const tzOffset = d.getTimezoneOffset() * 60000
   return new Date(d.getTime() - tzOffset).toISOString().slice(0, 16)
 }
+
+interface BookingsClientProps {
+  initialBookings: Row[]
+  products: BookingOption[]
+  cars: BookingOption[]
+  drivers: BookingOption[]
+  currentUserId: string
+}
+
 export default function BookingsClient({
   initialBookings,
   products,
   cars,
   drivers,
   currentUserId,
-}: {
-  initialBookings: Row[]
-  products: Option[]
-  cars: Option[]
-  drivers: Option[]
-  currentUserId: string
-}) {
+}: BookingsClientProps) {
   const [bookings, setBookings] = useState<Row[]>(initialBookings)
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)

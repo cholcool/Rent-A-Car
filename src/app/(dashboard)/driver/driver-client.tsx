@@ -8,39 +8,8 @@ import { Card, CardContent } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
 import { AlertDialogDestructive } from '@/components/AlertDialogDestructive'
 import DriverDrawer from '@/components/DriverDrawer'
+import { DriverFormState, DriverRow, DriverEmptyForm } from '@/lib/types'
 
-type UploadedImage = {
-  id: string
-  url: string
-  name: string
-}
-
-export type DriverRow = {
-  id: string
-  driver_full_name: string
-  driver_phone: string
-  driver_remark: string
-  driver_card_images_id: string
-  driver_license_images_id: string
-  cardImage: UploadedImage | null
-  licenseImage: UploadedImage | null
-}
-
-type DriverFormState = {
-  driver_full_name: string
-  driver_phone: string
-  driver_remark: string
-  driver_card_images_id: string
-  driver_license_images_id: string
-}
-
-const emptyForm: DriverFormState = {
-  driver_full_name: '',
-  driver_phone: '',
-  driver_remark: '',
-  driver_card_images_id: '',
-  driver_license_images_id: '',
-}
 
 export default function DriverPageClient({ initialDrivers }: { initialDrivers: DriverRow[] }) {
   const [drivers, setDrivers] = useState(initialDrivers)
@@ -48,7 +17,7 @@ export default function DriverPageClient({ initialDrivers }: { initialDrivers: D
   const [menuOpen, setMenuOpen] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [error, setError] = useState('')
-  const [form, setForm] = useState<DriverFormState>(emptyForm)
+  const [form, setForm] = useState<DriverFormState>(DriverEmptyForm)
   const [cardFile, setCardFile] = useState<File | null>(null)
   const [licenseFile, setLicenseFile] = useState<File | null>(null)
 
@@ -66,7 +35,7 @@ export default function DriverPageClient({ initialDrivers }: { initialDrivers: D
 
   function openCreate() {
     setEditingId(null)
-    setForm(emptyForm)
+    setForm(DriverEmptyForm)
     setCardFile(null)
     setLicenseFile(null)
     setError('')
@@ -76,11 +45,11 @@ export default function DriverPageClient({ initialDrivers }: { initialDrivers: D
   function openEdit(driver: DriverRow) {
     setEditingId(driver.id)
     setForm({
-      driver_full_name: driver.driver_full_name,
-      driver_phone: driver.driver_phone,
-      driver_remark: driver.driver_remark,
-      driver_card_images_id: driver.driver_card_images_id,
-      driver_license_images_id: driver.driver_license_images_id,
+      fullName: driver.fullName,
+      phone: driver.phone,
+      remark: driver.remark,
+      cardImageId: driver.cardImageId,
+      licenseImageId: driver.licenseImageId,
     })
     setCardFile(null)
     setLicenseFile(null)
@@ -144,8 +113,8 @@ export default function DriverPageClient({ initialDrivers }: { initialDrivers: D
               <tbody>
                 {drivers.map((driver) => (
                   <tr key={driver.id} className="border-b border-slate-100 text-sm font-medium text-slate-700">
-                    <td className="px-3 py-4 font-bold text-slate-950">{driver.driver_full_name}</td>
-                    <td className="px-3 py-4">{driver.driver_phone}</td>
+                    <td className="px-3 py-4 font-bold text-slate-950">{driver.fullName}</td>
+                    <td className="px-3 py-4">{driver.phone}</td>
                     <td className="px-3 py-4">
                       <div className="flex flex-wrap gap-2">
                         <Badge variant={driver.cardImage ? 'success' : 'destructive'} className="gap-1.5">
@@ -158,7 +127,7 @@ export default function DriverPageClient({ initialDrivers }: { initialDrivers: D
                         </Badge>
                       </div>
                     </td>
-                    <td className="px-3 py-4">{driver.driver_remark || '-'}</td>
+                    <td className="px-3 py-4">{driver.remark || '-'}</td>
                     <td className="px-3 py-4">
                       <div className="flex items-center gap-2">
                         <Button type="button" variant="outline" size="sm" className="gap-2" onClick={() => openEdit(driver)}>

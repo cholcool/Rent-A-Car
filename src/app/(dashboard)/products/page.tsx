@@ -1,6 +1,7 @@
 import prisma from '@/lib/prisma'
 import { toNumber } from '@/lib/ui-format'
-import ProductsClient, { type ProductRow } from './products-client'
+import ProductsClient from './products-client'
+import { ProductRow } from '@/lib/types'
 
 export const dynamic = 'force-dynamic'
 

@@ -2,7 +2,7 @@ import { randomBytes, scryptSync, timingSafeEqual } from 'node:crypto';
 import { PrismaClient } from '@prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
 
-const connectionString = process.env.NODE_ENV === 'production' ? process.env.DATABASE_URL : process.env.DATABASE_URL_DEV
+const connectionString = process.env.DATABASE_URL;
 
 if (!connectionString) {
   throw new Error('DATABASE_URL is required to run the Prisma seed');

@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "rm -rf .next && next dev",
     "_comment_dev": "[npm run dev] : รันแอปพลิเคชันในโหมดพัฒนา (Development) เปิดหน้าเว็บดูที่ localhost พร้อมอัปเดตโค้ดสดใหม่ทันที",
     "build": "next build",
     "_comment_build": "[npm run build] : คอมไพล์และอัปติไมซ์โค้ดทั้งหมด เพื่อเตรียมไฟล์สำหรับเอาไปเปิดใช้งานจริงบน Production",
@@ -24,7 +24,11 @@
     "db:migrate": "prisma migrate dev",
     "_comment_db:migrate": "[npm run db:migrate] : บันทึกประวัติการเปลี่ยนแปลงและอัปเดตโครงสร้างตารางในฐานข้อมูล (ระบบจะถามหากข้อมูลเก่าขัดแย้ง)",
     "db:push": "prisma db push",
-    "_comment_db:push": "[npm run db:push] : ดันโครงสร้างสคีมาล่าสุดเข้าฐานข้อมูลทันทีอย่างรวดเร็ว โดยไม่ลบข้อมูลเก่าที่บันทึกค้างไว้"
+    "_comment_db:push": "[npm run db:push] : ดันโครงสร้างสคีมาล่าสุดเข้าฐานข้อมูลทันทีอย่างรวดเร็ว โดยไม่ลบข้อมูลเก่าที่บันทึกค้างไว้",
+    "db:reset": "npx prisma migrate reset",
+    "_comment_db:reset": "[npm run db:reset] : รีเซ็ตฐานข้อมูลทั้งหมดและดันโครงสร้างสคีมาล่าสุดเข้าฐานข้อมูลใหม่ (ข้อมูลเก่าจะถูกลบหมด)",
+    "db:gen": "npx prisma generate",
+    "_comment_db:gen": "[npm run db:gen] : สร้าง Prisma Client ใหม่อีกครั้ง"
   },
   "dependencies": {
     "@headlessui/react": "^1.7.0",

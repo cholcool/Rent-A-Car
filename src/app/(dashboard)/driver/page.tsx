@@ -1,5 +1,6 @@
 import prisma from '@/lib/prisma'
-import DriverPageClient, { type DriverRow } from './driver-client'
+import DriverPageClient from './driver-client'
+import { DriverRow } from '@/lib/types' 
 
 export const dynamic = 'force-dynamic'
 
@@ -15,11 +16,11 @@ export default async function DriverPage() {
 
   const rows: DriverRow[] = drivers.map((driver) => ({
     id: driver.id,
-    driver_full_name: driver.fullName,
-    driver_phone: driver.phone,
-    driver_remark: driver.remark ?? '',
-    driver_card_images_id: driver.cardImageId ?? '',
-    driver_license_images_id: driver.licenseImageId ?? '',
+    fullName: driver.fullName,
+    phone: driver.phone,
+    remark: driver.remark ?? '',
+    cardImageId: driver.cardImageId ?? '',
+    licenseImageId: driver.licenseImageId ?? '',
     cardImage: driver.cardImage
       ? {
           id: driver.cardImage.id,

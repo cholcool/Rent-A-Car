@@ -13,55 +13,7 @@ import {
   toNumber,
 } from '@/lib/ui-format'
 import { AlertDialogDestructive } from '@/components/AlertDialogDestructive'
-
-export type CarsRow = {
-  id: string
-  brandId: string
-  vehicleTypeId: string
-  model: string | null
-  year: string
-  license: string
-  color: string
-  mileage: number
-  status: string
-  isDeleted: boolean
-  remark: string | null
-  createdAt: Date
-  createdBy: string
-  updatedAt: Date
-  updatedBy: string  
-  brand: {
-    id: string
-    name: string | null
-    [key: string]: any
-  }
-  vehicleType: {
-    id: string
-    name: string
-    [key: string]: any
-  }
-  maintenances: {
-    id: string
-    name: string | null
-    type?: any
-    status?: any
-    mileage?: number
-    createdAt?: Date
-    remark?: string | null
-    dateAlert?: Date | null
-    [key: string]: any
-  }[]
-  images: {
-    carId: string
-    imageId: string
-    number: number
-    image: {
-      id: string
-      url: string
-      [key: string]: any
-    }
-  }[]
-}
+import { CarsRow } from '@/lib/types'
 
 interface PageProps {
   carsIn?: CarsRow[]
@@ -132,26 +84,33 @@ export default function PageClient({carsIn} : PageProps ) {
                       <td className="px-3 py-3"><Badge className={getStatusBadgeClass(car.status)}>{getStatusLabel(car.status)}</Badge></td>
                       <td className='px-3 py-3'>
                         {(() => {
-                          // 1. กรองเอาเฉพาะอันที่สถานะเป็น active เท่านั้น
+                          // 1. กรองเอาเฉพาะอันที่สถานะเป็น Active เท่านั้น
                           const activeMaintenances = car.maintenances?.filter(
                             (m) => m.status === 'Active'
                           ) || [];
 
-                          // 2. เรียงลำดับจากวันที่ล่าสุดขึ้นก่อน (เปรียบเทียบจาก createdAt)
-                          const latestActive = activeMaintenances.sort(
-                            (a, b) => new Date(b.dateStart).getTime() - new Date(a.dateStart).getTime()
-                          )[0]; // หยิบเอาตัวแรกสุด [0] ซึ่งก็คือวันที่ล่าสุด
+                          // 2. เรียงลำดับจากวันที่ล่าสุดขึ้นก่อนอย่างปลอดภัย
+                          // โคลนอาร์เรย์ด้วย [...activeMaintenances] ป้องกันข้อมูลต้นฉบับสลับตำแหน่งมั่ว
+                          const sortedMaintenances = [...activeMaintenances].sort((a, b) => {
+                            // เช็กก่อนถ้ามีวันเริ่มให้แปลงเป็นตัวเลขเวลา ถ้าเป็น null ให้แทนค่าด้วยเลข 0 ทันที
+                            const timeB = b.dateStart ? new Date(b.dateStart).getTime() : 0;
+                            const timeA = a.dateStart ? new Date(a.dateStart).getTime() : 0;
+                            return timeB - timeA;
+                          });
+
+                          // หยิบเอาตัวแรกสุด [0] หลังจากเรียงลำดับจากใหม่สุดไปเก่าสุดเสร็จแล้ว
+                          const latestActive = sortedMaintenances[0];
 
                           // 3. แสดงผล Badge หากมีข้อมูลตรงตามเงื่อนไข
                           if (latestActive) {
                             return (
                               <Badge className={getStatusBadgeClass(latestActive.status)}>
-                                {latestActive.name ?? 'ไม่ระบุชื่อรายการ'}
+                                {latestActive.name ?? ''}
                               </Badge>
                             );
                           }
 
-                          // 4. กรณีไม่มีงานซ่อมบำรุงที่กำลัง active อยู่เลย ให้ขึ้นเครื่องหมายขีด
+                          // 4. กรณีไม่มีงานซ่อมบำรุงที่กำลัง Active อยู่เลย ให้ขึ้นเครื่องหมายขีด
                           return <span className="text-slate-400">-</span>;
                         })()}
                       </td>

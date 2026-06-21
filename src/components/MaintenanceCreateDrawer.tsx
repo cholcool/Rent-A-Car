@@ -9,53 +9,12 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import Select from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
-import { formatThaiDate } from '@/lib/ui-format'
+import { formatThaiDate, formatCompactNumber, toNumber } from '@/lib/ui-format'
 import { createMaintenance, deleteMaintenance, updateMaintenance } from '@/app/(dashboard)/cars/maintenance-actions'
 import { AlertDialogDestructive } from '@/components/AlertDialogDestructive'
+import { MaintenanceStatus, MaintenanceProps, MaintenanceRow, MaintenanceType } from '@/lib/types'
 
 const todayStr = new Date().toISOString().split('T')[0];
-
-type MaintenanceType = 'Maintenance' | 'Tax' | 'Insurance'
-
-const MaintenanceType = [
-  { value: 'Maintenance', label: 'บำรุงรักษา' },
-  { value: 'Tax', label: 'ภาษี' },
-  { value: 'Insurance', label: 'ประกันภัย' },
-] as const
-
-type MaintenanceStatus = 'Pending' | 'Active' | 'Complete'
-
-const MaintenanceStatus = [
-  { value: 'Pending', label: 'รอแจ้งเตือน' },
-  { value: 'Active', label: 'แจ้งเตือน' },
-  { value: 'Complete', label: 'เสร็จสิ้น' },
-] as const
-
-export type MaintenanceRow = {
-  id: string
-  type: MaintenanceType | null
-  name: string | null
-  description: string | null
-  remark: string | null
-  status: MaintenanceStatus
-  mileage: number
-  mileageTarget: number
-  mileageAlert: number
-  dateAlert: string | null
-  dateStart: string
-  dateEnd: string
-  dateCount: number
-}
-
-type  MaintenanceProps = {
-  carId?: string
-  carMileage?: number
-  carOptions?: Array<{ id: string; label: string }>
-  maintenances: MaintenanceRow[]
-  variant?: 'page' | 'modal'
-  showList?: boolean
-  onClose?: () => void
-}
 
 function statusClass(status: MaintenanceStatus) {
   if (status === 'Active') return 'bg-blue-100 text-blue-700'
@@ -323,12 +282,12 @@ export default function MaintenanceCreateDrawer({
                 <thead className="bg-slate-50">
                   <tr className="text-left text-sm font-semibold text-slate-600">
                     <th className="w-30 px-4 py-3">สถานะ</th>
-                    <th className="w-60 px-4 py-3">วันที่แจ้งเตือน</th>
                     <th className="w-45 px-4 py-3">ประเภทการบำรุงรักษา</th>
                     <th className="w-45 px-4 py-3">รายละเอียด</th>
-                    <th className="w-45 px-4 py-3">เลขไมล์ปัจจุบัน</th>
-                    <th className="w-50 px-4 py-3">เป้าหมายเลขไมล์ครั้งถัดไป</th>
-                    <th className="w-45 px-4 py-3">แจ้งเตือนเลขไมล์</th>
+                    <th className="w-60 px-4 py-3">วันที่แจ้งเตือน</th>
+                    <th className="w-50 px-4 py-3">กำหนดเช็กระยะที่เลขไมล์</th>
+                    <th className="w-45 px-4 py-3">แจ้งเตือนเลขไมล์ล่วงหน้า</th>
+                    <th className="w-45 px-4 py-3">เลขไมล์ล่าสุดของรถ</th>
                     <th className="w-35 px-4 py-3">จัดการ</th>
                   </tr>
                 </thead>
@@ -339,18 +298,17 @@ export default function MaintenanceCreateDrawer({
                         <td className="px-4 py-3">
                           <Badge className={statusClass(row.status)}>{MaintenanceStatus.find(status => status.value === row.status)?.label}</Badge>
                         </td>
-                        <td className="px-4 py-3">{formatThaiDate(row.dateStart)} ถึง {formatThaiDate(row.dateEnd)}</td>
                         <td className="px-4 py-3">
                           <div className="font-medium text-slate-900">{row.name ?? '-'}</div>
                           <div className="text-xs text-slate-500">{row.type ?? '-'}</div>
                         </td>
                         <td className="px-4 py-3">
-                          {row.description ?? '-'}
-                          {row.remark ? <span className="text-slate-500"> - {row.remark}</span> : null}
+                          <div className='overflow-hidden text-nowrap'>{row.description ?? '-'}</div>
                         </td>
-                        <td className="px-4 py-3">{row.mileage}</td>
-                        <td className="px-4 py-3">{row.mileageTarget}</td>
-                        <td className="px-4 py-3">{row.mileageAlert}</td>
+                        <td className="px-4 py-3">{formatThaiDate(row.dateStart)} ถึง {formatThaiDate(row.dateEnd)}</td>
+                        <td className="px-4 py-3">{formatCompactNumber(toNumber(row.mileageTarget))}</td>
+                        <td className="px-4 py-3">{formatCompactNumber(toNumber(row.mileageAlert))}</td>
+                        <td className="px-4 py-3">{formatCompactNumber(toNumber(row.mileage))}</td>
                         <td className="px-4 py-3">
                           <div className="flex gap-2">
                             <Button type="button" size="icon-sm" variant="outline" onClick={() => openEdit(row)}>
@@ -463,33 +421,34 @@ export default function MaintenanceCreateDrawer({
                 <Input name="dateCount" type="number" min="0" value={formData.dateCount} onChange={handleChange} readOnly />
               </div>
 
-              <div className="grid gap-4 sm:grid-cols-2 border-t border-slate-200 pt-4">
+              <div className='rounded-2xl border border-slate-200 p-4'>
+                <div className="flex items-center justify-between">
+                  <div className="text-sm font-medium text-slate-500">
+                    <div className="font-bold text-slate-950">เลขไมล์ล่าสุดของรถ</div>
+                    <div>{formatCompactNumber(toNumber(formData.mileage))}</div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-2 border-t border-slate-200 pt-4 hidden">
+                <label className="text-sm font-semibold text-slate-700">เลขไมล์ล่าสุดของรถ</label>
+                <Input name="mileage" type="number" min="0" step="0.01" value={formData.mileage} onChange={handleChange} />
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
-                  <label className="text-sm font-semibold text-slate-700">เลขไมล์ปัจจุบัน</label>
-                  <Input name="mileage" type="number" min="0" step="0.01" value={formData.mileage} onChange={handleChange} />
+                  <label className="text-sm font-semibold text-slate-700">กำหนดเช็กระยะที่เลขไมล์</label>
+                  <Input name="mileageTarget" type="number" min={formData.mileage} step="0" value={formData.mileageTarget} onChange={handleChange} />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-sm font-semibold text-slate-700">เป้าหมายเลขไมล์ครั้งถัดไป</label>
-                  <Input name="mileageTarget" type="number" min="0" step="0.01" value={formData.mileageTarget} onChange={handleChange} />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-semibold text-slate-700">แจ้งเตือนเลขไมล์</label>
-                  <Input name="mileageAlert" type="number" min="0" step="0.01" value={formData.mileageAlert} onChange={handleChange} />
+                  <label className="text-sm font-semibold text-slate-700">แจ้งเตือนเลขไมล์ล่วงหน้า</label>
+                  <Input name="mileageAlert" type="number" min={formData.mileage} max={formData.mileageTarget} step="0" value={formData.mileageAlert} onChange={handleChange} />
                 </div>
               </div>
 
               <div className="space-y-2">
                 <label className="text-sm font-semibold text-slate-700">หมายเหตุ</label>
                 <Textarea name="remark" value={formData.remark} onChange={handleChange} maxLength={500} rows={3} />
-              </div>
-
-              <div className='rounded-2xl border border-slate-200 p-4'>
-                <div className="flex items-center justify-between">
-                  <div className="text-sm font-medium text-slate-500">
-                    <div className="font-bold text-slate-950">การแจ้งเตือน</div>
-                    <div>อัปโหลดไฟล์ครบแล้วค่อยบันทึกข้อมูล</div>
-                  </div>
-                </div>
               </div>
 
               <div className="flex gap-3 border-t border-slate-200 pt-4">

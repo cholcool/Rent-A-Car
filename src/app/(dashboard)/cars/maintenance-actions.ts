@@ -2,9 +2,7 @@
 
 import prisma from '@/lib/prisma'
 import { getSessionAndRoles } from '@/lib/auth-server'
-
-type MaintenanceStatus = 'Pending' | 'Active' | 'Complete'
-type MaintenanceType = 'Maintenance' | 'Tax' | 'Insurance'
+import { MaintenanceStatus, MaintenanceType } from '@/lib/types'
 
 interface MaintenanceInput {
   carId: string

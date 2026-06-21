@@ -15,41 +15,33 @@ function normalize(value: unknown) {
   return typeof value === 'string' ? value.trim() : ''
 }
 
-function mapDriver(driver: {
-  id: string
-  fullName: string
-  phone: string
-  remark: string | null
-  cardImageId: string | null
-  licenseImageId: string | null
-  cardImage?: { id: string; url: string; name: string } | null
-  licenseImage?: { id: string; url: string; name: string } | null
-}) {
+function mapDriver(driver: any) {
   return {
     id: driver.id,
-    driver_full_name: driver.fullName,
-    driver_phone: driver.phone,
-    driver_remark: driver.remark ?? '',
-    driver_card_images_id: driver.cardImageId ?? '',
-    driver_license_images_id: driver.licenseImageId ?? '',
+    fullName: driver.fullName,
+    phone: driver.phone,
+    remark: driver.remark ?? '',
+    cardImageId: driver.cardImageId ?? '',
+    licenseImageId: driver.licenseImageId ?? '',
     cardImage: driver.cardImage ?? null,
     licenseImage: driver.licenseImage ?? null,
   }
 }
+
 
 export async function POST(request: Request) {
   const userId = await getUserId()
   if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const body = await request.json().catch(() => ({}))
-  const fullName = normalize(body.driver_full_name)
-  const phone = normalize(body.driver_phone)
-  const remark = normalize(body.driver_remark)
-  const cardImageId = normalize(body.driver_card_images_id) || null
-  const licenseImageId = normalize(body.driver_license_images_id) || null
+  const fullName = normalize(body.fullName)
+  const phone = normalize(body.phone)
+  const remark = normalize(body.remark)
+  const cardImageId = normalize(body.cardImageId) || null
+  const licenseImageId = normalize(body.licenseImageId) || null
 
-  if (!fullName) return NextResponse.json({ error: 'driver_full_name is required' }, { status: 400 })
-  if (!phone) return NextResponse.json({ error: 'driver_phone is required' }, { status: 400 })
+  if (!fullName) return NextResponse.json({ error: 'fullName is required' }, { status: 400 })
+  if (!phone) return NextResponse.json({ error: 'phone is required' }, { status: 400 })
 
   const driver = await prisma.driver.create({
     data: {
@@ -81,11 +73,11 @@ export async function PATCH(request: Request) {
   const driver = await prisma.driver.update({
     where: { id },
     data: {
-      fullName: normalize(body.driver_full_name),
-      phone: normalize(body.driver_phone),
-      remark: normalize(body.driver_remark) || null,
-      cardImageId: normalize(body.driver_card_images_id) || null,
-      licenseImageId: normalize(body.driver_license_images_id) || null,
+      fullName: normalize(body.fullName),
+      phone: normalize(body.phone),
+      remark: normalize(body.remark) || null,
+      cardImageId: normalize(body.cardImageId) || null,
+      licenseImageId: normalize(body.licenseImageId) || null,
       updatedBy: userId,
     },
     include: {

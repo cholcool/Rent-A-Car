@@ -51,6 +51,7 @@ enum MaintenanceStatus {
   Pending
   Active
   Complete
+  Overdue
 }
 
 // ==========================================
@@ -66,6 +67,8 @@ model Car {
   year         String     @map("cars_years") @db.VarChar(4)
   color        String     @map("cars_color") @db.VarChar(50)
   license      String     @unique @map("cars_license") @db.VarChar(20)
+  engine       String?     @unique @map("cars_engine") @db.VarChar(20)
+  chassis      String?     @unique @map("cars_chassis") @db.VarChar(20)
   status       CarStatus  @default(Available) @map("cars_status")
   remark       String?    @map("cars_remark") @db.VarChar(500)
   createdAt    DateTime   @default(now()) @map("created_date") @db.Timestamptz
@@ -382,13 +385,14 @@ model Maintenance {
   remark         String?           @map("maintenances_remark") @db.VarChar(500)
   type           MaintenanceType?  @map("maintenances_type")
   status         MaintenanceStatus @default(Pending) @map("maintenances_status")
-  mileage        Int               @default(0) @map("mileage")
-  mileageTarget  Int               @default(0) @map("mileage_target")
-  mileageAlert   Int               @default(0) @map("mileage_alert")
+  is_active      Boolean           @default(false) @map("is_active")
+  mileage        Int?               @default(0) @map("mileage")
+  mileageTarget  Int?               @default(0) @map("mileage_target")
+  mileageAlert   Int?               @default(0) @map("mileage_alert")
   dateAlert      DateTime?         @map("date_alert") @db.Timestamptz
-  dateStart      DateTime          @map("date_start") @db.Timestamptz
-  dateEnd        DateTime          @map("date_end") @db.Timestamptz
-  dateCount      Int               @default(0) @map("date_count")
+  dateStart      DateTime?          @map("date_start") @db.Timestamptz
+  dateEnd        DateTime?          @map("date_end") @db.Timestamptz
+  dateCount      Int?               @default(0) @map("date_count")
   createdAt      DateTime          @default(now()) @map("created_date") @db.Timestamptz
   createdBy      String            @map("created_by") @db.Uuid
   updatedAt      DateTime          @updatedAt @map("updated_date") @db.Timestamptz

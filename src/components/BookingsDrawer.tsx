@@ -27,7 +27,6 @@ function uploadKey(url: string) {
   return parts[parts.length - 1] ?? url
 }
 
-type Row = any
 type Option = { id: string; label: string; price?: number }
 
 interface From {
@@ -56,7 +55,7 @@ interface BookingsDrawerProps {
   formIn?: From
   errorIn?: string
   setDrawerOpen?: any
-  setBookings: Dispatch<SetStateAction<Row[]>> 
+  setBookings: Dispatch<SetStateAction<any[]>> 
 }
 
 export default function BookingsDrawer({ 

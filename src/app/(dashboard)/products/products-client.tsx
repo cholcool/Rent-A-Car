@@ -11,40 +11,7 @@ import Textarea from '@/components/ui/textarea'
 import { AlertDialogDestructive } from '@/components/AlertDialogDestructive'
 import { cn } from '@/lib/utils'
 import { formatBaht, formatThaiDate } from '@/lib/ui-format'
-
-export type ProductRow = {
-  id: string
-  products_name: string
-  products_desc: string
-  products_remark: string
-  products_price: number
-  date_start: string
-  date_end: string
-  date_count: number
-  is_active: boolean
-}
-
-type FormState = {
-  products_name: string
-  products_desc: string
-  products_remark: string
-  products_price: string
-  date_start: string
-  date_end: string
-  date_count: number
-  is_active: boolean
-}
-
-const emptyForm: FormState = {
-  products_name: '',
-  products_desc: '',
-  products_remark: '',
-  products_price: '0',
-  date_start: '',
-  date_end: '',
-  date_count: 0,
-  is_active: true,
-}
+import { ProductRow, ProductEmptyForm, ProductFormState } from '@/lib/types'
 
 function toDateInputValue(value: string) {
   return value ? value.slice(0, 10) : ''
@@ -58,8 +25,8 @@ function calcDateCount(start: string, end: string) {
   return Math.max(Math.floor((endDate.getTime() - startDate.getTime()) / 86_400_000) + 1, 0)
 }
 
-function productToForm(product?: ProductRow | null): FormState {
-  if (!product) return emptyForm
+function productToForm(product?: ProductRow | null): ProductFormState {
+  if (!product) return ProductEmptyForm
   return {
     products_name: product.products_name,
     products_desc: product.products_desc,
@@ -79,7 +46,7 @@ export default function ProductsClient({ initialProducts }: { initialProducts: P
   const [saving, setSaving] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [error, setError] = useState('')
-  const [form, setForm] = useState<FormState>(emptyForm)
+  const [form, setForm] = useState<ProductFormState>(ProductEmptyForm)
 
   const editingProduct = useMemo(
     () => products.find((product) => product.id === editingId) ?? null,
@@ -103,7 +70,7 @@ export default function ProductsClient({ initialProducts }: { initialProducts: P
 
   function openCreate() {
     setEditingId(null)
-    setForm(emptyForm)
+    setForm(ProductEmptyForm)
     setError('')
     setOpen(true)
   }
@@ -129,7 +96,7 @@ export default function ProductsClient({ initialProducts }: { initialProducts: P
     openCreate()
   }
 
-  function updateField<K extends keyof FormState>(key: K, value: FormState[K]) {
+  function updateField<K extends keyof ProductFormState>(key: K, value: ProductFormState[K]) {
     setForm((current) => {
       const next = { ...current, [key]: value }
       if (key === 'date_start' || key === 'date_end') {
