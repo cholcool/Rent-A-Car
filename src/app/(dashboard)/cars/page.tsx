@@ -1,9 +1,6 @@
 import { Car, Search } from 'lucide-react'
 import prisma from '@/lib/prisma'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent } from '@/components/ui/card'
-import Input from '@/components/ui/input'
-import Select from '@/components/ui/select'
+import { Input, Select, Card, CardContent, Button } from '@/components/ui'
 import { formatCompactNumber } from '@/lib/ui-format'
 import SpeedDialContainer from '@/components/SpeedDialContainer'
 import PageClient from "./page-client"
@@ -11,13 +8,13 @@ import { CarStatusOptions } from '@/lib/types'
 
 export const dynamic = 'force-dynamic'
 
-type CarsPageProps = {
+type PageProps = {
   searchParams?: Promise<Record<string, string | string[] | undefined>>
 }
 
-export default async function CarsPage({ searchParams }: CarsPageProps) {
+export default async function CarsPage({ searchParams }: PageProps) {
   const params = (await searchParams) ?? {}
-  const q = typeof params.q === 'string' ? params.q.trim() : ''
+  const inputSearch = typeof params.q === 'string' ? params.q.trim() : ''
   const statusParam = typeof params.status === 'string' ? params.status : ''
   const status = CarStatusOptions.find(status => status.value === statusParam)?.value ?? ''
   const brand = typeof params.brand === 'string' ? params.brand.trim() : ''
@@ -26,13 +23,15 @@ export default async function CarsPage({ searchParams }: CarsPageProps) {
 
   const where: any = { isDeleted: false }
 
-  if (q) {
+  if (inputSearch) {
     where.OR = [
-      { model: { contains: q, mode: 'insensitive' } },
-      { license: { contains: q, mode: 'insensitive' } },
-      { color: { contains: q, mode: 'insensitive' } },
-      { brand: { name: { contains: q, mode: 'insensitive' } } },
-      { vehicleType: { name: { contains: q, mode: 'insensitive' } } },
+      { model: { contains: inputSearch, mode: 'insensitive' } },
+      { license: { contains: inputSearch, mode: 'insensitive' } },
+      { color: { contains: inputSearch, mode: 'insensitive' } },
+      { engine: { contains: inputSearch, mode: 'insensitive' } },
+      { chassis: { contains: inputSearch, mode: 'insensitive' } },
+      { brand: { name: { contains: inputSearch, mode: 'insensitive' } } },
+      { vehicleType: { name: { contains: inputSearch, mode: 'insensitive' } } },
     ]
   }
 
@@ -49,7 +48,7 @@ export default async function CarsPage({ searchParams }: CarsPageProps) {
           ? { mileage: 'asc' }
           : { createdAt: 'desc' }
 
-  const [cars, totalCars, availableCars] = await Promise.all([
+  const [cars, totalCars, availableCars, vehicleTypes, brands] = await Promise.all([
     prisma.car.findMany({
       where,
       orderBy,
@@ -66,19 +65,20 @@ export default async function CarsPage({ searchParams }: CarsPageProps) {
     }),
     prisma.car.count({ where: { isDeleted: false } }),
     prisma.car.count({ where: { isDeleted: false, status: 'Available' } }),
+    prisma.vehicleType.findMany({ where: { isDeleted: false } }),
+    prisma.brand.findMany({ where: { isDeleted: false } }),
   ])
 
   return (
     <div className="space-y-8">
-      <header className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+      <header className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div>
-          <h1 className="text-4xl font-extrabold tracking-normal text-slate-950">จัดการรถ</h1>
-          <p className="mt-3 text-lg font-bold text-slate-500">ค้นหา ตรวจสอบสถานะ และจัดการข้อมูลรถเช่า</p>
+          <h1 className="text-4xl font-extrabold tracking-normal text-slate-950">ระบบจัดการรถยนต์</h1>
         </div>
 
         <div className="grid grid-cols-2 gap-3 sm:min-w-72">
           <div className="rounded-2xl border border-slate-200 bg-white px-5 py-4 shadow-sm shadow-slate-200/60">
-            <div className="text-sm font-bold text-slate-500">รถทั้งหมด</div>
+            <div className="text-sm font-bold text-slate-500">ทั้งหมด</div>
             <div className="mt-2 text-3xl font-extrabold text-slate-950">{formatCompactNumber(totalCars)}</div>
           </div>
           <div className="rounded-2xl border border-slate-200 bg-white px-5 py-4 shadow-sm shadow-slate-200/60">
@@ -97,7 +97,7 @@ export default async function CarsPage({ searchParams }: CarsPageProps) {
       >
         <div className="relative">
           <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-          <Input name="q" defaultValue={q} placeholder="ค้นหารถ รุ่น ทะเบียน" className="pl-10" />
+          <Input name="inputSearch" defaultValue={inputSearch} placeholder="ค้นหารถ รุ่น ทะเบียน" className="pl-10" />
         </div>
 
         <Select name="status" defaultValue={status}>
@@ -108,9 +108,24 @@ export default async function CarsPage({ searchParams }: CarsPageProps) {
             </option>
           ))}
         </Select>
+        
+        <Select name="vehicleTypes" defaultValue={vehicleType}>
+          <option value="">ทุกประเภท</option>
+          {vehicleTypes.map((type: any) => (
+            <option key={type.id} value={type.name}>
+              {type.name}
+            </option>
+          ))}
+        </Select>
 
-        <Input name="brand" defaultValue={brand} placeholder="แบรนด์" />
-        <Input name="vehicleType" defaultValue={vehicleType} placeholder="ประเภทรถ" />
+        <Select name="brand" defaultValue={brand}>
+          <option value="">ทุกยี่ห้อ</option>
+          {brands.map((brand: any) => (
+            <option key={brand.id} value={brand.name}>
+              {brand.name}
+            </option>
+          ))}
+        </Select>
 
         <Select name="sort" defaultValue={sort}>
           <option value="newest">ล่าสุด</option>

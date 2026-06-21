@@ -28,6 +28,13 @@ function mapDriver(driver: any) {
   }
 }
 
+export async function GET() {
+  const userId = await getUserId()
+  if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  const drivers = await prisma.driver.findMany({ orderBy: { createdAt: 'desc' } });
+  return NextResponse.json(drivers.map(mapDriver));
+}
 
 export async function POST(request: Request) {
   const userId = await getUserId()

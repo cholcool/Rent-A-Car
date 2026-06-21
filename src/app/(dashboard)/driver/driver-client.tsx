@@ -71,78 +71,73 @@ export default function DriverPageClient({ initialDrivers }: { initialDrivers: D
     setDrivers((current) => current.filter((item) => item.id !== id))
   }
 
-  const total = drivers.length
-  const uploadedCardCount = drivers.filter((driver) => Boolean(driver.cardImage)).length
-  const uploadedLicenseCount = drivers.filter((driver) => Boolean(driver.licenseImage)).length
-
   return (
-    <div className="space-y-8">
-      <header className="flex flex-col gap-3">
-        <h1 className="text-4xl font-extrabold tracking-tight text-slate-950">ข้อมูลลูกค้า / ผู้ขับขี่</h1>
-        <p className="max-w-3xl text-lg font-semibold text-slate-500">
-          จัดการข้อมูลคนขับ เอกสาร และรูปบัตรประชาชน/ใบขับขี่
-        </p>
-      </header>
-
-      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <Card><CardContent className="p-6"><div className="text-sm font-semibold text-slate-500">รายการทั้งหมด</div><div className="mt-2 text-3xl font-extrabold text-slate-950">{total}</div></CardContent></Card>
-        <Card><CardContent className="p-6"><div className="text-sm font-semibold text-slate-500">รูปบัตร</div><div className="mt-2 text-3xl font-extrabold text-emerald-600">{uploadedCardCount}</div></CardContent></Card>
-        <Card><CardContent className="p-6"><div className="text-sm font-semibold text-slate-500">รูปใบขับขี่</div><div className="mt-2 text-3xl font-extrabold text-emerald-600">{uploadedLicenseCount}</div></CardContent></Card>
-        <Card><CardContent className="p-6"><div className="text-sm font-semibold text-slate-500">สถานะหน้า</div><div className="mt-2 text-3xl font-extrabold text-slate-950">Ready</div></CardContent></Card>
-      </section>
-
-      <Card>
-        <CardContent className="p-6 sm:p-8">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <h2 className="text-2xl font-extrabold text-slate-950">รายการล่าสุด</h2>
+    <>
+      {drivers.length === 0 ? (
+        <Card>
+          <CardContent className="py-14 text-center">
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 text-slate-400">
+              <Contact className="h-7 w-7" aria-hidden="true" />
             </div>
-          </div>
+            <h2 className="mt-5 text-xl font-extrabold text-slate-950">ไม่พบรถที่ตรงกับเงื่อนไข</h2>
+            <p className="mt-2 text-sm font-semibold text-slate-500">ลองเปลี่ยนคำค้นหาหรือตัวกรองอีกครั้ง</p>
+          </CardContent>
+        </Card>
+      ) : (
+        <Card>
+          <CardContent className="p-6 sm:p-8">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <h2 className="text-2xl font-extrabold text-slate-950">รายการล่าสุด</h2>
+              </div>
+            </div>
 
-          <div className="mt-6 overflow-x-auto">
-            <table className="w-full min-w-250 text-left">
-              <thead>
-                <tr className="border-b border-slate-200 text-sm font-extrabold text-slate-950">
-                  <th className="px-3 py-3">ชื่อ-นามสกุล</th>
-                  <th className="px-3 py-3">เบอร์โทรศัพท์</th>
-                  <th className="px-3 py-3">เอกสาร</th>
-                  <th className="px-3 py-3">หมายเหตุ</th>
-                  <th className="px-3 py-3">จัดการ</th>
-                </tr>
-              </thead>
-              <tbody>
-                {drivers.map((driver) => (
-                  <tr key={driver.id} className="border-b border-slate-100 text-sm font-medium text-slate-700">
-                    <td className="px-3 py-4 font-bold text-slate-950">{driver.fullName}</td>
-                    <td className="px-3 py-4">{driver.phone}</td>
-                    <td className="px-3 py-4">
-                      <div className="flex flex-wrap gap-2">
-                        <Badge variant={driver.cardImage ? 'success' : 'destructive'} className="gap-1.5">
-                          <CreditCard className="h-3.5 w-3.5" />
-                          {driver.cardImage ? 'บัตรประชาชน' : 'ยังไม่อัปโหลดบัตร'}
-                        </Badge>
-                        <Badge variant={driver.licenseImage ? 'success' : 'destructive'} className="gap-1.5">
-                          <FileText className="h-3.5 w-3.5" />
-                          {driver.licenseImage ? 'ใบขับขี่' : 'ยังไม่อัปโหลดใบขับขี่'}
-                        </Badge>
-                      </div>
-                    </td>
-                    <td className="px-3 py-4">{driver.remark || '-'}</td>
-                    <td className="px-3 py-4">
-                      <div className="flex items-center gap-2">
-                        <Button type="button" variant="outline" size="sm" className="gap-2" onClick={() => openEdit(driver)}>
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <AlertDialogDestructive onClick={() => deleteDriver(driver.id)} />
-                      </div>
-                    </td>
+            <div className="mt-6 overflow-x-auto">
+              <table className="w-full min-w-250 text-left">
+                <thead>
+                  <tr className="border-b border-slate-200 text-sm font-extrabold text-slate-950">
+                    <th className="px-3 py-3">ชื่อ-นามสกุล</th>
+                    <th className="px-3 py-3">เบอร์โทรศัพท์</th>
+                    <th className="px-3 py-3">เอกสาร</th>
+                    <th className="px-3 py-3">หมายเหตุ</th>
+                    <th className="px-3 py-3">จัดการ</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </CardContent>
-      </Card>
+                </thead>
+                <tbody>
+                  {drivers.map((driver) => (
+                    <tr key={driver.id} className="border-b border-slate-100 text-sm font-medium text-slate-700">
+                      <td className="px-3 py-4 font-bold text-slate-950">{driver.fullName}</td>
+                      <td className="px-3 py-4">{driver.phone}</td>
+                      <td className="px-3 py-4">
+                        <div className="flex flex-wrap gap-2">
+                          <Badge variant={driver.cardImage ? 'success' : 'destructive'} className="gap-1.5">
+                            <CreditCard className="h-3.5 w-3.5" />
+                            {driver.cardImage ? 'บัตรประชาชน' : 'ยังไม่อัปโหลดบัตร'}
+                          </Badge>
+                          <Badge variant={driver.licenseImage ? 'success' : 'destructive'} className="gap-1.5">
+                            <FileText className="h-3.5 w-3.5" />
+                            {driver.licenseImage ? 'ใบขับขี่' : 'ยังไม่อัปโหลดใบขับขี่'}
+                          </Badge>
+                        </div>
+                      </td>
+                      <td className="px-3 py-4">{driver.remark || '-'}</td>
+                      <td className="px-3 py-4">
+                        <div className="flex items-center gap-2">
+                          <Button type="button" variant="outline" size="sm" className="gap-2" onClick={() => openEdit(driver)}>
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <AlertDialogDestructive onClick={() => deleteDriver(driver.id)} />
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+      
 
       {drawerOpen && (
         <DriverDrawer
@@ -186,6 +181,6 @@ export default function DriverPageClient({ initialDrivers }: { initialDrivers: D
           </Button>
         </div>
       )}
-    </div>
+    </>
   )
 }
