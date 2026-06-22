@@ -53,9 +53,6 @@ export default function ProductsClient({ initialProducts }: { initialProducts: P
     [editingId, products]
   )
 
-  const total = products.length
-  const active = products.filter((product) => product.is_active).length
-
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
       if (event.key === 'Escape') {
@@ -101,11 +98,12 @@ export default function ProductsClient({ initialProducts }: { initialProducts: P
       const next = { ...current, [key]: value }
       if (key === 'date_start' || key === 'date_end') {
         next.date_count = calcDateCount(next.date_start, next.date_end)
-      }
-      if (next.date_end < toDateInputValue(new Date().toISOString())) {
-        next.is_active = false
-      } else if (next.is_active === false && next.date_end >= toDateInputValue(new Date().toISOString())) {
-        next.is_active = true
+
+        if (next.date_end < toDateInputValue(new Date().toISOString())) {
+          next.is_active = false
+        } else if (next.is_active === false && next.date_end >= toDateInputValue(new Date().toISOString())) {
+          next.is_active = true
+        }
       }
 
       return next
@@ -184,22 +182,6 @@ export default function ProductsClient({ initialProducts }: { initialProducts: P
 
   return (
     <div className="space-y-8">
-      <header className="flex flex-col gap-3">
-        <h1 className="text-4xl font-extrabold tracking-tight text-slate-950">
-          ข้อมูลบริการ/โปรโมชั่น
-        </h1>
-        <p className="max-w-3xl text-lg font-semibold text-slate-500">
-          จัดการเรทราคาและโปรโมชั่นที่ใช้ในการคำนวณราคาค่าบริการของรถแต่ละคัน
-        </p>
-      </header>
-
-      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <Card><CardContent className="p-6"><div className="text-sm font-semibold text-slate-500">รายการทั้งหมด</div><div className="mt-2 text-3xl font-extrabold text-slate-950">{total}</div></CardContent></Card>
-        <Card><CardContent className="p-6"><div className="text-sm font-semibold text-slate-500">Active</div><div className="mt-2 text-3xl font-extrabold text-emerald-600">{active}</div></CardContent></Card>
-        <Card><CardContent className="p-6"><div className="text-sm font-semibold text-slate-500">Inactive</div><div className="mt-2 text-3xl font-extrabold text-rose-600">{total - active}</div></CardContent></Card>
-        <Card><CardContent className="p-6"><div className="text-sm font-semibold text-slate-500">อัปเดตล่าสุด</div><div className="mt-2 text-3xl font-extrabold text-slate-950">{total ? 'พร้อมใช้งาน' : '-'}</div></CardContent></Card>
-      </section>
-
       <Card>
         <CardContent className="p-6 sm:p-8">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -208,15 +190,13 @@ export default function ProductsClient({ initialProducts }: { initialProducts: P
             </div>
           </div>
 
-          {error ? <div className="mt-4 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-700">{error}</div> : null}
-
           <div className="mt-6 overflow-x-auto">
             <table className="w-full min-w-245 text-left">
               <thead>
                 <tr className="border-b border-slate-200 text-sm font-extrabold text-slate-950">
                   <th className="px-3 py-3">ชื่อเรทราคา/โปรโมชั่น</th>
                   <th className="px-3 py-3">ราคาขายต่อวัน</th>
-                  <th className="px-3 py-3">ระยะเวลาโปรโมชั่น</th>
+                  <th className="px-3 py-3">ระยะเวลา</th>
                   <th className="px-3 py-3">จำนวนวัน</th>
                   <th className="px-3 py-3">สถานะ</th>
                   <th className="px-3 py-3">การจัดการ</th>
@@ -295,7 +275,7 @@ export default function ProductsClient({ initialProducts }: { initialProducts: P
                 <form className="mt-6 flex-1 space-y-5 overflow-y-auto pr-1" onSubmit={submitForm}>
                   <div className="grid gap-5 md:grid-cols-2">
                     <div className="md:col-span-2">
-                      <Label htmlFor="products_name">ชื่อเรทราคา หรือชื่อโปรโมชั่น *</Label>
+                      <Label htmlFor="products_name">ชื่อบริการ หรือชื่อโปรโมชั่น *</Label>
                       <Input id="products_name" maxLength={255} value={form.products_name} onChange={(e) => updateField('products_name', e.target.value)} required />
                     </div>
                     <div className="md:col-span-2">
@@ -320,7 +300,7 @@ export default function ProductsClient({ initialProducts }: { initialProducts: P
                     </div>
                     <div>
                       <Label htmlFor="date_end">วัน-เวลาที่สิ้นสุดราคานี้</Label>
-                      <Input id="date_end" type="date" value={form.date_end} onChange={(e) => updateField('date_end', e.target.value)} />
+                      <Input id="date_end" type="date" value={form.date_end} min={form.date_start} onChange={(e) => updateField('date_end', e.target.value)} />
                     </div>
                     <div className="md:col-span-2 flex items-center justify-between rounded-2xl border border-slate-200 p-4">
                       <div>
@@ -337,6 +317,8 @@ export default function ProductsClient({ initialProducts }: { initialProducts: P
                       </label>
                     </div>
                   </div>
+
+                  {error ? <div className="mt-4 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-700">{error}</div> : null}
 
                   <div className="flex items-center justify-end gap-3 w-full border-t border-slate-200 pt-5">
                     <Button type="submit" disabled={saving} className="gap-2 w-full" variant="save">

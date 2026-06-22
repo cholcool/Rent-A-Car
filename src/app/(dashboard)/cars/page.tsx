@@ -14,7 +14,7 @@ type PageProps = {
 
 export default async function CarsPage({ searchParams }: PageProps) {
   const params = (await searchParams) ?? {}
-  const inputSearch = typeof params.q === 'string' ? params.q.trim() : ''
+  const inputSearch = typeof params.inputSearch === 'string' ? params.inputSearch.trim() : ''
   const statusParam = typeof params.status === 'string' ? params.status : ''
   const status = CarStatusOptions.find(status => status.value === statusParam)?.value ?? ''
   const brand = typeof params.brand === 'string' ? params.brand.trim() : ''
@@ -48,7 +48,7 @@ export default async function CarsPage({ searchParams }: PageProps) {
           ? { mileage: 'asc' }
           : { createdAt: 'desc' }
 
-  const [cars, totalCars, availableCars, vehicleTypes, brands] = await Promise.all([
+  const [cars, availableCars, vehicleTypes, brands] = await Promise.all([
     prisma.car.findMany({
       where,
       orderBy,
@@ -63,11 +63,12 @@ export default async function CarsPage({ searchParams }: PageProps) {
         },
       },
     }),
-    prisma.car.count({ where: { isDeleted: false } }),
     prisma.car.count({ where: { isDeleted: false, status: 'Available' } }),
     prisma.vehicleType.findMany({ where: { isDeleted: false } }),
     prisma.brand.findMany({ where: { isDeleted: false } }),
   ])
+
+  const totalCars = cars.length
 
   return (
     <div className="space-y-8">
@@ -145,7 +146,7 @@ export default async function CarsPage({ searchParams }: PageProps) {
             <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 text-slate-400">
               <Car className="h-7 w-7" aria-hidden="true" />
             </div>
-            <h2 className="mt-5 text-xl font-extrabold text-slate-950">ไม่พบรถที่ตรงกับเงื่อนไข</h2>
+            <h2 className="mt-5 text-xl font-extrabold text-slate-950">ไม่พบข้อมูลที่ตรงกับเงื่อนไข</h2>
             <p className="mt-2 text-sm font-semibold text-slate-500">ลองเปลี่ยนคำค้นหาหรือตัวกรองอีกครั้ง</p>
           </CardContent>
         </Card>

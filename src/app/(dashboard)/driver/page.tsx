@@ -13,7 +13,7 @@ type PageProps = {
 
 export default async function DriverPage({ searchParams }: PageProps) {
   const params = (await searchParams) ?? {}
-  const inputSearch = typeof params.q === 'string' ? params.q.trim() : ''
+  const inputSearch = typeof params.inputSearch === 'string' ? params.inputSearch.trim() : ''
   const sort = typeof params.sort === 'string' ? params.sort : 'newest'
 
   const where: any = { isDeleted: false }
@@ -26,17 +26,15 @@ export default async function DriverPage({ searchParams }: PageProps) {
   }
 
   const orderBy: any =
-    sort === 'model'
-      ? { model: 'asc' }
-      : sort === 'year'
-        ? { year: 'desc' }
-        : sort === 'mileage'
-          ? { mileage: 'asc' }
-          : { createdAt: 'desc' }
+    sort === 'fullName'
+      ? { fullName: 'asc' }
+      : sort === 'phone'
+        ? { phone: 'desc' }
+        : { createdAt: 'desc' }
 
   const drivers = await prisma.driver.findMany({
-    where: where,
-    orderBy: orderBy,
+    where,
+    orderBy,
     include: {
       cardImage: true,
       licenseImage: true,
@@ -86,7 +84,7 @@ export default async function DriverPage({ searchParams }: PageProps) {
   
         <form
           method="get"
-          action="/drivers"
+          action="/driver"
           className="grid gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm shadow-slate-200/60 lg:grid-cols-3 xl:grid-cols-[minmax(220px,1fr)_180px_160px_auto] overflow-auto"
         >
           <div className="relative">
@@ -96,7 +94,8 @@ export default async function DriverPage({ searchParams }: PageProps) {
   
           <Select name="sort" defaultValue={sort}>
             <option value="newest">ล่าสุด</option>
-            <option value="year">ปีใหม่ก่อน</option>
+            <option value="fullName">เรียงตามชื่อ</option>
+            <option value="phone">เรียงตามเบอร์โทร</option>
           </Select>
   
           <Button type="submit" className="h-11">

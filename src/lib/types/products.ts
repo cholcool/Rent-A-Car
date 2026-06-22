@@ -1,3 +1,10 @@
+export type ProductsStatus = 'active' | 'inactive'
+
+export const ProductsStatusOptions = [
+  { value: 'active', label: 'Active' },
+  { value: 'inactive', label: 'Inactive' },
+]
+
 export type ProductRow = {
   id: string
   products_name: string
