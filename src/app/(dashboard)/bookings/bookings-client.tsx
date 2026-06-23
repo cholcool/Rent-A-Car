@@ -57,10 +57,6 @@ export default function BookingsClient({
     healthCheck02ImageId: '',
   }
   const [form, setForm] = useState(empty)  
-  const totalCount = bookings.length
-  const pendingCount = bookings.filter((booking) => booking.status === 'Pending').length
-  const activeCount = bookings.filter((booking) => ['Confirmed', 'InProgress'].includes(booking.status)).length
-  const completeCount = bookings.filter((booking) => booking.status === 'Completed').length
 
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
@@ -115,19 +111,6 @@ export default function BookingsClient({
 
   return (
     <div className="space-y-8">
-      <header className="flex flex-col gap-3">
-        <div>
-          <h1 className="text-4xl font-extrabold tracking-tight text-slate-950">รายการเช่ารถ / จองรถ</h1>
-          <p className="max-w-3xl text-lg font-semibold text-slate-500">จัดการรายการจอง อัปโหลดเอกสาร และบันทึกยอดโดยใช้รูปแบบเดียวกับหน้าข้อมูลลูกค้า / ผู้ขับขี่</p>
-        </div>
-      </header>
-
-      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <Card><CardContent className="p-6"><div className="text-sm font-semibold text-slate-500">รายการทั้งหมด</div><div className="mt-2 text-3xl font-extrabold text-slate-950">{totalCount}</div></CardContent></Card>
-        <Card><CardContent className="p-6"><div className="text-sm font-semibold text-slate-500">รอยืนยัน</div><div className="mt-2 text-3xl font-extrabold text-amber-600">{pendingCount}</div></CardContent></Card>
-        <Card><CardContent className="p-6"><div className="text-sm font-semibold text-slate-500">กำลังดำเนินการ</div><div className="mt-2 text-3xl font-extrabold text-blue-700">{activeCount}</div></CardContent></Card>
-        <Card><CardContent className="p-6"><div className="text-sm font-semibold text-slate-500">เสร็จสิ้น</div><div className="mt-2 text-3xl font-extrabold text-emerald-600">{completeCount}</div></CardContent></Card>
-      </section>
 
       <Card>
         <CardContent className="p-6 sm:p-8">

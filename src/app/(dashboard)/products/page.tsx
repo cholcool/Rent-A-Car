@@ -34,14 +34,18 @@ export default async function ProductsPage({ searchParams }: PageProps) {
     sort === 'dateEnd'
       ? { dateEnd: 'asc' }
       : sort === 'dateStart'
-        ? { dateStart: 'desc' }
+        ? { dateStart: 'asc' }
         : sort === 'name'
           ? { name: 'asc' }
+          : sort === 'price'
+          ? { price: 'asc' }
+          : sort === 'priceHigh'
+            ? { price: 'desc' }
           : { createdAt: 'desc' }
 
   const products = await prisma.product.findMany({
-    where: where,
-    orderBy: orderBy,
+    where,
+    orderBy,
     select: {
       id: true,
       name: true,
@@ -109,6 +113,8 @@ export default async function ProductsPage({ searchParams }: PageProps) {
             <option value="dateStart">วันที่เริ่ม</option>
             <option value="dateEnd">วันที่สิ้นสุด</option>
             <option value="name">ชื่อบริการ</option>
+            <option value="price">ราคาน้อย</option>
+            <option value="priceHigh">ราคามาก</option>
           </Select>
 
           <Button type="submit" className="h-11">

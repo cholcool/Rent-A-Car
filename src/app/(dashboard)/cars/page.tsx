@@ -100,15 +100,6 @@ export default async function CarsPage({ searchParams }: PageProps) {
           <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
           <Input name="inputSearch" defaultValue={inputSearch} placeholder="ค้นหารถ รุ่น ทะเบียน" className="pl-10" />
         </div>
-
-        <Select name="status" defaultValue={status}>
-          <option value="">ทุกสถานะ</option>
-          {CarStatusOptions.map((carStatus) => (
-            <option key={carStatus.value} value={carStatus.value}>
-              {carStatus.label}
-            </option>
-          ))}
-        </Select>
         
         <Select name="vehicleTypes" defaultValue={vehicleType}>
           <option value="">ทุกประเภท</option>
@@ -124,6 +115,15 @@ export default async function CarsPage({ searchParams }: PageProps) {
           {brands.map((brand: any) => (
             <option key={brand.id} value={brand.name}>
               {brand.name}
+            </option>
+          ))}
+        </Select>
+
+        <Select name="status" defaultValue={status}>
+          <option value="">ทุกสถานะ</option>
+          {CarStatusOptions.map((status) => (
+            <option key={status.value} value={status.value}>
+              {status.label}
             </option>
           ))}
         </Select>

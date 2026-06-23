@@ -182,65 +182,77 @@ export default function ProductsClient({ initialProducts }: { initialProducts: P
 
   return (
     <div className="space-y-8">
-      <Card>
-        <CardContent className="p-6 sm:p-8">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <h2 className="text-2xl font-extrabold text-slate-950">รายการล่าสุด</h2>
+      {products.length > 0 ? (
+        <Card>
+          <CardContent className="p-6 sm:p-8">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <h2 className="text-2xl font-extrabold text-slate-950">รายการล่าสุด</h2>
+              </div>
             </div>
-          </div>
 
-          <div className="mt-6 overflow-x-auto">
-            <table className="w-full min-w-245 text-left">
-              <thead>
-                <tr className="border-b border-slate-200 text-sm font-extrabold text-slate-950">
-                  <th className="px-3 py-3">ชื่อเรทราคา/โปรโมชั่น</th>
-                  <th className="px-3 py-3">ราคาขายต่อวัน</th>
-                  <th className="px-3 py-3">ระยะเวลา</th>
-                  <th className="px-3 py-3">จำนวนวัน</th>
-                  <th className="px-3 py-3">สถานะ</th>
-                  <th className="px-3 py-3">การจัดการ</th>
-                </tr>
-              </thead>
-              <tbody>
-                {products.map((product) => (
-                  <tr key={product.id} className="border-b border-slate-100 text-sm font-medium text-slate-700">
-                    <td className="px-3 py-4">
-                      <div className="font-bold text-slate-950">{product.products_name}</div>
-                      <div className="mt-1 line-clamp-1 text-xs text-slate-500">{product.products_desc || '-'}</div>
-                    </td>
-                    <td className="px-3 py-4 font-semibold text-slate-950">{formatBaht(product.products_price)}</td>
-                    <td className="px-3 py-4">{formatThaiDate(product.date_start)} ถึง {formatThaiDate(product.date_end)}</td>
-                    <td className="px-3 py-4">{product.date_count} วัน</td>
-                    <td className="px-3 py-4">
-                      <Badge variant={product.is_active ? 'success' : 'destructive'}>
-                        {product.is_active ? 'Active' : 'Inactive'}
-                      </Badge>
-                    </td>
-                    <td className="px-3 py-4">
-                      <div className="flex items-center gap-2">
-                        <Button type="button" variant="outline" size="sm" className="gap-2" onClick={() => openEdit(product)}>
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <AlertDialogDestructive
-                          onClick={() => deleteProduct(product.id)}
-                        />
-                      </div>
-                    </td>
+            <div className="mt-6 overflow-x-auto">
+              <table className="w-full min-w-245 text-left">
+                <thead>
+                  <tr className="border-b border-slate-200 text-sm font-extrabold text-slate-950">
+                    <th className="px-3 py-3">ชื่อเรทราคา/โปรโมชั่น</th>
+                    <th className="px-3 py-3">ราคาขายต่อวัน</th>
+                    <th className="px-3 py-3">ระยะเวลา</th>
+                    <th className="px-3 py-3">จำนวนวัน</th>
+                    <th className="px-3 py-3">สถานะ</th>
+                    <th className="px-3 py-3">การจัดการ</th>
                   </tr>
-                ))}
-                {!products.length ? (
-                  <tr>
-                    <td colSpan={6} className="px-3 py-10 text-center text-sm font-semibold text-slate-500">
-                      ยังไม่มีข้อมูลโปรโมชั่น
-                    </td>
-                  </tr>
-                ) : null}
-              </tbody>
-            </table>
-          </div>
-        </CardContent>
-      </Card>
+                </thead>
+                <tbody>
+                  {products.map((product) => (
+                    <tr key={product.id} className="border-b border-slate-100 text-sm font-medium text-slate-700">
+                      <td className="px-3 py-4">
+                        <div className="font-bold text-slate-950">{product.products_name}</div>
+                        <div className="mt-1 line-clamp-1 text-xs text-slate-500">{product.products_desc || '-'}</div>
+                      </td>
+                      <td className="px-3 py-4 font-semibold text-slate-950">{formatBaht(product.products_price)}</td>
+                      <td className="px-3 py-4">{formatThaiDate(product.date_start)} ถึง {formatThaiDate(product.date_end)}</td>
+                      <td className="px-3 py-4">{product.date_count} วัน</td>
+                      <td className="px-3 py-4">
+                        <Badge variant={product.is_active ? 'success' : 'destructive'}>
+                          {product.is_active ? 'Active' : 'Inactive'}
+                        </Badge>
+                      </td>
+                      <td className="px-3 py-4">
+                        <div className="flex items-center gap-2">
+                          <Button type="button" variant="outline" size="sm" className="gap-2" onClick={() => openEdit(product)}>
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <AlertDialogDestructive
+                            onClick={() => deleteProduct(product.id)}
+                          />
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                  {!products.length ? (
+                    <tr>
+                      <td colSpan={6} className="px-3 py-10 text-center text-sm font-semibold text-slate-500">
+                        ยังไม่มีข้อมูลโปรโมชั่น
+                      </td>
+                    </tr>
+                  ) : null}
+                </tbody>
+              </table>
+            </div>
+          </CardContent>
+        </Card>
+      ) : (
+        <Card>
+          <CardContent className="py-14 text-center">
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 text-slate-400">
+              <Ticket className="h-7 w-7" aria-hidden="true" />
+            </div>
+            <h2 className="mt-5 text-xl font-extrabold text-slate-950">ไม่พบข้อมูลที่ตรงกับเงื่อนไข</h2>
+            <p className="mt-2 text-sm font-semibold text-slate-500">ลองเปลี่ยนคำค้นหาหรือตัวกรองอีกครั้ง</p>
+          </CardContent>
+        </Card>
+      )}
 
       {open && (
         <>

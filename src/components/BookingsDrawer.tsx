@@ -11,8 +11,7 @@ import Label from '@/components/ui/label'
 import Select from '@/components/ui/select'
 import Textarea from '@/components/ui/textarea'
 import { useRouter } from 'next/navigation'
-
-const statusOptions = ['Pending', 'Confirmed', 'InProgress', 'Completed', 'Cancelled', 'Rejected'] as const
+import { BookingStatusOptions } from '@/lib/types'
      
 function dateCount(start: string, end: string) {
   if (!start || !end) return 0
@@ -218,7 +217,7 @@ export default function BookingsDrawer({
             <div>
               <Label>สถานะการจอง *</Label>
               <Select value={form.bookingStatus} onChange={(e) => setForm((c) => ({ ...c, bookingStatus: e.target.value }))} required>
-                {statusOptions.map((s) => <option key={s} value={s}>{s}</option>)}
+                {BookingStatusOptions.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
               </Select>
             </div>
             <div className="md:col-span-2">
