@@ -95,7 +95,7 @@ export default function PageClient({carsIn} : PageProps ) {
                             // เช็กก่อนถ้ามีวันเริ่มให้แปลงเป็นตัวเลขเวลา ถ้าเป็น null ให้แทนค่าด้วยเลข 0 ทันที
                             const timeB = b.dateStart ? new Date(b.dateStart).getTime() : 0;
                             const timeA = a.dateStart ? new Date(a.dateStart).getTime() : 0;
-                            return timeB - timeA;
+                            return timeA - timeB;
                           });
 
                           // หยิบเอาตัวแรกสุด [0] หลังจากเรียงลำดับจากใหม่สุดไปเก่าสุดเสร็จแล้ว

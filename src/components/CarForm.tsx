@@ -36,6 +36,8 @@ export default function CarForm({ vehicleTypes, brands, onSuccess }: CarFormProp
     year: new Date().getFullYear().toString(),
     color: '',
     license: '',
+    engine: '',
+    chassis: '',
     mileage: '0',
     status: 'Available',
     remark: '',
@@ -87,6 +89,8 @@ export default function CarForm({ vehicleTypes, brands, onSuccess }: CarFormProp
         year: formData.year,
         color: formData.color,
         license: formData.license.trim(),
+        engine: formData.engine.trim(),
+        chassis: formData.chassis.trim(),
         mileage: parseFloat(formData.mileage),
         status: formData.status as CarStatus,
         remark: formData.remark || null,
@@ -241,6 +245,38 @@ export default function CarForm({ vehicleTypes, brands, onSuccess }: CarFormProp
             {errors.license && (
               <p className="mt-1 text-xs font-medium text-red-600">{errors.license}</p>
             )}
+          </div>
+
+          <div>
+            <Label htmlFor="engine" className="font-bold text-slate-900">
+              เลขเครื่องยนต์
+            </Label>
+            <Input
+              id="engine"
+              name="engine"
+              type="text"
+              placeholder="เช่น R20A1 - 1234567"
+              value={formData.engine}
+              onChange={handleChange}
+              className="mt-2"
+            />
+          </div>
+        </div>
+
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div>
+            <Label htmlFor="chassis" className="font-bold text-slate-900">
+              เลขตัวถัง 
+            </Label>
+            <Input
+              id="chassis"
+              name="chassis"
+              type="text"
+              placeholder="เช่น MRHFC26A0E0123456"
+              value={formData.chassis}
+              onChange={handleChange}
+              className="mt-2"
+            />
           </div>
 
           <div>

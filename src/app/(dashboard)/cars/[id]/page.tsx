@@ -76,6 +76,8 @@ export default async function CarDetailPage({ params }: PageProps) {
       year: String(formData.get('year') ?? '').trim(),
       color: String(formData.get('color') ?? '').trim(),
       license: String(formData.get('license') ?? '').trim(),
+      engine: String(formData.get('engine') ?? '').trim() || null,
+      chassis: String(formData.get('chassis') ?? '').trim() || null,
       mileage: Number(formData.get('mileage') ?? 0),
       status: String(formData.get('status') ?? 'Available') as CarStatus,
       remark: String(formData.get('remark') ?? '').trim() || null,
@@ -203,6 +205,16 @@ export default async function CarDetailPage({ params }: PageProps) {
                 <div className="space-y-2">
                   <label className="text-sm font-semibold text-slate-700">ทะเบียน <span className="text-red-600">*</span></label>
                   <Input name="license" defaultValue={car.license} maxLength={20} required />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-slate-700">เลขเครื่องยนต์</label>
+                  <Input name="engine" defaultValue={car.engine ?? ''} maxLength={20} required />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-slate-700">เลขตัวถัง</label>
+                  <Input name="chassis" defaultValue={car.chassis ?? ''} maxLength={20} required />
                 </div>
 
                 <div className="space-y-2">

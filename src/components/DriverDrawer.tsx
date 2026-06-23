@@ -139,11 +139,11 @@ export default function DriverDrawer({
             <form className="mt-6 flex-1 space-y-6 overflow-auto pr-1" onSubmit={submitForm}>
               <div className="grid gap-5 md:grid-cols-2">
                 <div className="md:col-span-2">
-                  <Label htmlFor="fullName">ชื่อ-นามสกุลคนขับ *</Label>
+                  <Label htmlFor="fullName">ชื่อ-นามสกุลคนขับ <span className="text-red-600">*</span></Label>
                   <Input id="fullName" maxLength={150} value={form.fullName} onChange={(e) => updateField('fullName', e.target.value)} required />
                 </div>
                 <div className="md:col-span-2">
-                  <Label htmlFor="phone">เบอร์โทรศัพท์ *</Label>
+                  <Label htmlFor="phone">เบอร์โทรศัพท์ <span className="text-red-600">*</span></Label>
                   <Input id="phone" maxLength={10} minLength={10} value={form.phone} onChange={(e) => updateField('phone', e.target.value)} required />
                 </div>
                 <div className="md:col-span-2">
