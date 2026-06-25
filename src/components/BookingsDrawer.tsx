@@ -2,9 +2,6 @@
 
 import { Dispatch, SetStateAction, useMemo, useState, type FormEvent } from 'react'
 import { X } from 'lucide-react'
-import { UploadButton } from '@uploadthing/react'
-import type { OurFileRouter } from '@/app/api/uploadthing/core'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import Input from '@/components/ui/input'
 import Label from '@/components/ui/label'
@@ -19,11 +16,6 @@ function dateCount(start: string, end: string) {
   const b = new Date(end)
   if (Number.isNaN(a.getTime()) || Number.isNaN(b.getTime())) return 0
   return Math.max(Math.ceil((b.getTime() - a.getTime()) / 86_400_000) + 1, 0)
-}
-
-function uploadKey(url: string) {
-  const parts = url.split('/')
-  return parts[parts.length - 1] ?? url
 }
 
 type Option = { id: string; label: string; price?: number }
@@ -97,17 +89,6 @@ export default function BookingsDrawer({
   const total = Number(Math.max(gross - discount + tax, 0).toFixed(2))
   const router = useRouter()
  
-  async function persistImage(payload: { key: string; url: string; name: string; size?: number; type?: string }) {
-    const res = await fetch('/api/booking-images', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    })
-    const data = await res.json()
-    if (!res.ok) throw new Error(data?.error ?? 'upload failed')
-    return data.image as { id: string }
-  }
-
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setSaving(true)
@@ -225,28 +206,23 @@ export default function BookingsDrawer({
               <Textarea maxLength={500} value={form.bookingRemark} onChange={(e) => setForm((c) => ({ ...c, bookingRemark: e.target.value }))} />
             </div>
 
-            {[
-              ['หลักฐานการรับเงิน', 'paymentImageId'],
-              ['เอกสารสัญญาเช่ารถ', 'healthCheck01ImageId'],
-              ['ตรวจรับรถ', 'healthCheck02ImageId'],
-            ].map(([label, key]) => (
-              <div key={String(key)} className="rounded-2xl border p-4 md:col-span-2">
-                <div className="mb-3 flex items-center justify-between">
-                  <div className="font-bold text-slate-950">{label}</div>
-                  <Badge variant={form[key as keyof typeof form] ? 'success' : 'destructive'}>{form[key as keyof typeof form] ? 'อัปโหลดแล้ว' : 'ยังไม่มี'}</Badge>
-                </div>
-                <UploadButton<OurFileRouter, 'bookingImage'>
-                  endpoint="bookingImage"
-                  onClientUploadComplete={async (res) => {
-                    if (!res?.[0]) return
-                    const uploaded = res[0]
-                    const image = await persistImage({ key: uploadKey(uploaded.url), url: uploaded.url, name: uploaded.name, size: uploaded.size, type: uploaded.type })
-                    setForm((c) => ({ ...c, [key]: image.id }))
-                  }}
-                  onUploadError={(err) => setError(err.message || 'อัปโหลดไม่สำเร็จ')}
-                />
+            <div key={String('paymentImageId')} className="rounded-2xl border p-4 md:col-span-2">
+              <div className="mb-3 flex items-center justify-between">
+                <div className="font-bold text-slate-950">หลักฐานการรับเงิน</div>
               </div>
-            ))}
+            </div>
+
+            <div key={String('healthCheck01ImageId')} className="rounded-2xl border p-4 md:col-span-2">
+              <div className="mb-3 flex items-center justify-between">
+                <div className="font-bold text-slate-950">เอกสารสัญญาเช่ารถ</div>
+              </div>
+            </div>
+
+            <div key={String('healthCheck02ImageId')} className="rounded-2xl border p-4 md:col-span-2">
+              <div className="mb-3 flex items-center justify-between">
+                <div className="font-bold text-slate-950">ตรวจรับรถ</div>
+              </div>
+            </div>
 
             {error && <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">{error}</div>}
 

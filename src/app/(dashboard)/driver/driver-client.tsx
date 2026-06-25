@@ -8,7 +8,13 @@ import { Card, CardContent } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
 import { AlertDialogDestructive } from '@/components/AlertDialogDestructive'
 import DriverDrawer from '@/components/DriverDrawer'
-import { DriverFormState, DriverRow, DriverEmptyForm } from '@/lib/types'
+import { 
+  DriverFormState, 
+  DriverRow, 
+  DriverEmptyForm,
+  GuarantorFormState,
+  GuarantorEmptyForm,
+} from '@/lib/types'
 
 
 export default function DriverPageClient({ initialDrivers }: { initialDrivers: DriverRow[] }) {
@@ -18,6 +24,7 @@ export default function DriverPageClient({ initialDrivers }: { initialDrivers: D
   const [editingId, setEditingId] = useState<string | null>(null)
   const [error, setError] = useState('')
   const [form, setForm] = useState<DriverFormState>(DriverEmptyForm)
+  const [formGuarantor, setFormGuarantor] = useState<GuarantorFormState>(GuarantorEmptyForm)
   const [cardFile, setCardFile] = useState<File | null>(null)
   const [licenseFile, setLicenseFile] = useState<File | null>(null)
 
@@ -36,6 +43,7 @@ export default function DriverPageClient({ initialDrivers }: { initialDrivers: D
   function openCreate() {
     setEditingId(null)
     setForm(DriverEmptyForm)
+    setFormGuarantor(GuarantorEmptyForm)
     setCardFile(null)
     setLicenseFile(null)
     setError('')
@@ -51,11 +59,25 @@ export default function DriverPageClient({ initialDrivers }: { initialDrivers: D
       cardImageId: driver.cardImageId,
       licenseImageId: driver.licenseImageId,
     })
+  
+    if (driver.guarantor) {
+      setFormGuarantor({
+        fullName: driver.guarantor.fullName,
+        phone: driver.guarantor.phone,
+        remark: driver.guarantor.remark,
+        cardImageId: driver.guarantor.cardImageId,
+        licenseImageId: driver.guarantor.licenseImageId,
+      })
+    } else {
+      setFormGuarantor(GuarantorEmptyForm) 
+    }
+  
     setCardFile(null)
     setLicenseFile(null)
     setError('')
     setDrawerOpen(true)
   }
+  
 
   async function deleteDriver(id: string) {
     const res = await fetch('/api/drivers', {
@@ -143,6 +165,7 @@ export default function DriverPageClient({ initialDrivers }: { initialDrivers: D
         <DriverDrawer
           initialDrivers={initialDrivers}
           formIn={form}
+          formGuarantorIn={formGuarantor}
           errorIn={error}
           editingId={editingId}
           licenseFile={licenseFile}

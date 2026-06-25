@@ -135,8 +135,30 @@ model Driver {
   cardImage    Image?   @relation("DriverCardImage", fields: [cardImageId], references: [id])
   licenseImage Image?   @relation("DriverLicenseImage", fields: [licenseImageId], references: [id])
   bookings     Booking[]
+  guarantor    Guarantor?
 
   @@map("driver")
+}
+
+model Guarantor {
+  id             String   @id @default(uuid()) @map("guarantor_id") @db.Uuid
+  driverId       String   @unique @map("driver_id") @db.Uuid 
+  fullName       String   @map("guarantor_full_name") @db.VarChar(150)
+  phone          String   @unique @map("guarantor_phone") @db.VarChar(20)
+  cardImageId    String?  @map("guarantor_card_images_id") @db.Uuid
+  licenseImageId String?  @map("guarantor_license_images_id") @db.Uuid
+  remark         String?  @map("guarantor_remark") @db.VarChar(500)
+  createdAt      DateTime @default(now()) @map("created_date") @db.Timestamptz
+  createdBy      String   @map("created_by") @db.Uuid
+  updatedAt      DateTime @updatedAt @map("updated_date") @db.Timestamptz
+  updatedBy      String   @map("updated_by") @db.Uuid
+  isDeleted      Boolean  @default(false) @map("is_deleted")
+
+  driver         Driver   @relation(fields: [driverId], references: [id])
+  cardImage      Image?   @relation("GuarantorCardImage", fields: [cardImageId], references: [id])
+  licenseImage   Image?   @relation("GuarantorLicenseImage", fields: [licenseImageId], references: [id])
+
+  @@map("Guarantor")
 }
 
 model Image {
@@ -155,6 +177,8 @@ model Image {
 
   driverCardImages           Driver[] @relation("DriverCardImage")
   driverLicenseImages        Driver[] @relation("DriverLicenseImage")
+  GuarantorCardImages        Guarantor[] @relation("GuarantorCardImage")
+  GuarantorLicenseImages     Guarantor[] @relation("GuarantorLicenseImage")
   userCards                  User[]   @relation("UserCardImage")
   carImages                  MapCarImage[]
   bookingPaymentImages       Booking[] @relation("BookingPaymentImage")
