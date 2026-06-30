@@ -2,6 +2,7 @@ import prisma from '@/lib/prisma'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
 import { formatBaht, formatThaiDate, getStatusBadgeClass, getStatusLabel } from '@/lib/ui-format'
+import { serializePrismaRows } from '@/lib/serialize'
 
 export const dynamic = 'force-dynamic'
 
@@ -23,6 +24,8 @@ export default async function PaymentsPage() {
     prisma.payment.count({ where: { isDeleted: false } }),
     prisma.payment.count({ where: { isDeleted: false, paymentStatus: 'Paid' } }),
   ])
+
+  const paymentRows = serializePrismaRows(payments)
 
   return (
     <div className="space-y-8">
@@ -63,7 +66,7 @@ export default async function PaymentsPage() {
                 </tr>
               </thead>
               <tbody>
-                {payments.map((payment) => {
+                {paymentRows.map((payment) => {
                   const booking = payment.booking
                   const customerName = `${booking.user.firstName} ${booking.user.lastName}`.trim()
                   const carName = `${booking.car.brand.name} ${booking.car.model} (${booking.car.license})`

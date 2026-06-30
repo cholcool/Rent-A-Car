@@ -10,6 +10,7 @@ import {
 } from '@/lib/ui-format'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
+import { serializePrismaRows } from '@/lib/serialize'
 
 export const dynamic = 'force-dynamic'
 
@@ -90,6 +91,8 @@ export default async function DashboardPage() {
       }),
     ])
 
+  const latestBookingsRows = serializePrismaRows(latestBookings)
+
   return (
     <div className="space-y-8">
       <header>
@@ -161,7 +164,7 @@ export default async function DashboardPage() {
                 </tr>
               </thead>
               <tbody>
-                {latestBookings.map((booking) => {
+                {latestBookingsRows.map((booking) => {
                   const customerName = `${booking.user.firstName} ${booking.user.lastName}`.trim()
                   const carName = `${booking.car.brand.name} ${booking.car.model} (${booking.car.license})`
 

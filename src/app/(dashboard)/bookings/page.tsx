@@ -5,6 +5,7 @@ import { formatCompactNumber } from '@/lib/ui-format'
 import { Input, Select, Button } from '@/components/ui'
 import { Search } from 'lucide-react'
 import { BookingStatusOptions, type DriverRow } from '@/lib/types'
+import { serializePrismaRows } from '@/lib/serialize'
 
 export const dynamic = 'force-dynamic'
 
@@ -90,6 +91,8 @@ export default async function BookingsPage({ searchParams }: PageProps) {
       },
     }),
   ])
+
+  const initialBookings = serializePrismaRows(bookings)
 
   const initialDrivers: DriverRow[] = drivers.map((driver) => ({
     id: driver.id,
@@ -225,7 +228,7 @@ export default async function BookingsPage({ searchParams }: PageProps) {
         </form>
 
         <BookingsClient
-          initialBookings={bookings}
+          initialBookings={initialBookings}
           currentUserId={currentUserId}
           products={products.map((product) => ({ id: product.id, label: `${product.name} - ${product.price}` , price: Number(product.price) }))}
           cars={cars.map((car) => ({ id: car.id, label: `${car.brand.name} ${car.model} (${car.license})` }))}
