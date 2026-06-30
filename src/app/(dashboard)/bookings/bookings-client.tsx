@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Edit, Plus, X, ClipboardList, FileDown } from 'lucide-react'
+import { Edit, Plus, X, ClipboardList, FileDown, UserPlus } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -9,7 +9,8 @@ import { cn } from '@/lib/utils'
 import { formatBaht, formatThaiDate, getStatusBadgeClass, getStatusLabel } from '@/lib/ui-format'
 import { AlertDialogDestructive } from '@/components/AlertDialogDestructive'
 import BookingsDrawer from '@/components/BookingsDrawer'
-import { BookingOption } from '@/lib/types'
+import DriverDrawer from '@/components/DriverDrawer'
+import { BookingOption, DriverEmptyForm, GuarantorEmptyForm, type DriverRow } from '@/lib/types'
 
 type Row = any
 
@@ -25,6 +26,7 @@ interface BookingsClientProps {
   products: BookingOption[]
   cars: BookingOption[]
   drivers: BookingOption[]
+  initialDrivers: DriverRow[]
   currentUserId: string
 }
 
@@ -33,13 +35,18 @@ export default function BookingsClient({
   products,
   cars,
   drivers,
+  initialDrivers,
   currentUserId,
 }: BookingsClientProps) {
   const [bookings, setBookings] = useState<Row[]>(initialBookings)
   const [drawerOpen, setDrawerOpen] = useState(false)
+  const [driverDrawerOpen, setDriverDrawerOpen] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
   const [error, setError] = useState('')
+  const [driverError, setDriverError] = useState('')
   const [editingId, setEditingId] = useState<string | null>(null)
+  const [driverEditingId, setDriverEditingId] = useState<string | null>(null)
+  const [driversState, setDrivers] = useState<DriverRow[]>(initialDrivers)
   const empty = {
     productId: '',
     carId: '',
@@ -62,7 +69,8 @@ export default function BookingsClient({
     function onKeyDown(event: KeyboardEvent) {
       if (event.key === 'Escape') {
         setMenuOpen(false)
-        setDrawerOpen(true)
+        setDrawerOpen(false)
+        setDriverDrawerOpen(false)
       }
     }
 
@@ -75,6 +83,12 @@ export default function BookingsClient({
     setForm({ ...empty, userId: currentUserId, bookingStatus: 'Pending' })
     setError('')
     setDrawerOpen(true)
+  }
+
+  function openDriverCreate() {
+    setDriverEditingId(null)
+    setDriverError('')
+    setDriverDrawerOpen(true)
   }
 
   function openEdit(row: Row) {
@@ -180,7 +194,7 @@ export default function BookingsClient({
         />
       )}
 
-      {!drawerOpen && (
+      {!drawerOpen && !driverDrawerOpen && (
         <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-3">
           {menuOpen && (
             <button 
@@ -203,6 +217,27 @@ export default function BookingsClient({
               </div>
             </button>
           )}
+
+          {menuOpen && (
+            <button
+              type="button"
+              onClick={() => {
+                openDriverCreate()
+              }}
+              className={cn(
+                'group relative z-50 flex items-center gap-4 rounded-2xl border bg-white px-4 py-3 text-left shadow-lg shadow-slate-950/10 transition-all duration-200',
+                'min-w-47.5 max-w-60',
+                'border-slate-200 hover:-translate-y-0.5 hover:border-slate-300 hover:bg-slate-50'
+              )}
+            >
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-slate-50 text-slate-600 shadow-sm transition group-hover:bg-white group-hover:text-slate-900">
+                <UserPlus className="h-5 w-5" />
+              </div>
+              <div className="min-w-0">
+                <div className="truncate text-sm font-bold text-slate-900">เพิ่มข้อมูลลูกค้าใหม่</div>
+              </div>
+            </button>
+          )}
           
           <Button
             type="button"
@@ -213,6 +248,18 @@ export default function BookingsClient({
             {menuOpen ? <X className="h-7 w-7" /> : <Plus className="h-7 w-7" />}
           </Button>
         </div>
+      )}
+
+      {driverDrawerOpen && (
+        <DriverDrawer
+          initialDrivers={driversState}
+          editingId={driverEditingId}
+          setDrawerOpen={setDriverDrawerOpen}
+          setDrivers={setDrivers}
+          formIn={DriverEmptyForm}
+          formGuarantorIn={GuarantorEmptyForm}
+          errorIn={driverError}
+        />
       )}
     </div>
   )

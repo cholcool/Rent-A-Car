@@ -4,7 +4,7 @@ import BookingsClient from './bookings-client'
 import { formatCompactNumber } from '@/lib/ui-format'
 import { Input, Select, Button } from '@/components/ui'
 import { Search } from 'lucide-react'
-import { BookingStatusOptions } from '@/lib/types'
+import { BookingStatusOptions, type DriverRow } from '@/lib/types'
 
 export const dynamic = 'force-dynamic'
 
@@ -78,9 +78,81 @@ export default async function BookingsPage({ searchParams }: PageProps) {
     prisma.driver.findMany({
       where: { isDeleted: false },
       orderBy: { createdAt: 'desc' },
-      select: { id: true, fullName: true, phone: true },
+      include: {
+        cardImage: true,
+        licenseImage: true,
+        guarantor: {
+          include: {
+            cardImage: true,
+            licenseImage: true,
+          },
+        },
+      },
     }),
   ])
+
+  const initialDrivers: DriverRow[] = drivers.map((driver) => ({
+    id: driver.id,
+    fullName: driver.fullName,
+    phone: driver.phone,
+    remark: driver.remark ?? null,
+    cardImageId: driver.cardImageId ?? null,
+    licenseImageId: driver.licenseImageId ?? null,
+    cardImage: driver.cardImage
+      ? {
+          id: driver.cardImage.id,
+          key: driver.cardImage.key,
+          url: driver.cardImage.url,
+          name: driver.cardImage.name,
+          size: driver.cardImage.size ? Number(driver.cardImage.size) : undefined,
+          type: driver.cardImage.type ?? undefined,
+          remark: driver.cardImage.remark ?? undefined,
+        }
+      : null,
+    licenseImage: driver.licenseImage
+      ? {
+          id: driver.licenseImage.id,
+          key: driver.licenseImage.key,
+          url: driver.licenseImage.url,
+          name: driver.licenseImage.name,
+          size: driver.licenseImage.size ? Number(driver.licenseImage.size) : undefined,
+          type: driver.licenseImage.type ?? undefined,
+          remark: driver.licenseImage.remark ?? undefined,
+        }
+      : null,
+    guarantor: driver.guarantor
+      ? {
+          id: driver.guarantor.id,
+          fullName: driver.guarantor.fullName,
+          phone: driver.guarantor.phone,
+          remark: driver.guarantor.remark ?? null,
+          cardImageId: driver.guarantor.cardImageId ?? null,
+          licenseImageId: driver.guarantor.licenseImageId ?? null,
+          cardImage: driver.guarantor.cardImage
+            ? {
+                id: driver.guarantor.cardImage.id,
+                key: driver.guarantor.cardImage.key,
+                url: driver.guarantor.cardImage.url,
+                name: driver.guarantor.cardImage.name,
+                size: driver.guarantor.cardImage.size ? Number(driver.guarantor.cardImage.size) : undefined,
+                type: driver.guarantor.cardImage.type ?? undefined,
+                remark: driver.guarantor.cardImage.remark ?? undefined,
+              }
+            : null,
+          licenseImage: driver.guarantor.licenseImage
+            ? {
+                id: driver.guarantor.licenseImage.id,
+                key: driver.guarantor.licenseImage.key,
+                url: driver.guarantor.licenseImage.url,
+                name: driver.guarantor.licenseImage.name,
+                size: driver.guarantor.licenseImage.size ? Number(driver.guarantor.licenseImage.size) : undefined,
+                type: driver.guarantor.licenseImage.type ?? undefined,
+                remark: driver.guarantor.licenseImage.remark ?? undefined,
+              }
+            : null,
+        }
+      : null,
+  }))
 
   const totalCount = bookings.length
   const pendingCount = bookings.filter((booking) => booking.status === 'Pending').length
@@ -158,6 +230,7 @@ export default async function BookingsPage({ searchParams }: PageProps) {
           products={products.map((product) => ({ id: product.id, label: `${product.name} - ${product.price}` , price: Number(product.price) }))}
           cars={cars.map((car) => ({ id: car.id, label: `${car.brand.name} ${car.model} (${car.license})` }))}
           drivers={drivers.map((driver) => ({ id: driver.id, label: `${driver.fullName} (${driver.phone})` }))}
+          initialDrivers={initialDrivers}
         />
       </div>
     </>
