@@ -2,12 +2,7 @@
 
 import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import { Edit, Plus, X, Ticket } from 'lucide-react'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent } from '@/components/ui/card'
-import Input from '@/components/ui/input'
-import Label from '@/components/ui/label'
-import Textarea from '@/components/ui/textarea'
+import { Badge, Button, Input, Label, Textarea, Switch, Card, CardContent, Field, FieldLabel, FieldGroup } from '@/components/ui'
 import { AlertDialogDestructive } from '@/components/AlertDialogDestructive'
 import { cn } from '@/lib/utils'
 import { formatBaht, formatThaiDate } from '@/lib/ui-format'
@@ -34,7 +29,7 @@ function productToForm(product?: ProductRow | null): ProductFormState {
     products_price: String(product.products_price),
     date_start: toDateInputValue(product.date_start),
     date_end: toDateInputValue(product.date_end),
-    date_count: product.date_count,
+    date_count: String(product.date_count),
     is_active: product.is_active,
   }
 }
@@ -46,6 +41,7 @@ export default function ProductsClient({ initialProducts }: { initialProducts: P
   const [saving, setSaving] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [error, setError] = useState('')
+  const [errorForm, setErrorForm] = useState<Record<string, string>>({})
   const [form, setForm] = useState<ProductFormState>(ProductEmptyForm)
 
   const editingProduct = useMemo(
@@ -69,6 +65,7 @@ export default function ProductsClient({ initialProducts }: { initialProducts: P
     setEditingId(null)
     setForm(ProductEmptyForm)
     setError('')
+    setErrorForm({})
     setOpen(true)
   }
 
@@ -76,6 +73,7 @@ export default function ProductsClient({ initialProducts }: { initialProducts: P
     setEditingId(product.id)
     setForm(productToForm(product))
     setError('')
+    setErrorForm({})
     setOpen(true)
   }
 
@@ -97,7 +95,7 @@ export default function ProductsClient({ initialProducts }: { initialProducts: P
     setForm((current) => {
       const next = { ...current, [key]: value }
       if (key === 'date_start' || key === 'date_end') {
-        next.date_count = calcDateCount(next.date_start, next.date_end)
+        next.date_count = String(calcDateCount(next.date_start, next.date_end))
 
         if (next.date_end < toDateInputValue(new Date().toISOString())) {
           next.is_active = false
@@ -108,26 +106,30 @@ export default function ProductsClient({ initialProducts }: { initialProducts: P
 
       return next
     })
+
+    if (errorForm[key]) {
+      setErrorForm((prev) => {
+        const newErrors = { ...prev }
+        delete newErrors[key]
+        return newErrors
+      })
+    }
   }
 
   async function submitForm(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    setError('')
 
-    if (!form.products_name.trim()) {
-      setError('กรุณากรอกชื่อเรทราคา/โปรโมชั่น')
+    const newErrors: Record<string, string> = {}
+    if (!form.products_name.trim()) newErrors.products_name = 'กรุณากรอกชื่อเรทราคา/โปรโมชั่น'
+    if (!form.products_price || Number(form.products_price) < 0) newErrors.products_price = 'กรุณากรอกราคาขายต่อวันให้ถูกต้อง'
+    if (!form.date_start || !form.date_end) newErrors.date_start = 'กรุณาระบุวันเริ่มต้นและวันสิ้นสุด'
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrorForm(newErrors)
       return
     }
 
-    if (!form.products_price || Number(form.products_price) < 0) {
-      setError('กรุณากรอกราคาขายต่อวันให้ถูกต้อง')
-      return
-    }
-
-    if (!form.date_start || !form.date_end) {
-      setError('กรุณาระบุวันเริ่มต้นและวันสิ้นสุด')
-      return
-    }
+    setErrorForm({})
 
     const payload = {
       products_name: form.products_name.trim(),
@@ -182,6 +184,9 @@ export default function ProductsClient({ initialProducts }: { initialProducts: P
 
   return (
     <div className="space-y-8">
+
+      {error ? <div className="mt-4 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-700">{error}</div> : null}
+      
       {products.length > 0 ? (
         <Card>
           <CardContent className="p-6 sm:p-8">
@@ -287,46 +292,56 @@ export default function ProductsClient({ initialProducts }: { initialProducts: P
                 <form className="mt-6 flex-1 space-y-5 overflow-y-auto pr-1" onSubmit={submitForm}>
                   <div className="grid gap-5 md:grid-cols-2">
                     <div className="md:col-span-2">
-                      <Label htmlFor="products_name">ชื่อบริการ หรือชื่อโปรโมชั่น *</Label>
-                      <Input id="products_name" maxLength={255} value={form.products_name} onChange={(e) => updateField('products_name', e.target.value)} required />
+                      <Label htmlFor="products_name">ชื่อบริการ หรือชื่อโปรโมชั่น <span className="text-red-600">*</span></Label>
+                      <Input id="products_name" maxLength={255} value={form.products_name} onChange={(e) => updateField('products_name', e.target.value)} />
+                      {errorForm.products_name && (
+                        <p className="mt-1 text-xs font-medium text-red-600">{errorForm.products_name}</p>
+                      )}
                     </div>
                     <div className="md:col-span-2">
                       <Label htmlFor="products_desc">รายละเอียด</Label>
                       <Input id="products_desc" maxLength={255} value={form.products_desc} onChange={(e) => updateField('products_desc', e.target.value)} />
                     </div>
                     <div className="md:col-span-2">
-                      <Label htmlFor="products_remark">หมายเหตุภายใน</Label>
+                      <Label htmlFor="products_remark">หมายเหตุ</Label>
                       <Textarea id="products_remark" maxLength={500} value={form.products_remark} onChange={(e) => updateField('products_remark', e.target.value)} />
                     </div>
                     <div>
-                      <Label htmlFor="products_price">ราคาขายต่อวัน *</Label>
-                      <Input id="products_price" type="number" min="0" step="0.01" value={form.products_price} onChange={(e) => updateField('products_price', e.target.value)} required />
+                      <Label htmlFor="products_price">ราคาขายต่อวัน <span className="text-red-600">*</span></Label>
+                      <Input id="products_price" type="number" min="0" step="0.01" value={form.products_price} onChange={(e) => updateField('products_price', e.target.value)} />
+                      {errorForm.products_price && (
+                        <p className="mt-1 text-xs font-medium text-red-600">{errorForm.products_price}</p>
+                      )}
                     </div>
                     <div>
                       <Label htmlFor="date_count">จำนวนวัน</Label>
                       <Input id="date_count" type="number" value={form.date_count} readOnly />
                     </div>
                     <div>
-                      <Label htmlFor="date_start">วัน-เวลาที่เริ่มใช้ราคานี้</Label>
+                      <Label htmlFor="date_start">วัน-เวลาที่เริ่มใช้ราคานี้ <span className="text-red-600">*</span></Label>
                       <Input id="date_start" type="date" value={form.date_start} onChange={(e) => updateField('date_start', e.target.value)} />
+                      {errorForm.date_start && (
+                        <p className="mt-1 text-xs font-medium text-red-600">{errorForm.date_start}</p>
+                      )}
                     </div>
                     <div>
-                      <Label htmlFor="date_end">วัน-เวลาที่สิ้นสุดราคานี้</Label>
+                      <Label htmlFor="date_end">วัน-เวลาที่สิ้นสุดราคานี้ <span className="text-red-600">*</span></Label>
                       <Input id="date_end" type="date" value={form.date_end} min={form.date_start} onChange={(e) => updateField('date_end', e.target.value)} />
                     </div>
                     <div className="md:col-span-2 flex items-center justify-between rounded-2xl border border-slate-200 p-4">
-                      <div>
-                        <div className="text-sm font-bold text-slate-950">สถานะการใช้งาน</div>
-                      </div>
-                      <label className="inline-flex cursor-pointer items-center gap-3">
-                        <span className="text-sm font-semibold text-slate-700">{form.is_active ? 'Active' : 'Inactive'}</span>
-                        <input
-                          type="checkbox"
-                          checked={form.is_active}
-                          onChange={(e) => updateField('is_active', e.target.checked)}
-                          className="h-5 w-5 rounded border-slate-300 text-blue-600 focus:ring-blue-600"
-                        />
-                      </label>
+                      <div className="text-sm font-bold text-slate-950 w-full">สถานะการใช้งาน</div>
+                      <FieldGroup>
+                        <Field orientation="horizontal">
+                          <FieldLabel htmlFor="switch-size-default" className={cn(!form.is_active ? 'text-slate-700' : 'text-slate-300',"text-sm font-semibold text-end justify-end")}>Inactive</FieldLabel>
+                          <Switch 
+                            id="switch-size-default" 
+                            size="default" 
+                            checked={form.is_active} 
+                            onCheckedChange={(checked) => updateField('is_active', checked)} 
+                          />
+                          <FieldLabel htmlFor="switch-size-default" className={cn(form.is_active ? 'text-slate-700' : 'text-slate-300',"text-sm font-semibold")}>Active</FieldLabel>
+                        </Field>
+                      </FieldGroup>
                     </div>
                   </div>
 

@@ -24,7 +24,7 @@ export type ProductFormState = {
   products_price: string
   date_start: string
   date_end: string
-  date_count: number
+  date_count: string
   is_active: boolean
 }
 
@@ -32,9 +32,9 @@ export const ProductEmptyForm: ProductFormState = {
   products_name: '',
   products_desc: '',
   products_remark: '',
-  products_price: '0',
+  products_price: '',
   date_start: '',
   date_end: '',
-  date_count: 0,
+  date_count: '',
   is_active: true,
 }
