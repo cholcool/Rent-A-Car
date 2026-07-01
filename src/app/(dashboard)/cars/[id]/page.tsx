@@ -111,7 +111,7 @@ export default async function CarDetailPage({ params }: PageProps) {
 
         <div className="flex flex-wrap gap-3">
           <Button asChild>
-            <Link href={`/booking/new?id=${car.id}`}>
+            <Link href={`/booking/new?id=${car.id}`} className='hidden'>
               <CalendarDays className="h-4 w-4" />
               จองรถคันนี้
             </Link>

@@ -78,7 +78,7 @@ export default async function ProductsPage({ searchParams }: PageProps) {
       <div className="space-y-8">
         <header className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div>
-            <h1 className="text-4xl font-extrabold tracking-normal text-slate-950">ข้อมูลบริการ/โปรโมชั่น</h1>
+            <h1 className="text-4xl font-extrabold tracking-normal text-slate-950">ข้อมูลบริการ</h1>
           </div>
 
           <div className="rounded-2xl border border-slate-200 bg-white px-5 py-4 shadow-sm shadow-slate-200/60">

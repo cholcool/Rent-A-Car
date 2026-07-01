@@ -74,7 +74,7 @@ export default async function CarsPage({ searchParams }: PageProps) {
     <div className="space-y-8">
       <header className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div>
-          <h1 className="text-4xl font-extrabold tracking-normal text-slate-950">ระบบจัดการรถยนต์</h1>
+          <h1 className="text-4xl font-extrabold tracking-normal text-slate-950">จัดการรถ</h1>
         </div>
 
         <div className="grid grid-cols-2 gap-3 sm:min-w-72">

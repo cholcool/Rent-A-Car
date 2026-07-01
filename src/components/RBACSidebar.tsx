@@ -1,10 +1,9 @@
 "use client";
 
-import type { ComponentType } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
-import { Car, ClipboardList, CreditCard, LayoutDashboard, LogOut, Settings, Tag, Users } from "lucide-react";
+import { Car, LayoutDashboard, LogOut } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { menuItems } from "@/lib/rbac/menus";
 
@@ -21,16 +20,6 @@ function normalizeRoles(user?: SidebarUser | null) {
   const roles = Array.isArray(raw) ? raw : typeof raw === "string" ? [raw] : [];
   return roles.map((role) => role.toLowerCase());
 }
-
-const itemIcons: Record<string, ComponentType<{ className?: string }>> = {
-  "/dashboard": LayoutDashboard,
-  "/cars": Car,
-  "/driver": Users,
-  "/products": Tag,
-  "/booking": ClipboardList,
-  "/payments": CreditCard,
-  "/setting/users": Settings,
-};
 
 export default function RBACSidebar({ user }: { user?: SidebarUser | null }) {
   const pathname = usePathname();
@@ -59,7 +48,7 @@ export default function RBACSidebar({ user }: { user?: SidebarUser | null }) {
       <nav className="flex-1 space-y-3 px-4 py-6">
         {visibleItems.map((item) => {
           const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
-          const Icon = itemIcons[item.href] ?? LayoutDashboard;
+          const Icon = item.icon ?? LayoutDashboard;
 
           return (
             <Link

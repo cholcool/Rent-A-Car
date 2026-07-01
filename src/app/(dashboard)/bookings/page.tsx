@@ -2,7 +2,7 @@ import prisma from '@/lib/prisma'
 import { auth } from '@/lib/auth'
 import BookingsClient from './bookings-client'
 import { formatCompactNumber } from '@/lib/ui-format'
-import { Input, Select, Button } from '@/components/ui'
+import { Select, Button } from '@/components/ui'
 import { Search } from 'lucide-react'
 import { BookingStatusOptions, type DriverRow } from '@/lib/types'
 import { serializePrismaRows } from '@/lib/serialize'
@@ -19,6 +19,7 @@ export default async function BookingsPage({ searchParams }: PageProps) {
   const statusParam = typeof params.status === 'string' ? params.status : ''
   const status = BookingStatusOptions.find(status => status.value === statusParam)?.value ?? ''
   const brand = typeof params.brand === 'string' ? params.brand.trim() : ''
+  const carsParam = typeof params.cars === 'string' ? params.cars.trim() : ''
   const vehicleType = typeof params.vehicleType === 'string' ? params.vehicleType.trim() : ''
   const sort = typeof params.sort === 'string' ? params.sort : 'newest'
 
@@ -74,7 +75,7 @@ export default async function BookingsPage({ searchParams }: PageProps) {
     prisma.car.findMany({
       where: { isDeleted: false },
       orderBy: { createdAt: 'desc' },
-      select: { id: true, model: true, license: true, brand: { select: { name: true } } },
+      select: { id: true, model: true, license: true, brand: { select: { name: true } }, status: true },
     }),
     prisma.driver.findMany({
       where: { isDeleted: false },
@@ -158,16 +159,20 @@ export default async function BookingsPage({ searchParams }: PageProps) {
   }))
 
   const totalCount = bookings.length
-  const pendingCount = bookings.filter((booking) => booking.status === 'Pending').length
-  const activeCount = bookings.filter((booking) => ['Confirmed', 'InProgress'].includes(booking.status)).length
-  const completeCount = bookings.filter((booking) => booking.status === 'Completed').length
+  const pendingCount = bookings.filter((rows) => rows.status === 'Pending').length
+  const activeCount = bookings.filter((rows) => ['Confirmed', 'InProgress'].includes(rows.status)).length
+  const completeCount = bookings.filter((rows) => rows.status === 'Completed').length
+  const carsAvailable = cars.filter((rows) => rows.status === 'Available')
+  const carsOption = cars.map((rows) => ({ value: rows.id, label: `${rows.brand.name} ${rows.model}`.trim() }))
+  const driversOption = drivers.map((rows) => ({ value: rows.id, label: `${rows.fullName} (${rows.phone})`.trim() }))
+  const productsOption = products.map((rows) => ({ value: rows.id, label: `${rows.name} - ${rows.price}`.trim() }))
 
   return (
     <>
       <div className="space-y-8">
         <header className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div>
-            <h1 className="text-4xl font-extrabold tracking-normal text-slate-950">รายการเช่ารถ / จองรถ</h1>
+            <h1 className="text-4xl font-extrabold tracking-normal text-slate-950">บันทึกรายการ</h1>
           </div>
 
           <div className="grid grid-cols-2 gap-3 sm:min-w-80 lg:grid-cols-4">
@@ -199,12 +204,34 @@ export default async function BookingsPage({ searchParams }: PageProps) {
         <form
           method="get"
           action="/bookings"
-          className="grid gap-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm shadow-slate-200/60 lg:grid-cols-3 xl:grid-cols-[minmax(220px,1fr)_180px_160px_160px__auto] overflow-auto"
+          className="grid gap-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm shadow-slate-200/60 lg:grid-cols-3 xl:grid-cols-[200px_200px_200px_200px_200px__auto] overflow-auto"
         >
-          <div className="relative">
-            <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-            <Input name="inputSearch" defaultValue={inputSearch} placeholder="ค้นหา" className="pl-10" />
-          </div>
+          <Select name="cars" defaultValue={carsParam}>
+            <option value="">ลูกค้าทั้งหมด</option>
+            {driversOption.map((rows: any) => (
+              <option key={rows.value} value={rows.value}>
+                {rows.label}
+              </option>
+            ))}
+          </Select>
+
+          <Select name="cars" defaultValue={carsParam}>
+            <option value="">รถทั้งหมด</option>
+            {carsOption.map((rows: any) => (
+              <option key={rows.value} value={rows.value}>
+                {rows.label}
+              </option>
+            ))}
+          </Select>
+
+          <Select name="cars" defaultValue={carsParam}>
+            <option value="">บริการทั้งหมด</option>
+            {productsOption.map((rows: any) => (
+              <option key={rows.value} value={rows.value}>
+                {rows.label}
+              </option>
+            ))}
+          </Select>
 
           <Select name="status" defaultValue={status}>
             <option value="">ทุกสถานะ</option>
@@ -223,6 +250,7 @@ export default async function BookingsPage({ searchParams }: PageProps) {
           </Select>
 
           <Button type="submit" className="h-11">
+            <Search className="mr-2 h-4 w-4" />
             ค้นหา
           </Button>
         </form>
@@ -231,7 +259,7 @@ export default async function BookingsPage({ searchParams }: PageProps) {
           initialBookings={initialBookings}
           currentUserId={currentUserId}
           products={products.map((product) => ({ id: product.id, label: `${product.name} - ${product.price}` , price: Number(product.price) }))}
-          cars={cars.map((car) => ({ id: car.id, label: `${car.brand.name} ${car.model} (${car.license})` }))}
+          cars={carsAvailable.map((car) => ({ id: car.id, label: `${car.brand.name} ${car.model} (${car.license})` }))}
           drivers={drivers.map((driver) => ({ id: driver.id, label: `${driver.fullName} (${driver.phone})` }))}
           initialDrivers={initialDrivers}
         />

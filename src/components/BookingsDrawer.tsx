@@ -134,7 +134,7 @@ export default function BookingsDrawer({
       <aside className="fixed right-0 top-0 z-40 h-full w-full max-w-2xl overflow-auto bg-white shadow-2xl">
         <div className="flex items-start justify-between gap-4 border-b px-6 py-5">
           <div>
-            <h2 className="text-2xl font-extrabold text-slate-950">{editingId ? 'แก้ไขรายการเช่ารถ' : 'เพิ่มรายการเช่าใหม่'}</h2>
+            <h2 className="text-2xl font-extrabold text-slate-950">{editingId ? 'แก้ไขรายการ' : 'เพิ่มรายการใหม่'}</h2>
             <p className="mt-2 text-sm font-medium text-slate-500">กรอกข้อมูลพื้นฐานและอัปโหลดเอกสาร</p>
           </div>
           <button className="rounded-full border p-2" onClick={() => setDrawerOpen(false)}><X className="h-4 w-4" /></button>
@@ -142,24 +142,24 @@ export default function BookingsDrawer({
 
         <form onSubmit={submit} className="space-y-6 px-6 py-5">
           <div>
-            <Label>เรทราคา / โปรโมชั่น *</Label>
+            <Label>ข้อมูลบริการ *</Label>
             <Select value={form.productId} onChange={(e) => setForm((c) => ({ ...c, productId: e.target.value, price: String(products?.find((p) => p.id === e.target.value)?.price ?? c.price) }))} required>
-              <option value="">เลือกโปรโมชั่น</option>
+              <option value="">เลือกข้อมูลบริการ</option>
               {products?.map((p) => <option key={p.id} value={p.id}>{p.label}</option>)}
             </Select>
           </div>
           <div className="grid gap-4 md:grid-cols-2">
             <div>
-              <Label>รถที่จอง *</Label>
+              <Label>รายการรถ *</Label>
               <Select value={form.carId} onChange={(e) => setForm((c) => ({ ...c, carId: e.target.value }))} required>
-                <option value="">เลือกคันรถ</option>
+                <option value="">เลือกรายการรถ</option>
                 {cars?.map((c) => <option key={c.id} value={c.id}>{c.label}</option>)}
               </Select>
             </div>
             <div>
-              <Label>ผู้จอง / คนขับ *</Label>
+              <Label>ข้อมูลลูกค้า *</Label>
               <Select value={form.driverId} onChange={(e) => setForm((c) => ({ ...c, driverId: e.target.value }))} required>
-                <option value="">เลือกคนขับ</option>
+                <option value="">เลือกข้อมูลลูกค้า</option>
                 {drivers?.map((d) => <option key={d.id} value={d.id}>{d.label}</option>)}
               </Select>
             </div>

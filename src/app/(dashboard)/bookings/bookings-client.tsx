@@ -5,21 +5,15 @@ import { Edit, Plus, X, ClipboardList, FileDown, UserPlus } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
-import { cn } from '@/lib/utils'
+import { cn, toDateInputValue } from '@/lib/utils'
 import { formatBaht, formatThaiDate, getStatusBadgeClass, getStatusLabel } from '@/lib/ui-format'
 import { AlertDialogDestructive } from '@/components/AlertDialogDestructive'
 import BookingsDrawer from '@/components/BookingsDrawer'
 import DriverDrawer from '@/components/DriverDrawer'
 import { BookingOption, DriverEmptyForm, GuarantorEmptyForm, type DriverRow } from '@/lib/types'
+import ReportFieldDrawer from '@/components/ReportFieldDrawer'
 
 type Row = any
-
-function toDatetimeLocal(value?: string | Date | null) {
-  if (!value) return ''
-  const d = new Date(value)
-  const tzOffset = d.getTimezoneOffset() * 60000
-  return new Date(d.getTime() - tzOffset).toISOString().slice(0, 16)
-}
 
 interface BookingsClientProps {
   initialBookings: Row[]
@@ -63,7 +57,9 @@ export default function BookingsClient({
     healthCheck01ImageId: '',
     healthCheck02ImageId: '',
   }
-  const [form, setForm] = useState(empty)  
+  const [form, setForm] = useState(empty)
+  const [reportField, setReportField] = useState<Row[] | null>(null)
+  const [reportDrawerOpen, setReportDrawerOpen] = useState(false)
 
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
@@ -71,6 +67,7 @@ export default function BookingsClient({
         setMenuOpen(false)
         setDrawerOpen(false)
         setDriverDrawerOpen(false)
+        setReportDrawerOpen(false)
       }
     }
 
@@ -83,12 +80,14 @@ export default function BookingsClient({
     setForm({ ...empty, userId: currentUserId, bookingStatus: 'Pending' })
     setError('')
     setDrawerOpen(true)
+    setMenuOpen(false)
   }
 
   function openDriverCreate() {
     setDriverEditingId(null)
     setDriverError('')
     setDriverDrawerOpen(true)
+    setMenuOpen(false)
   }
 
   function openEdit(row: Row) {
@@ -98,8 +97,8 @@ export default function BookingsClient({
       carId: row.carId ?? '',
       userId: row.userId ?? currentUserId,
       driverId: row.driverId ?? '',
-      dateStart: toDatetimeLocal(row.dateStart),
-      dateEnd: toDatetimeLocal(row.dateEnd),
+      dateStart: toDateInputValue(row.dateStart),
+      dateEnd: toDateInputValue(row.dateEnd),
       price: String(row.price ?? row.product?.price ?? '0'),
       discountAmount: String(row.discountAmount ?? 0),
       taxAmount: String(row.taxAmount ?? 0),
@@ -114,7 +113,9 @@ export default function BookingsClient({
   }
 
   function openFile(row: Row) {
-    console.log('open file', row)
+    setReportField(row)
+    setReportDrawerOpen(true)
+    setMenuOpen(false)
   }
 
   async function remove(id: string) {
@@ -138,8 +139,9 @@ export default function BookingsClient({
             <table className="mt-6 w-full min-w-275 text-left">
               <thead>
                 <tr>
-                  <th className="border-b border-slate-200 px-3 py-3 text-sm font-extrabold text-slate-950">ลูกค้า / ผู้เช่า</th>
-                  <th className="border-b border-slate-200 px-3 py-3 text-sm font-extrabold text-slate-950">รถที่จอง</th>
+                  <th className="border-b border-slate-200 px-3 py-3 text-sm font-extrabold text-slate-950">ข้อมูลลูกค้า</th>
+                  <th className="border-b border-slate-200 px-3 py-3 text-sm font-extrabold text-slate-950">รายการรถ</th>
+                  <th className="border-b border-slate-200 px-3 py-3 text-sm font-extrabold text-slate-950">ข้อมูลบริการ</th>
                   <th className="border-b border-slate-200 px-3 py-3 text-sm font-extrabold text-slate-950">วันรับรถ - วันคืนรถ</th>
                   <th className="border-b border-slate-200 px-3 py-3 text-sm font-extrabold text-slate-950 text-right">ยอดรวมสุทธิ</th>
                   <th className="border-b border-slate-200 px-3 py-3 text-sm font-extrabold text-slate-950">สถานะ</th>
@@ -151,6 +153,7 @@ export default function BookingsClient({
                   <tr key={booking.id} className="border-b border-slate-100 text-sm font-medium text-slate-700">
                     <td className="px-3 py-4 font-bold text-slate-950">{booking.driver?.fullName ?? ''}</td>
                     <td className="px-3 py-4">{`${booking.car?.brand?.name ?? ''} ${booking.car?.model ?? ''}`.trim()}</td>
+                    <td className="px-3 py-4">{`${booking.product?.name ?? ''} - ${formatBaht(booking.product?.price) ?? ''}`.trim()}</td>
                     <td className="px-3 py-4">{formatThaiDate(booking.dateStart)} - {formatThaiDate(booking.dateEnd)}</td>
                     <td className="px-3 py-4 text-right font-semibold">{formatBaht(booking.netAmount)}</td>
                     <td className="px-3 py-4"><Badge className={getStatusBadgeClass(booking.status)}>{getStatusLabel(booking.status)}</Badge></td>
@@ -169,6 +172,70 @@ export default function BookingsClient({
         </CardContent>
       </Card>
 
+      {menuOpen && (
+        <button
+          type="button"
+          aria-label="ปิดเมนูเพิ่มรายการเช่ารถ"
+          className="fixed inset-0 z-40 cursor-default bg-transparent"
+          onClick={() => setMenuOpen(false)}
+        />
+      )}
+
+      {!drawerOpen && !driverDrawerOpen && (
+        <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-3">
+          {menuOpen && (
+            <>
+              <button 
+                type="button" 
+                onClick={() => {
+                  setMenuOpen(false)
+                  openCreate()
+                }}
+                className={cn(
+                  'group relative z-50 flex items-center gap-4 rounded-2xl border bg-white px-4 py-3 text-left shadow-lg shadow-slate-950/10 transition-all duration-200',
+                  'min-w-47.5 max-w-60',
+                  'border-slate-200 hover:-translate-y-0.5 hover:border-violet-200 hover:bg-violet-50/50'
+                )}
+              >
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-slate-50 text-slate-600 shadow-sm transition group-hover:bg-white group-hover:text-violet-700">
+                  <ClipboardList className="h-5 w-5" />
+                </div>
+                <div className="min-w-0">
+                  <div className="truncate text-sm font-bold text-slate-900">เพิ่มรายการใหม่</div>
+                </div>
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  openDriverCreate()
+                }}
+                className={cn(
+                  'group relative z-50 flex items-center gap-4 rounded-2xl border bg-white px-4 py-3 text-left shadow-lg shadow-slate-950/10 transition-all duration-200',
+                  'min-w-47.5 max-w-60',
+                  'border-slate-200 hover:-translate-y-0.5 hover:border-slate-300 hover:bg-slate-50'
+                )}
+              >
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-slate-50 text-slate-600 shadow-sm transition group-hover:bg-white group-hover:text-slate-900">
+                  <UserPlus className="h-5 w-5" />
+                </div>
+                <div className="min-w-0">
+                  <div className="truncate text-sm font-bold text-slate-900">เพิ่มข้อมูลลูกค้าใหม่</div>
+                </div>
+              </button>
+            </>
+          )}
+          
+          <Button
+            type="button"
+            size="lg"
+            onClick={() => setMenuOpen((value) => !value)}
+            className={cn('relative z-50 h-14 w-14 rounded-xl border-2 border-violet-200 bg-violet-600 shadow-2xl shadow-violet-900/25', 'hover:bg-violet-700')}
+          >
+            {menuOpen ? <X className="h-7 w-7" /> : <Plus className="h-7 w-7" />}
+          </Button>
+        </div>
+      )}
+
       {drawerOpen && (
         <>
          <BookingsDrawer
@@ -185,71 +252,6 @@ export default function BookingsClient({
         </>
       )}
 
-      {!drawerOpen && menuOpen && (
-        <button
-          type="button"
-          aria-label="ปิดเมนูเพิ่มรายการเช่ารถ"
-          className="fixed inset-0 z-40 cursor-default bg-transparent"
-          onClick={() => setMenuOpen(false)}
-        />
-      )}
-
-      {!drawerOpen && !driverDrawerOpen && (
-        <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-3">
-          {menuOpen && (
-            <button 
-              type="button" 
-              onClick={() => {
-                setMenuOpen(false)
-                openCreate()
-              }}
-              className={cn(
-                'group relative z-50 flex items-center gap-4 rounded-2xl border bg-white px-4 py-3 text-left shadow-lg shadow-slate-950/10 transition-all duration-200',
-                'min-w-47.5 max-w-60',
-                'border-slate-200 hover:-translate-y-0.5 hover:border-violet-200 hover:bg-violet-50/50'
-              )}
-            >
-              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-slate-50 text-slate-600 shadow-sm transition group-hover:bg-white group-hover:text-violet-700">
-                <ClipboardList className="h-5 w-5" />
-              </div>
-              <div className="min-w-0">
-                <div className="truncate text-sm font-bold text-slate-900">เพิ่มรายการเช่ารถใหม่</div>
-              </div>
-            </button>
-          )}
-
-          {menuOpen && (
-            <button
-              type="button"
-              onClick={() => {
-                openDriverCreate()
-              }}
-              className={cn(
-                'group relative z-50 flex items-center gap-4 rounded-2xl border bg-white px-4 py-3 text-left shadow-lg shadow-slate-950/10 transition-all duration-200',
-                'min-w-47.5 max-w-60',
-                'border-slate-200 hover:-translate-y-0.5 hover:border-slate-300 hover:bg-slate-50'
-              )}
-            >
-              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-slate-50 text-slate-600 shadow-sm transition group-hover:bg-white group-hover:text-slate-900">
-                <UserPlus className="h-5 w-5" />
-              </div>
-              <div className="min-w-0">
-                <div className="truncate text-sm font-bold text-slate-900">เพิ่มข้อมูลลูกค้าใหม่</div>
-              </div>
-            </button>
-          )}
-          
-          <Button
-            type="button"
-            size="lg"
-            onClick={() => setMenuOpen((value) => !value)}
-            className={cn('relative z-50 h-14 w-14 rounded-xl border-2 border-violet-200 bg-violet-600 shadow-2xl shadow-violet-900/25', 'hover:bg-violet-700')}
-          >
-            {menuOpen ? <X className="h-7 w-7" /> : <Plus className="h-7 w-7" />}
-          </Button>
-        </div>
-      )}
-
       {driverDrawerOpen && (
         <DriverDrawer
           initialDrivers={driversState}
@@ -259,6 +261,13 @@ export default function BookingsClient({
           formIn={DriverEmptyForm}
           formGuarantorIn={GuarantorEmptyForm}
           errorIn={driverError}
+        />
+      )}
+
+      {reportDrawerOpen && (
+        <ReportFieldDrawer 
+          reportField={reportField} 
+          setDrawerOpen={setReportDrawerOpen}
         />
       )}
     </div>

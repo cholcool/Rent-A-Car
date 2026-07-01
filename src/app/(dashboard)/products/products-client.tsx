@@ -4,13 +4,9 @@ import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import { Edit, Plus, X, Ticket } from 'lucide-react'
 import { Badge, Button, Input, Label, Textarea, Switch, Card, CardContent, Field, FieldLabel, FieldGroup } from '@/components/ui'
 import { AlertDialogDestructive } from '@/components/AlertDialogDestructive'
-import { cn } from '@/lib/utils'
+import { cn, toDateInputValue } from '@/lib/utils'
 import { formatBaht, formatThaiDate } from '@/lib/ui-format'
 import { ProductRow, ProductEmptyForm, ProductFormState } from '@/lib/types'
-
-function toDateInputValue(value: string) {
-  return value ? value.slice(0, 10) : ''
-}
 
 function calcDateCount(start: string, end: string) {
   if (!start || !end) return 0
@@ -120,7 +116,7 @@ export default function ProductsClient({ initialProducts }: { initialProducts: P
     event.preventDefault()
 
     const newErrors: Record<string, string> = {}
-    if (!form.products_name.trim()) newErrors.products_name = 'กรุณากรอกชื่อเรทราคา/โปรโมชั่น'
+    if (!form.products_name.trim()) newErrors.products_name = 'กรุณากรอกชื่อข้อมูลบริการ'
     if (!form.products_price || Number(form.products_price) < 0) newErrors.products_price = 'กรุณากรอกราคาขายต่อวันให้ถูกต้อง'
     if (!form.date_start || !form.date_end) newErrors.date_start = 'กรุณาระบุวันเริ่มต้นและวันสิ้นสุด'
 
@@ -200,7 +196,7 @@ export default function ProductsClient({ initialProducts }: { initialProducts: P
               <table className="w-full min-w-245 text-left">
                 <thead>
                   <tr className="border-b border-slate-200 text-sm font-extrabold text-slate-950">
-                    <th className="px-3 py-3">ชื่อเรทราคา/โปรโมชั่น</th>
+                    <th className="px-3 py-3">ชื่อข้อมูลบริการ</th>
                     <th className="px-3 py-3">ราคาขายต่อวัน</th>
                     <th className="px-3 py-3">ระยะเวลา</th>
                     <th className="px-3 py-3">จำนวนวัน</th>
@@ -238,7 +234,7 @@ export default function ProductsClient({ initialProducts }: { initialProducts: P
                   {!products.length ? (
                     <tr>
                       <td colSpan={6} className="px-3 py-10 text-center text-sm font-semibold text-slate-500">
-                        ยังไม่มีข้อมูลโปรโมชั่น
+                        ยังไม่มีข้อมูลบริการ
                       </td>
                     </tr>
                   ) : null}
@@ -274,10 +270,10 @@ export default function ProductsClient({ initialProducts }: { initialProducts: P
                 <div className="flex items-start justify-between gap-4">
                   <div>
                     <h3 className="text-2xl font-extrabold text-slate-950">
-                      {editingProduct ? 'แก้ไขบริการ/โปรโมชั่น' : 'เพิ่มบริการ/โปรโมชั่น'}
+                      {editingProduct ? 'แก้ไขข้อมูลบริการ' : 'เพิ่มข้อมูลบริการ'}
                     </h3>
                     <p className="mt-2 text-sm font-medium text-slate-500">
-                      กรอกข้อมูลบริการ/โปรโมชั่นเพื่อเพิ่มเข้าระบบ
+                      กรอกข้อมูลบริการเพื่อเพิ่มเข้าระบบ
                     </p>
                   </div>
                   <button
@@ -292,7 +288,7 @@ export default function ProductsClient({ initialProducts }: { initialProducts: P
                 <form className="mt-6 flex-1 space-y-5 overflow-y-auto pr-1" onSubmit={submitForm}>
                   <div className="grid gap-5 md:grid-cols-2">
                     <div className="md:col-span-2">
-                      <Label htmlFor="products_name">ชื่อบริการ หรือชื่อโปรโมชั่น <span className="text-red-600">*</span></Label>
+                      <Label htmlFor="products_name">ชื่อข้อมูลบริการ <span className="text-red-600">*</span></Label>
                       <Input id="products_name" maxLength={255} value={form.products_name} onChange={(e) => updateField('products_name', e.target.value)} />
                       {errorForm.products_name && (
                         <p className="mt-1 text-xs font-medium text-red-600">{errorForm.products_name}</p>
@@ -383,7 +379,7 @@ export default function ProductsClient({ initialProducts }: { initialProducts: P
               <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-slate-50 text-slate-600 shadow-sm transition group-hover:bg-white group-hover:text-violet-700">
                 <Ticket className="h-5 w-5" aria-hidden="true" />
               </div>
-              <div className="truncate text-sm font-bold text-slate-900">เพิ่มบริการ/โปรโมชั่น</div>
+              <div className="truncate text-sm font-bold text-slate-900">เพิ่มข้อมูลบริการ</div>
             </button>
           </>
         )}
