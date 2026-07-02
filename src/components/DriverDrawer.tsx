@@ -40,6 +40,7 @@ export default function DriverDrawer({
   setDrawerOpen,
   setDrivers,
 } : DriverDrawerProps) {
+  const [errorForm, setErrorForm] = useState<Record<string, string>>({})
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState(errorIn)
   const [form, setForm] = useState(formIn || DriverEmptyForm)
@@ -84,16 +85,18 @@ export default function DriverDrawer({
 
   async function submitForm(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    setError('')
 
-    if (!form.fullName.trim()) {
-      setError('กรุณากรอกชื่อ-นามสกุลคนขับ')
+    const newErrors: Record<string, string> = {}
+    if (!form.fullName.trim()) newErrors.fullName = 'กรุณากรอกชื่อ-นามสกุล'
+    if (!form.phone.trim()) newErrors.phone = 'กรุณากรอกเบอร์โทรศัพท์'
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrorForm(newErrors)
       return
     }
-    if (!form.phone.trim()) {
-      setError('กรุณากรอกเบอร์โทรศัพท์')
-      return
-    }
+
+    setErrorForm({})
+    setError('')
 
     const guarantorProvided = [
       formGuarantor.fullName.trim(),
@@ -170,12 +173,18 @@ export default function DriverDrawer({
                 <h3 className='text-xl font-extrabold text-slate-950'>ผู้เช่า</h3>
                 <div className="grid gap-5 md:grid-cols-2">
                   <div className="md:col-span-2">
-                    <Label htmlFor="fullName">ชื่อ-นามสกุล</Label>
-                    <Input id="fullName" maxLength={150} value={form.fullName} onChange={(e) => updateField('fullName', e.target.value)} required />
+                    <Label htmlFor="fullName">ชื่อ-นามสกุล <span className="text-red-600">*</span></Label>
+                    <Input id="fullName" maxLength={150} value={form.fullName} onChange={(e) => updateField('fullName', e.target.value)} />
+                    {errorForm.fullName && (
+                      <p className="mt-1 text-xs font-medium text-red-600">{errorForm.fullName}</p>
+                    )}
                   </div>
                   <div className="md:col-span-2">
-                    <Label htmlFor="phone">เบอร์โทรศัพท์ </Label>
-                    <Input id="phone" maxLength={10} minLength={10} value={form.phone} onChange={(e) => updateField('phone', e.target.value)} required />
+                    <Label htmlFor="phone">เบอร์โทรศัพท์ <span className="text-red-600">*</span></Label>
+                    <Input id="phone" maxLength={10} minLength={10} value={form.phone} onChange={(e) => updateField('phone', e.target.value)} />
+                    {errorForm.phone && (
+                      <p className="mt-1 text-xs font-medium text-red-600">{errorForm.phone}</p>
+                    )}
                   </div>
                   <div className="md:col-span-2">
                     <Label htmlFor="remark">หมายเหตุ</Label>

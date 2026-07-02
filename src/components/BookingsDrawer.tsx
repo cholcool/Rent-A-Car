@@ -60,6 +60,7 @@ export default function BookingsDrawer({
   setDrawerOpen,
   setBookings
 }: BookingsDrawerProps) {
+  const [errorForm, setErrorForm] = useState<Record<string, string>>({})
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState(errorIn || '')
   const empty = {
@@ -91,6 +92,20 @@ export default function BookingsDrawer({
  
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
+
+    const newErrors: Record<string, string> = {}
+    if (!form.productId.trim()) newErrors.productId = 'กรุณากรอกชื่อข้อมูลบริการ'
+    if (!form.carId.trim()) newErrors.carId = 'กรุณากรอกชื่อข้อมูลรถ'
+    if (!form.driverId.trim()) newErrors.driverId = 'กรุณากรอกชื่อข้อมูลคนขับ'
+    if (!form.dateStart || !form.dateEnd) newErrors.dateStart = 'กรุณาระบุวันเริ่มต้นและวันสิ้นสุด'
+    if (!form.price || Number(form.price) < 0) newErrors.price = 'กรุณากรอกราคาขายต่อวันให้ถูกต้อง'
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrorForm(newErrors)
+      return
+    }
+
+    setErrorForm({})
     setSaving(true)
     setError('')
     try {
@@ -142,45 +157,63 @@ export default function BookingsDrawer({
 
         <form onSubmit={submit} className="space-y-6 px-6 py-5">
           <div>
-            <Label>ข้อมูลบริการ *</Label>
-            <Select value={form.productId} onChange={(e) => setForm((c) => ({ ...c, productId: e.target.value, price: String(products?.find((p) => p.id === e.target.value)?.price ?? c.price) }))} required>
+            <Label>ข้อมูลบริการ <span className="text-red-600">*</span></Label>
+            <Select value={form.productId} onChange={(e) => setForm((c) => ({ ...c, productId: e.target.value, price: String(products?.find((p) => p.id === e.target.value)?.price ?? c.price) }))}>
               <option value="">เลือกข้อมูลบริการ</option>
               {products?.map((p) => <option key={p.id} value={p.id}>{p.label}</option>)}
             </Select>
+            {errorForm.productId && (
+              <p className="mt-1 text-xs font-medium text-red-600">{errorForm.productId}</p>
+            )}
           </div>
           <div className="grid gap-4 md:grid-cols-2">
             <div>
-              <Label>รายการรถ *</Label>
-              <Select value={form.carId} onChange={(e) => setForm((c) => ({ ...c, carId: e.target.value }))} required>
+              <Label>รายการรถ <span className="text-red-600">*</span></Label>
+              <Select value={form.carId} onChange={(e) => setForm((c) => ({ ...c, carId: e.target.value }))}>
                 <option value="">เลือกรายการรถ</option>
                 {cars?.map((c) => <option key={c.id} value={c.id}>{c.label}</option>)}
               </Select>
+              {errorForm.carId && (
+                <p className="mt-1 text-xs font-medium text-red-600">{errorForm.carId}</p>
+              )}
             </div>
             <div>
-              <Label>ข้อมูลลูกค้า *</Label>
-              <Select value={form.driverId} onChange={(e) => setForm((c) => ({ ...c, driverId: e.target.value }))} required>
+              <Label>ข้อมูลลูกค้า <span className="text-red-600">*</span></Label>
+              <Select value={form.driverId} onChange={(e) => setForm((c) => ({ ...c, driverId: e.target.value }))}>
                 <option value="">เลือกข้อมูลลูกค้า</option>
                 {drivers?.map((d) => <option key={d.id} value={d.id}>{d.label}</option>)}
               </Select>
+              {errorForm.driverId && (
+                <p className="mt-1 text-xs font-medium text-red-600">{errorForm.driverId}</p>
+              )}
             </div>
             <div>
-              <Label>วันที่-เวลา รับรถ *</Label>
-              <Input type="date" value={form.dateStart} onChange={(e) => setForm((c) => ({ ...c, dateStart: e.target.value }))} required />
+              <Label>วันที่-เวลา รับรถ <span className="text-red-600">*</span></Label>
+              <Input type="date" value={form.dateStart} onChange={(e) => setForm((c) => ({ ...c, dateStart: e.target.value }))} />
+              {errorForm.dateStart && (
+                <p className="mt-1 text-xs font-medium text-red-600">{errorForm.dateStart}</p>
+              )}
             </div>
             <div>
-              <Label>วันที่-เวลา ส่งคืน *</Label>
-              <Input type="date" value={form.dateEnd} onChange={(e) => setForm((c) => ({ ...c, dateEnd: e.target.value }))} required />
+              <Label>วันที่-เวลา ส่งคืน <span className="text-red-600">*</span></Label>
+              <Input type="date" value={form.dateEnd} onChange={(e) => setForm((c) => ({ ...c, dateEnd: e.target.value }))} />
+              {errorForm.dateEnd && (
+                <p className="mt-1 text-xs font-medium text-red-600">{errorForm.dateEnd}</p>
+              )}
             </div>
             <div>
               <Label>จำนวนวัน</Label>
               <Input value={days} readOnly />
             </div>
             <div>
-              <Label>ราคาต่อวัน *</Label>
-              <Input type="number" min="0" step="0.01" value={form.price} onChange={(e) => setForm((c) => ({ ...c, price: e.target.value }))} required />
+              <Label>ราคาต่อวัน <span className="text-red-600">*</span></Label>
+              <Input type="number" min="0" step="0.01" value={form.price} onChange={(e) => setForm((c) => ({ ...c, price: e.target.value }))} />
+              {errorForm.price && (
+                <p className="mt-1 text-xs font-medium text-red-600">{errorForm.price}</p>
+              )}
             </div>
             <div>
-              <Label>ยอดรวมก่อนหักส่วนลด *</Label>
+              <Label>ยอดรวมก่อนหักส่วนลด <span className="text-red-600">*</span></Label>
               <Input value={gross} readOnly />
             </div>
             <div>
@@ -192,14 +225,17 @@ export default function BookingsDrawer({
               <Input type="number" min="0" step="0.01" value={form.taxAmount} onChange={(e) => setForm((c) => ({ ...c, taxAmount: e.target.value }))} />
             </div>
             <div>
-              <Label>ยอดรวมทั้งหมด *</Label>
+              <Label>ยอดรวมทั้งหมด <span className="text-red-600">*</span></Label>
               <Input value={total} readOnly />
             </div>
             <div>
-              <Label>สถานะการจอง *</Label>
-              <Select value={form.bookingStatus} onChange={(e) => setForm((c) => ({ ...c, bookingStatus: e.target.value }))} required>
+              <Label>สถานะการจอง <span className="text-red-600">*</span></Label>
+              <Select value={form.bookingStatus} onChange={(e) => setForm((c) => ({ ...c, bookingStatus: e.target.value }))}>
                 {BookingStatusOptions.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
               </Select>
+              {errorForm.bookingStatus && (
+                <p className="mt-1 text-xs font-medium text-red-600">{errorForm.bookingStatus}</p>
+              )}
             </div>
             <div className="md:col-span-2">
               <Label>หมายเหตุ</Label>
