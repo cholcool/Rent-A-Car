@@ -15,40 +15,30 @@ type PageProps = {
 
 export default async function BookingsPage({ searchParams }: PageProps) {
   const params = (await searchParams) ?? {}
-  const inputSearch = typeof params.inputSearch === 'string' ? params.inputSearch.trim() : ''
   const statusParam = typeof params.status === 'string' ? params.status : ''
-  const status = BookingStatusOptions.find(status => status.value === statusParam)?.value ?? ''
-  const brand = typeof params.brand === 'string' ? params.brand.trim() : ''
+  const driversParam = typeof params.drivers === 'string' ? params.drivers.trim() : ''
   const carsParam = typeof params.cars === 'string' ? params.cars.trim() : ''
-  const vehicleType = typeof params.vehicleType === 'string' ? params.vehicleType.trim() : ''
+  const productsParam = typeof params.products === 'string' ? params.products.trim() : ''
+  const status = BookingStatusOptions.find(status => status.value === statusParam)?.value ?? ''
   const sort = typeof params.sort === 'string' ? params.sort : 'newest'
 
   const where: any = { isDeleted: false }
 
-  if (inputSearch) {
-    where.OR = [
-      { model: { contains: inputSearch, mode: 'insensitive' } },
-      { license: { contains: inputSearch, mode: 'insensitive' } },
-      { color: { contains: inputSearch, mode: 'insensitive' } },
-      { engine: { contains: inputSearch, mode: 'insensitive' } },
-      { chassis: { contains: inputSearch, mode: 'insensitive' } },
-      { brand: { name: { contains: inputSearch, mode: 'insensitive' } } },
-      { vehicleType: { name: { contains: inputSearch, mode: 'insensitive' } } },
-    ]
-  }
-
   if (status) where.status = status
-  if (brand) where.brand = { name: { contains: brand, mode: 'insensitive' } }
-  if (vehicleType) where.vehicleType = { name: { contains: vehicleType, mode: 'insensitive' } }
+  if (driversParam) where.driver = { id: driversParam }
+  if (carsParam) where.car = { id: carsParam }
+  if (productsParam) where.product = { id: productsParam }
 
   const orderBy: any =
-    sort === 'model'
-      ? { model: 'asc' }
-      : sort === 'year'
-        ? { year: 'desc' }
-        : sort === 'mileage'
-          ? { mileage: 'asc' }
-          : { createdAt: 'desc' }
+    sort === 'most'
+      ? { netAmount: 'desc' }
+      : sort === 'least'
+        ? { netAmount: 'asc' }
+        : sort === 'dateEnd'
+          ? { dateEnd: 'desc' }
+          : sort === 'dateStart'
+            ? { dateStart: 'asc' }
+            : { netAmount: 'desc' }
 
   const session = await auth()
   const currentUserId = session?.user?.id ?? ''
@@ -92,8 +82,6 @@ export default async function BookingsPage({ searchParams }: PageProps) {
       },
     }),
   ])
-
-  const initialBookings = serializePrismaRows(bookings)
 
   const initialDrivers: DriverRow[] = drivers.map((driver) => ({
     id: driver.id,
@@ -162,6 +150,7 @@ export default async function BookingsPage({ searchParams }: PageProps) {
   const pendingCount = bookings.filter((rows) => rows.status === 'Pending').length
   const activeCount = bookings.filter((rows) => ['Confirmed', 'InProgress'].includes(rows.status)).length
   const completeCount = bookings.filter((rows) => rows.status === 'Completed').length
+  const initialBookings = serializePrismaRows(bookings)
   const carsAvailable = cars.filter((rows) => rows.status === 'Available')
   const carsOption = cars.map((rows) => ({ value: rows.id, label: `${rows.brand.name} ${rows.model}`.trim() }))
   const driversOption = drivers.map((rows) => ({ value: rows.id, label: `${rows.fullName} (${rows.phone})`.trim() }))
@@ -178,7 +167,9 @@ export default async function BookingsPage({ searchParams }: PageProps) {
           <div className="grid grid-cols-2 gap-3 sm:min-w-80 lg:grid-cols-4">
             <div className="rounded-2xl border border-slate-200 bg-white px-5 py-4 shadow-sm shadow-slate-200/60">
               <div className="text-sm font-bold text-slate-500">ทั้งหมด</div>
-              <div className="mt-2 text-3xl font-extrabold text-slate-950">{formatCompactNumber(totalCount)}</div>
+              <div className="mt-2 text-3xl font-extrabold text-slate-950">
+                {formatCompactNumber(totalCount)}
+              </div>
             </div>
             <div className="rounded-2xl border border-slate-200 bg-white px-5 py-4 shadow-sm shadow-slate-200/60">
               <div className="text-sm font-bold text-slate-500">รอยืนยัน</div>
@@ -206,7 +197,7 @@ export default async function BookingsPage({ searchParams }: PageProps) {
           action="/bookings"
           className="grid gap-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm shadow-slate-200/60 lg:grid-cols-3 xl:grid-cols-[200px_200px_200px_200px_200px__auto] overflow-auto"
         >
-          <Select name="cars" defaultValue={carsParam}>
+          <Select name="drivers" defaultValue={driversParam}>
             <option value="">ลูกค้าทั้งหมด</option>
             {driversOption.map((rows: any) => (
               <option key={rows.value} value={rows.value}>
@@ -224,7 +215,7 @@ export default async function BookingsPage({ searchParams }: PageProps) {
             ))}
           </Select>
 
-          <Select name="cars" defaultValue={carsParam}>
+          <Select name="products" defaultValue={productsParam}>
             <option value="">บริการทั้งหมด</option>
             {productsOption.map((rows: any) => (
               <option key={rows.value} value={rows.value}>
@@ -243,10 +234,10 @@ export default async function BookingsPage({ searchParams }: PageProps) {
           </Select>
 
           <Select name="sort" defaultValue={sort}>
-            <option value="newest">ล่าสุด</option>
-            <option value="model">เรียงตามรุ่น</option>
-            <option value="year">ปีใหม่ก่อน</option>
-            <option value="mileage">ไมล์น้อยก่อน</option>
+            <option value="most">ยอดรวมสุทธิมากสุด</option>
+            <option value="least">ยอดรวมสุทธิน้อยสุด</option>
+            <option value="dateStart">เรียงตามวันรับรถ</option>
+            <option value="dateEnd">เรียงตามวันคืนรถ</option>
           </Select>
 
           <Button type="submit" className="h-11">
