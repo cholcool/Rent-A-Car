@@ -1,7 +1,7 @@
 import prisma from '@/lib/prisma'
 import { auth } from '@/lib/auth'
 import BookingsClient from './bookings-client'
-import { formatCompactNumber } from '@/lib/ui-format'
+import { formatCompactNumber, formatBaht } from '@/lib/ui-format'
 import { Select, Button } from '@/components/ui'
 import { Search } from 'lucide-react'
 import { BookingStatusOptions, type DriverRow } from '@/lib/types'
@@ -43,7 +43,7 @@ export default async function BookingsPage({ searchParams }: PageProps) {
   const session = await auth()
   const currentUserId = session?.user?.id ?? ''
 
-  const [bookings, products, cars, drivers] = await Promise.all([
+  const [bookings, products, cars, drivers, summary] = await Promise.all([
     prisma.booking.findMany({
       where,
       orderBy,
@@ -80,6 +80,10 @@ export default async function BookingsPage({ searchParams }: PageProps) {
           },
         },
       },
+    }),
+    prisma.booking.aggregate({
+      where,
+      _sum: { netAmount: true },
     }),
   ])
 
@@ -147,9 +151,9 @@ export default async function BookingsPage({ searchParams }: PageProps) {
   }))
 
   const totalCount = bookings.length
-  const pendingCount = bookings.filter((rows) => rows.status === 'Pending').length
-  const activeCount = bookings.filter((rows) => ['Confirmed', 'InProgress'].includes(rows.status)).length
-  const completeCount = bookings.filter((rows) => rows.status === 'Completed').length
+  // const pendingCount = bookings.filter((rows) => rows.status === 'Pending').length
+  // const activeCount = bookings.filter((rows) => ['Confirmed', 'InProgress'].includes(rows.status)).length
+  // const completeCount = bookings.filter((rows) => rows.status === 'Completed').length
   const initialBookings = serializePrismaRows(bookings)
   const carsAvailable = cars.filter((rows) => rows.status === 'Available')
   const carsOption = cars.map((rows) => ({ value: rows.id, label: `${rows.brand.name} ${rows.model}`.trim() }))
@@ -164,7 +168,7 @@ export default async function BookingsPage({ searchParams }: PageProps) {
             <h1 className="text-4xl font-extrabold tracking-normal text-slate-950">บันทึกรายการ</h1>
           </div>
 
-          <div className="grid grid-cols-2 gap-3 sm:min-w-80 lg:grid-cols-4">
+          <div className="grid grid-cols-2 gap-3">
             <div className="rounded-2xl border border-slate-200 bg-white px-5 py-4 shadow-sm shadow-slate-200/60">
               <div className="text-sm font-bold text-slate-500">ทั้งหมด</div>
               <div className="mt-2 text-3xl font-extrabold text-slate-950">
@@ -172,21 +176,9 @@ export default async function BookingsPage({ searchParams }: PageProps) {
               </div>
             </div>
             <div className="rounded-2xl border border-slate-200 bg-white px-5 py-4 shadow-sm shadow-slate-200/60">
-              <div className="text-sm font-bold text-slate-500">รอยืนยัน</div>
+              <div className="text-sm font-bold text-slate-500">ยอดรวม</div>
               <div className="mt-2 text-3xl font-extrabold text-emerald-600">
-                {formatCompactNumber(pendingCount)}
-              </div>
-            </div>
-            <div className="rounded-2xl border border-slate-200 bg-white px-5 py-4 shadow-sm shadow-slate-200/60">
-              <div className="text-sm font-bold text-slate-500">กำลังดำเนินการ</div>
-              <div className="mt-2 text-3xl font-extrabold text-emerald-600">
-                {formatCompactNumber(activeCount)}
-              </div>
-            </div>
-            <div className="rounded-2xl border border-slate-200 bg-white px-5 py-4 shadow-sm shadow-slate-200/60">
-              <div className="text-sm font-bold text-slate-500">เสร็จสิ้น</div>
-              <div className="mt-2 text-3xl font-extrabold text-emerald-600">
-                {formatCompactNumber(completeCount)}
+                {formatBaht(summary._sum.netAmount ?? 0)}
               </div>
             </div>
           </div>

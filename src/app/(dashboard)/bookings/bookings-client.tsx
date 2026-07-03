@@ -152,8 +152,14 @@ export default function BookingsClient({
                 {bookings.map((booking) => (
                   <tr key={booking.id} className="border-b border-slate-100 text-sm font-medium text-slate-700">
                     <td className="px-3 py-4 font-bold text-slate-950">{booking.driver?.fullName ?? ''}</td>
-                    <td className="px-3 py-4">{`${booking.car?.brand?.name ?? ''} ${booking.car?.model ?? ''}`.trim()}</td>
-                    <td className="px-3 py-4">{`${booking.product?.name ?? ''} - ${formatBaht(booking.product?.price) ?? ''}`.trim()}</td>
+                    <td className="px-3 py-4">
+                      <div>{`${booking.car?.brand?.name ?? ''} ${booking.car?.model ?? ''}`.trim()}</div>
+                      <div className="text-xs text-slate-500">{booking.car?.license ?? '-'}</div>
+                    </td>
+                    <td className="px-3 py-4">
+                      <div>{booking.product?.name.trim() || '-'}</div>
+                      <div className="text-xs text-slate-500">{formatBaht(booking.product?.price)}</div>
+                    </td>
                     <td className="px-3 py-4">{formatThaiDate(booking.dateStart)} - {formatThaiDate(booking.dateEnd)}</td>
                     <td className="px-3 py-4 text-right font-semibold">{formatBaht(booking.netAmount)}</td>
                     <td className="px-3 py-4"><Badge className={getStatusBadgeClass(booking.status)}>{getStatusLabel(booking.status)}</Badge></td>
