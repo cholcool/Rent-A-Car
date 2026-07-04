@@ -382,7 +382,7 @@ export default function UsersPageClient({
                             <PenLine className="h-4 w-4" />
                             แก้ไข
                           </Button>
-                          <AlertDialogDestructive onClick={() => deleteRow('user', user.id)} />
+                          <AlertDialogDestructive onClick={() => deleteRow('user', user.id)} variant={'destructive'} />
                         </div>
                       </td>
                     </tr>
@@ -425,7 +425,7 @@ export default function UsersPageClient({
                         <Button type="button" variant="outline" size="sm" onClick={() => openRoleEdit('role', role)}>
                           แก้ไข
                         </Button>
-                        <AlertDialogDestructive onClick={() => deleteRow('user', role.id)} />
+                        <AlertDialogDestructive onClick={() => deleteRow('user', role.id)} variant={'destructive'} />
                       </div>
                     </div>
                   ))}
@@ -451,7 +451,7 @@ export default function UsersPageClient({
                         <Button type="button" variant="outline" size="sm" onClick={() => openRoleEdit('permission', permission)}>
                           แก้ไข
                         </Button>
-                        <AlertDialogDestructive onClick={() => deleteRow('user', permission.id)} />
+                        <AlertDialogDestructive onClick={() => deleteRow('user', permission.id)} variant={'destructive'} />
                       </div>
                     </div>
                   ))}

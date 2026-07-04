@@ -226,6 +226,7 @@ export default function ProductsClient({ initialProducts }: { initialProducts: P
                           </Button>
                           <AlertDialogDestructive
                             onClick={() => deleteProduct(product.id)}
+                            variant={'destructive'}
                           />
                         </div>
                       </td>

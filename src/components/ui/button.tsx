@@ -4,6 +4,8 @@ import { Slot } from "radix-ui"
 
 import { cn } from "@/lib/utils"
 
+export type AlertDialogVariant = 'destructive' | 'link' | 'default' | 'outline' | 'secondary' | 'ghost' | 'save' | 'warning' | 'notification' | null | undefined
+
 const buttonVariants = cva(
   "group/button inline-flex shrink-0 items-center justify-center rounded-lg border border-transparent bg-clip-padding text-sm font-medium whitespace-nowrap transition-all outline-none select-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 active:not-aria-[haspopup]:translate-y-px disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
   {
@@ -20,6 +22,10 @@ const buttonVariants = cva(
           "bg-destructive/10 text-destructive hover:bg-destructive/20 focus-visible:border-destructive/40 focus-visible:ring-destructive/20 dark:bg-destructive/20 dark:hover:bg-destructive/30 dark:focus-visible:ring-destructive/40",
         link: "text-primary underline-offset-4 hover:underline",
         save: "bg-green-500 text-white hover:bg-green-600 focus-visible:ring-green-300",
+        warning:
+          "bg-amber-50 text-amber-700 hover:bg-amber-100 focus-visible:ring-amber-300 dark:bg-amber-100 dark:text-amber-800 dark:hover:bg-amber-200 dark:focus-visible:ring-amber-400",
+        notification:
+          "bg-amber-50 text-yellow-500 hover:bg-amber-100 focus-visible:ring-yellow-300 dark:bg-amber-100 dark:text-yellow-800 dark:hover:bg-amber-200 dark:focus-visible:ring-amber-400",
       },
       size: {
         default:

@@ -1,4 +1,4 @@
-export { default as Button } from "./button";
+export * from "./button";
 export { default as Input } from "./input";
 export { default as Select } from "./select";
 export { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "./card";

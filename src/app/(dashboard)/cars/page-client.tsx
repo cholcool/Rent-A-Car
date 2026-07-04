@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { Edit } from 'lucide-react'
+import { Edit, BellRing } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -14,6 +14,7 @@ import {
 } from '@/lib/ui-format'
 import { AlertDialogDestructive } from '@/components/AlertDialogDestructive'
 import { CarsRow } from '@/lib/types'
+import { sortMaintenancesForAlert } from '@/lib/maintenance-status'
 
 interface PageProps {
   carsIn?: CarsRow[]
@@ -43,6 +44,14 @@ export default function PageClient({carsIn} : PageProps ) {
       setCars(carsIn)
     }
   }, [carsIn])
+
+  useEffect(() => {
+    const timer = window.setInterval(() => {
+      window.location.reload()
+    }, 60_000)
+
+    return () => window.clearInterval(timer)
+  }, [])
 
   return (
     <>
@@ -85,28 +94,21 @@ export default function PageClient({carsIn} : PageProps ) {
                       <td className='px-3 py-3'>
                         {(() => {
                           // 1. กรองเอาเฉพาะอันที่สถานะเป็น Active เท่านั้น
-                          const activeMaintenances = car.maintenances?.filter(
-                            (m) => m.status === 'Active'
-                          ) || [];
+                          const alertMaintenances = [...(car.maintenances || [])]
+                            .filter((m) => m.status === 'Active' || m.status === 'Overdue')
+                            .sort(sortMaintenancesForAlert)
 
-                          // 2. เรียงลำดับจากวันที่ล่าสุดขึ้นก่อนอย่างปลอดภัย
-                          // โคลนอาร์เรย์ด้วย [...activeMaintenances] ป้องกันข้อมูลต้นฉบับสลับตำแหน่งมั่ว
-                          const sortedMaintenances = [...activeMaintenances].sort((a, b) => {
-                            // เช็กก่อนถ้ามีวันเริ่มให้แปลงเป็นตัวเลขเวลา ถ้าเป็น null ให้แทนค่าด้วยเลข 0 ทันที
-                            const timeB = b.dateStart ? new Date(b.dateStart).getTime() : 0;
-                            const timeA = a.dateStart ? new Date(a.dateStart).getTime() : 0;
-                            return timeA - timeB;
-                          });
-
-                          // หยิบเอาตัวแรกสุด [0] หลังจากเรียงลำดับจากใหม่สุดไปเก่าสุดเสร็จแล้ว
-                          const latestActive = sortedMaintenances[0];
+                          const latestActive = alertMaintenances[0];
 
                           // 3. แสดงผล Badge หากมีข้อมูลตรงตามเงื่อนไข
                           if (latestActive) {
                             return (
-                              <Badge className={getStatusBadgeClass(latestActive.status)}>
-                                {latestActive.type ?? ''}
-                              </Badge>
+                              <>
+                                <Badge className="rounded-lg bg-amber-50 px-3 py-1 text-xs font-bold text-black">
+                                  <BellRing className="mr-1 inline-block text-xs text-yellow-500" /> 
+                                  {getStatusLabel(latestActive.type) ?? ''}
+                                </Badge>
+                              </>
                             );
                           }
 
@@ -121,7 +123,7 @@ export default function PageClient({carsIn} : PageProps ) {
                               <Edit className="size-4" />
                             </Link>
                           </Button>
-                          <AlertDialogDestructive onClick={() => deleteItem(car.id)} />
+                          <AlertDialogDestructive onClick={() => deleteItem(car.id)} variant={'destructive'} />
                         </div>
                       </td>
                     </tr>

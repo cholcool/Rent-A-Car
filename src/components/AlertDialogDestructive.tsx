@@ -1,4 +1,9 @@
-import { Trash2Icon, Trash } from "lucide-react"
+import { 
+  Trash2Icon, 
+  TriangleAlert,
+  CircleQuestionMark,
+  BellCheck
+} from "lucide-react"
 
 import {
   AlertDialog,
@@ -12,26 +17,56 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
-import { Button } from "@/components/ui/button"
+import { Button, AlertDialogVariant } from "@/components/ui"
 
 interface AlertDialogDestructiveProps {
   onClick?: () => void
   title?: string
   description?: string
+  variant?: AlertDialogVariant,
+  size?: "default" | "sm" | "lg" | "icon" | "icon-sm" | "icon-lg"
+  iconText?: string
 } 
+
+function IconVariant({ variant }: { variant: AlertDialogVariant }) {
+  switch (variant) {
+    case 'destructive':
+      return <Trash2Icon className="h-4 w-4 text-destructive" />
+    case 'warning':
+      return <TriangleAlert className="h-4 w-4 text-warning" />
+    case 'notification':
+      return <BellCheck className="h-4 w-4 text-notification" />
+    default:
+      return <CircleQuestionMark className="h-4 w-4 text-info" />
+  }
+}
+
+function classAlertDialogMedia(variant: AlertDialogVariant) {
+  switch (variant) {
+    case 'destructive':
+      return "bg-destructive/10 text-destructive dark:bg-destructive/20 dark:text-destructive"
+    case 'warning':
+      return "bg-amber-50 text-amber-700 hover:bg-amber-100 focus-visible:ring-amber-300 dark:bg-amber-100 dark:text-amber-800 dark:hover:bg-amber-200 dark:focus-visible:ring-amber-400"
+    case 'notification':
+      return "bg-amber-50 text-yellow-500 hover:bg-amber-100 focus-visible:ring-yellow-300 dark:bg-amber-100 dark:text-yellow-800 dark:hover:bg-amber-200 dark:focus-visible:ring-amber-400"
+    default:
+      return "border-border bg-background hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground dark:border-input dark:bg-input/30 dark:hover:bg-input/50"
+  }
+}
   
-export function AlertDialogDestructive({ onClick, title, description }: AlertDialogDestructiveProps) {
+export function AlertDialogDestructive({ onClick, title, description, variant, size, iconText }: AlertDialogDestructiveProps) {
   return (
     <AlertDialog>
       <AlertDialogTrigger asChild>
-        <Button type="button" size="icon-sm" variant="destructive" >
-          <Trash className="h-4 w-4" />
+        <Button type="button" size={size || "icon-sm"} variant={variant} >
+          <IconVariant variant={variant} /> 
+          <span>{iconText || ''}</span>
         </Button>
       </AlertDialogTrigger>
       <AlertDialogContent size="sm">
         <AlertDialogHeader>
-          <AlertDialogMedia className="bg-destructive/10 text-destructive dark:bg-destructive/20 dark:text-destructive">
-            <Trash2Icon />
+          <AlertDialogMedia className={classAlertDialogMedia(variant)}>
+            <IconVariant variant={variant} />
           </AlertDialogMedia>
           <AlertDialogTitle>{title || 'ต้องการลบข้อมูลนี้ใช่หรือไม่?'}</AlertDialogTitle>
           <AlertDialogDescription>
@@ -40,7 +75,7 @@ export function AlertDialogDestructive({ onClick, title, description }: AlertDia
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel variant="outline">ยกเลิก</AlertDialogCancel>
-          <AlertDialogAction variant="destructive" onClick={onClick}>ลบ</AlertDialogAction>
+          <AlertDialogAction variant={variant} onClick={onClick}>ตกลง</AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>

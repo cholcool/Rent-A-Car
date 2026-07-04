@@ -69,6 +69,7 @@ export default function CarForm({ vehicleTypes, brands, onSuccess }: CarFormProp
     if (!formData.brandId) newErrors.brandId = 'แบรนด์รถเป็นข้อมูลบังคับ'
     if (!formData.model.trim()) newErrors.model = 'รุ่นรถเป็นข้อมูลบังคับ'
     if (!formData.year || !/^\d{4}$/.test(formData.year)) newErrors.year = 'ปีต้องเป็นตัวเลข 4 หลัก'
+    if (!formData.color.trim()) newErrors.color = 'สีรถเป็นข้อมูลบังคับ'
     if (!formData.license.trim()) newErrors.license = 'ทะเบียนรถเป็นข้อมูลบังคับ'
     const mileageNum = parseFloat(formData.mileage)
     if (isNaN(mileageNum) || mileageNum < 0) newErrors.mileage = 'เลขไมล์ต้องเป็นตัวเลขและไม่เป็นลบ'
@@ -89,8 +90,8 @@ export default function CarForm({ vehicleTypes, brands, onSuccess }: CarFormProp
         year: formData.year,
         color: formData.color,
         license: formData.license.trim(),
-        engine: formData.engine.trim(),
-        chassis: formData.chassis.trim(),
+        engine: formData.engine || null,
+        chassis: formData.chassis || null,
         mileage: parseFloat(formData.mileage),
         status: formData.status as CarStatus,
         remark: formData.remark || null,
@@ -214,7 +215,7 @@ export default function CarForm({ vehicleTypes, brands, onSuccess }: CarFormProp
 
           <div>
             <Label htmlFor="color" className="font-bold text-slate-900">
-              สีรถ
+              สีรถ <span className="text-red-600">*</span>
             </Label>
             <Input
               id="color"
@@ -225,6 +226,9 @@ export default function CarForm({ vehicleTypes, brands, onSuccess }: CarFormProp
               onChange={handleChange}
               className="mt-2"
             />
+            {errors.color && (
+              <p className="mt-1 text-xs font-medium text-red-600">{errors.color}</p>
+            )}
           </div>
         </div>
 

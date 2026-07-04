@@ -4,14 +4,16 @@ import { useMemo, useState, useTransition, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Edit, Wrench, Settings2, X } from 'lucide-react'
 import { Button, Card, CardContent, Input, Textarea, Select, Badge } from '@/components/ui'
-import { formatThaiDate, formatCompactNumber, toNumber, getStatusLabel } from '@/lib/ui-format'
-import { createMaintenance, deleteMaintenance, updateMaintenance } from '@/app/(dashboard)/cars/maintenance-actions'
+import { formatThaiDate, formatCompactNumber, toNumber, getStatusLabel, getNotificationLabel } from '@/lib/ui-format'
+import { completeMaintenance, createMaintenance, deleteMaintenance, updateMaintenance } from '@/app/(dashboard)/cars/maintenance-actions'
 import { AlertDialogDestructive } from '@/components/AlertDialogDestructive'
-import { MaintenanceStatus, MaintenanceProps, MaintenanceRow, MaintenanceType, getMaintenanceStatusLabel } from '@/lib/types'
+import { MaintenanceStatus, MaintenanceProps, MaintenanceRow, MaintenanceType } from '@/lib/types'
+import { resolveMaintenanceStatus } from '@/lib/maintenance-status'
 
 // const todayStr = new Date().toISOString().split('T')[0];
 
 function statusClass(status: MaintenanceStatus) {
+  if (status === 'Overdue') return 'bg-rose-100 text-rose-700'
   if (status === 'Active') return 'bg-blue-100 text-blue-700'
   if (status === 'Complete') return 'bg-emerald-100 text-emerald-700'
   return 'bg-amber-100 text-amber-700'
@@ -57,31 +59,6 @@ export default function MaintenanceCreateDrawer({
     handleClose(true)
   }
   
-  function calculateDateStatus(startStr: string, endStr: string): MaintenanceStatus {
-    if (!startStr) return 'Pending';
-  
-    const today = new Date();
-    today.setHours(0, 0, 0, 0); // ตั้งค่าเวลาเป็น 00:00 เพื่อเช็กเฉพาะวันที่
-  
-    const startDate = new Date(startStr);
-    startDate.setHours(0, 0, 0, 0);
-  
-    if (endStr) {
-      const endDate = new Date(endStr);
-      endDate.setHours(0, 0, 0, 0);
-  
-      if (today >= endDate) {
-        return 'Complete';
-      }
-    }
-  
-    if (today >= startDate) {
-      return 'Active';
-    }
-  
-    return 'Pending';
-  }  
-
   function calculateDateCount(startStr: string, endStr: string): number {
     if (!startStr || !endStr) return 0;
   
@@ -136,12 +113,19 @@ export default function MaintenanceCreateDrawer({
     setFormData((prev) => {
       const updatedForm = { ...prev, [name]: value };
 
-      if (name === 'dateStart') {
-        updatedForm.status = calculateDateStatus(updatedForm.dateStart, updatedForm.dateEnd);
-      }
-  
       if (name === 'dateStart' || name === 'dateEnd') {
         updatedForm.dateCount = calculateDateCount(updatedForm.dateStart, updatedForm.dateEnd);
+      }
+
+      if (name === 'dateStart' || name === 'dateEnd' || name === 'mileageAlert' || name === 'mileageTarget') {
+        updatedForm.status = resolveMaintenanceStatus({
+          status: updatedForm.status,
+          dateStart: updatedForm.dateStart,
+          dateEnd: updatedForm.dateEnd,
+          mileageAlert: Number(updatedForm.mileageAlert || 0),
+          mileageTarget: Number(updatedForm.mileageTarget || 0),
+          currentMileage: Number(updatedForm.mileage || 0),
+        })
       }
   
       return updatedForm;
@@ -186,7 +170,14 @@ export default function MaintenanceCreateDrawer({
         name: formData.name.trim(),
         description: formData.description.trim() || null,
         remark: formData.remark.trim() || null,
-        status: calculateDateStatus(formattedStart, formattedEnd),
+        status: resolveMaintenanceStatus({
+          status: formData.status,
+          dateStart: formattedStart,
+          dateEnd: formattedEnd,
+          mileageAlert: Number(formData.mileageAlert || 0),
+          mileageTarget: Number(formData.mileageTarget || 0),
+          currentMileage: Number(formData.mileage || 0),
+        }),
         mileage: Number(formData.mileage || 0),
         mileageTarget: Number(formData.mileageTarget || 0),
         mileageAlert: Number(formData.mileageAlert || 0),
@@ -215,6 +206,17 @@ export default function MaintenanceCreateDrawer({
       const result = await deleteMaintenance(maintenanceId)
       if (!result.success) {
         setErrors({ form: result.error || 'ลบข้อมูลไม่สำเร็จ' })
+        return
+      }
+      router.refresh()
+    })
+  }
+
+  const handleComplete = (maintenanceId: string) => {
+    startTransition(async () => {
+      const result = await completeMaintenance(maintenanceId)
+      if (!result.success) {
+        setErrors({ form: result.error || 'ปิดการแจ้งเตือนไม่สำเร็จ' })
         return
       }
       router.refresh()
@@ -253,16 +255,16 @@ export default function MaintenanceCreateDrawer({
             </div>
 
             <div className="overflow-auto rounded-xl border border-slate-200">
-              <table className="w-full table-fixed ">
+              <table className="w-full min-w-300 text-left border-collapse">
                 <thead className="bg-slate-50">
                   <tr className="text-left text-sm font-semibold text-slate-600">
                     <th className="w-30 px-4 py-3">สถานะ</th>
                     <th className="w-45 px-4 py-3">ประเภทการบำรุงรักษา</th>
                     <th className="w-45 px-4 py-3">รายละเอียด</th>
                     <th className="w-60 px-4 py-3">วันที่แจ้งเตือน</th>
-                    <th className="w-50 px-4 py-3">กำหนดเช็กระยะที่เลขไมล์</th>
-                    <th className="w-45 px-4 py-3">แจ้งเตือนเลขไมล์ล่วงหน้า</th>
-                    <th className="w-35 px-4 py-3">จัดการ</th>
+                    <th className="w-50 px-4 py-3">กำหนดเลขไมล์</th>
+                    <th className="w-45 px-4 py-3">แจ้งเตือนเลขไมล์</th>
+                    <th className="w-35 px-4 py-3 text-center sticky right-0 bg-muted p-3 drop-shadow-[-4px_0_4px_rgba(0,0,0,0.05)]">จัดการ</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
@@ -270,7 +272,7 @@ export default function MaintenanceCreateDrawer({
                     maintenances.map((row) => (
                       <tr key={row.id} className="align-top text-sm text-slate-700">
                         <td className="px-4 py-3">
-                          <Badge className={statusClass(row.status)}>{MaintenanceStatus.find(status => status.value === row.status)?.label}</Badge>
+                          <Badge className={statusClass(row.status)}>{getNotificationLabel(row.status)}</Badge>
                         </td>
                         <td className="px-4 py-3">
                           <div className="font-medium text-slate-900">{getStatusLabel(row.type) ?? '-'}</div>
@@ -282,12 +284,22 @@ export default function MaintenanceCreateDrawer({
                         <td className="px-4 py-3">{row.dateStart ? `${formatThaiDate(row.dateStart)} ถึง ${formatThaiDate(row.dateEnd)}` : '-'}</td>
                         <td className="px-4 py-3">{formatCompactNumber(toNumber(row.mileageTarget))}</td>
                         <td className="px-4 py-3">{formatCompactNumber(toNumber(row.mileageAlert))}</td>
-                        <td className="px-4 py-3">
-                          <div className="flex gap-2">
+                        <td className="sticky right-0 bg-white p-3 border-l drop-shadow-[-4px_0_4px_rgba(0,0,0,0.05)]">
+                          <div className="flex gap-2 justify-end">
+                            {row.status === 'Active' || row.status === 'Overdue' ? (
+                              <>
+                                <AlertDialogDestructive 
+                                  onClick={() => handleComplete(row.id)} 
+                                  title='ต้องการปิดงานนี้ใช่หรือไม่?' 
+                                  description='คุณแน่ใจหรือไม่ว่าต้องการปิดงานนี้? การกระทำนี้ไม่สามารถย้อนกลับได้.'
+                                  variant={'notification'} 
+                                />
+                              </>
+                            ) : null}
                             <Button type="button" size="icon-sm" variant="outline" onClick={() => openEdit(row)}>
                               <Edit className="h-4 w-4" />
                             </Button>
-                            <AlertDialogDestructive onClick={() => handleDelete(row.id)} />
+                            <AlertDialogDestructive onClick={() => handleDelete(row.id)} variant={'destructive'} />
                           </div>
                         </td>
                       </tr>
@@ -321,14 +333,30 @@ export default function MaintenanceCreateDrawer({
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-4 p-6">
-              {errors.form ? (
+              {errors.form && (
                 <div className="mb-4 rounded-lg bg-red-50 p-4 text-sm font-medium text-red-700">{errors.form}</div>
-              ) : null}
+              )}
+
+              {formData.status === 'Active' || formData.status === 'Overdue' && (
+                <div className="mb-4 rounded-lg bg-amber-50 p-4 text-sm font-medium text-amber-700">
+                  <div className="font-bold">แจ้งเตือน: งานนี้ยังไม่เสร็จสิ้น</div>
+                  <div>คุณสามารถปิดงานนี้ได้โดยคลิกที่ปุ่ม &quot;ปิดงาน&quot; ในด้านล่าง</div>
+                  <br />
+                  <AlertDialogDestructive 
+                    onClick={() => handleComplete(formData.maintenanceId)} 
+                    title='ต้องการปิดงานนี้ใช่หรือไม่?' 
+                    description='คุณแน่ใจหรือไม่ว่าต้องการปิดงานนี้? การกระทำนี้ไม่สามารถย้อนกลับได้.'
+                    variant={'notification'} 
+                    size={'lg'}
+                    iconText={'ปิดงาน'}
+                  />
+                </div>
+              )}
               
               {variant === 'modal' ? (
                 <div className="space-y-2">
                   <label className="text-sm font-semibold text-slate-700">เลือกรถ <span className="text-red-600">*</span></label>
-                  <Select value={selectedCarId} onChange={(e) => setSelectedCarId(e.target.value)}>
+                  <Select value={selectedCarId} onChange={(event: any) => setSelectedCarId(event.target.value)}>
                     <option value="">-- เลือกรถ --</option>
                     {carOptions.map((car) => (
                       <option key={car.id} value={car.id}>
@@ -354,7 +382,7 @@ export default function MaintenanceCreateDrawer({
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-semibold text-slate-700">สถานะ <span className="text-red-600">*</span></label>
-                  <Input name="status" value={getMaintenanceStatusLabel(formData.status)} readOnly />
+                  <Input name="status" value={getNotificationLabel(formData.status)} readOnly />
                   {errors.status ? <p className="text-xs text-red-600">{errors.status}</p> : null}
                 </div>
               </div>

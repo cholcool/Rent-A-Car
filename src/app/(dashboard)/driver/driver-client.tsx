@@ -148,7 +148,7 @@ export default function DriverPageClient({ initialDrivers }: { initialDrivers: D
                           <Button type="button" variant="outline" size="sm" className="gap-2" onClick={() => openEdit(driver)}>
                             <Edit className="h-4 w-4" />
                           </Button>
-                          <AlertDialogDestructive onClick={() => deleteDriver(driver.id)} />
+                          <AlertDialogDestructive onClick={() => deleteDriver(driver.id)} variant={'destructive'} />
                         </div>
                       </td>
                     </tr>

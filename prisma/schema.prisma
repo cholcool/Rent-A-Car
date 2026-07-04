@@ -67,8 +67,8 @@ model Car {
   year         String     @map("cars_years") @db.VarChar(4)
   color        String     @map("cars_color") @db.VarChar(50)
   license      String     @unique @map("cars_license") @db.VarChar(20)
-  engine       String?     @unique @map("cars_engine") @db.VarChar(20)
-  chassis      String?     @unique @map("cars_chassis") @db.VarChar(20)
+  engine       String?    @unique @map("cars_engine") @db.VarChar(20)
+  chassis      String?    @unique @map("cars_chassis") @db.VarChar(20)
   status       CarStatus  @default(Available) @map("cars_status")
   remark       String?    @map("cars_remark") @db.VarChar(500)
   createdAt    DateTime   @default(now()) @map("created_date") @db.Timestamptz

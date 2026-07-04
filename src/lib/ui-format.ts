@@ -53,20 +53,32 @@ export function getStatusLabel(status?: string | null) {
     Active: "ใช้งาน",
     Available: "พร้อมให้เช่า",
     Booked: "จองแล้ว",
+    Cancelled: "ยกเลิก",
     Confirmed: "ยืนยันแล้ว",
     Completed: "เสร็จสิ้น",
-    Cancelled: "ยกเลิก",
     Failed: "ล้มเหลว",
-    Paid: "ชำระเงินแล้ว",
-    Pending: "รอดำเนินการ",
     InActive: "ไม่ใช้งาน",
     InProgress: "กำลังดำเนินการ",
+    Insurance: "ประกันภัย",
     Maintenance: "บำรุงรักษา",
-    Reserved: "จองสำรอง",
+    Paid: "ชำระเงินแล้ว",
+    Pending: "รอดำเนินการ",
+    Reserved: "กำลังจอง",
     Rejected: "ถูกปฏิเสธ",
     Refunded: "คืนเงิน",
-    Unavailable: "ไม่พร้อมใช้",
     Tax: "ภาษี",
+    Unavailable: "ไม่พร้อมใช้",
+  };
+
+  return status ? labels[status] ?? status : "Unknown";
+}
+
+export function getNotificationLabel(status?: string | null) {
+  const labels: Record<string, string> = {
+    Active: "แจ้งเตือน",
+    Complete: "เสร็จสิ้น",
+    Pending: "รอแจ้งเตือน",
+    Overdue: "เกินกำหนด",
   };
 
   return status ? labels[status] ?? status : "Unknown";

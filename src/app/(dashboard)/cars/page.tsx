@@ -5,6 +5,7 @@ import { formatCompactNumber } from '@/lib/ui-format'
 import SpeedDialContainer from '@/components/SpeedDialContainer'
 import PageClient from "./page-client"
 import { CarStatusOptions } from '@/lib/types'
+import { syncMaintenanceStatuses } from '@/lib/maintenance-sync'
 
 export const dynamic = 'force-dynamic'
 
@@ -47,6 +48,8 @@ export default async function CarsPage({ searchParams }: PageProps) {
         : sort === 'mileage'
           ? { mileage: 'asc' }
           : { createdAt: 'desc' }
+
+  await syncMaintenanceStatuses()
 
   const [cars, availableCars, vehicleTypes, brands] = await Promise.all([
     prisma.car.findMany({

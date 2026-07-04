@@ -167,7 +167,7 @@ export default function BookingsClient({
                       <div className="flex items-center gap-2">
                         <Button size="sm" variant="outline" onClick={() => openFile(booking)} className='gap-2'><FileDown className="h-4 w-4" /></Button>
                         <Button size="sm" variant="outline" onClick={() => openEdit(booking)} className="gap-2"><Edit className="h-4 w-4" /></Button>
-                        <AlertDialogDestructive onClick={() => remove(booking.id)} />
+                        <AlertDialogDestructive onClick={() => remove(booking.id)} variant={'destructive'} />
                       </div>
                     </td>
                   </tr>

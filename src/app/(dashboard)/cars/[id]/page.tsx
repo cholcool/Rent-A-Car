@@ -12,6 +12,8 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import Select from '@/components/ui/select'
 import { MaintenanceRow, CarStatusOptions, CarStatus } from '@/lib/types'
+import { syncMaintenanceStatuses } from '@/lib/maintenance-sync'
+import { sortMaintenancesForAlert } from '@/lib/maintenance-status'
 
 export const dynamic = 'force-dynamic'
 
@@ -28,6 +30,8 @@ export async function generateMetadata({ params }: PageProps) {
 
 export default async function CarDetailPage({ params }: PageProps) {
   const { id } = await params
+
+  await syncMaintenanceStatuses(id)
 
   const [car, vehicleTypes, brands, maintenances] = await Promise.all([
     prisma.car.findUnique({
@@ -63,7 +67,7 @@ export default async function CarDetailPage({ params }: PageProps) {
     dateStart: item.dateStart ? item.dateStart.toISOString().slice(0, 10) : null,
     dateEnd: item.dateEnd ? item.dateEnd.toISOString().slice(0, 10) : null,
     dateCount: item.dateCount ?? 0,
-  }))
+  })).sort(sortMaintenancesForAlert)
 
   async function saveCar(formData: FormData) {
     'use server'
