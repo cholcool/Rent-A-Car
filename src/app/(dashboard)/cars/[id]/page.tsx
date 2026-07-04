@@ -209,17 +209,17 @@ export default async function CarDetailPage({ params }: PageProps) {
 
                 <div className="space-y-2">
                   <label className="text-sm font-semibold text-slate-700">เลขเครื่องยนต์</label>
-                  <Input name="engine" defaultValue={car.engine ?? ''} maxLength={20} required />
+                  <Input name="engine" defaultValue={car.engine ?? ''} maxLength={20} />
                 </div>
 
                 <div className="space-y-2">
                   <label className="text-sm font-semibold text-slate-700">เลขตัวถัง</label>
-                  <Input name="chassis" defaultValue={car.chassis ?? ''} maxLength={20} required />
+                  <Input name="chassis" defaultValue={car.chassis ?? ''} maxLength={20} />
                 </div>
 
                 <div className="space-y-2">
                   <label className="text-sm font-semibold text-slate-700">เลขไมล์</label>
-                  <Input name="mileage" type="number" step="0.01" min="0" defaultValue={car.mileage} />
+                  <Input name="mileage" type="number" step="0" min="0" defaultValue={car.mileage} />
                 </div>
 
                 <div className="space-y-2">

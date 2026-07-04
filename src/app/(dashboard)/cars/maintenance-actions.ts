@@ -42,8 +42,8 @@ export async function createMaintenance(input: MaintenanceInput) {
         mileageTarget: Math.max(0, Math.floor(input.mileageTarget || 0)),
         mileageAlert: Math.max(0, Math.floor(input.mileageAlert || 0)),
         dateAlert: input.dateAlert ? new Date(input.dateAlert) : null,
-        dateStart: new Date(input.dateStart),
-        dateEnd: new Date(input.dateEnd),
+        dateStart: input.dateStart ? new Date(input.dateStart) : null,
+        dateEnd: input.dateEnd ? new Date(input.dateEnd) : null,
         dateCount: Math.max(0, Math.floor(input.dateCount || 0)),
         isDeleted: false,
         createdAt: new Date(),
@@ -53,14 +53,14 @@ export async function createMaintenance(input: MaintenanceInput) {
       },
     })
 
-    await prisma.car.update({
-      where: { id: input.carId },
-      data: {
-        mileage: Math.max(0, Math.floor(input.mileage || 0)),
-        updatedAt: new Date(),
-        updatedBy: userId,
-      },
-    })
+    // await prisma.car.update({
+      // where: { id: input.carId },
+      // data: {
+        // mileage: Math.max(0, Math.floor(input.mileage || 0)),
+        // updatedAt: new Date(),
+        // updatedBy: userId,
+      // },
+    // })
 
     return { success: true, data: maintenance }
   } catch (error) {
@@ -97,14 +97,14 @@ export async function updateMaintenance(input: MaintenanceInput) {
       },
     })
 
-    await prisma.car.update({
-      where: { id: input.carId },
-      data: {
-        mileage: Math.max(0, Math.floor(input.mileage || 0)),
-        updatedAt: new Date(),
-        updatedBy: userId,
-      },
-    })
+    // await prisma.car.update({
+      // where: { id: input.carId },
+      // data: {
+        // mileage: Math.max(0, Math.floor(input.mileage || 0)),
+        // updatedAt: new Date(),
+        // updatedBy: userId,
+      // },
+    // })
 
     return { success: true, data: maintenance }
   } catch (error) {

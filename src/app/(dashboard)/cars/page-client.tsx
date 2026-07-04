@@ -105,7 +105,7 @@ export default function PageClient({carsIn} : PageProps ) {
                           if (latestActive) {
                             return (
                               <Badge className={getStatusBadgeClass(latestActive.status)}>
-                                {latestActive.name ?? ''}
+                                {latestActive.type ?? ''}
                               </Badge>
                             );
                           }

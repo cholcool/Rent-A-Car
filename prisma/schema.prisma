@@ -410,13 +410,13 @@ model Maintenance {
   type           MaintenanceType?  @map("maintenances_type")
   status         MaintenanceStatus @default(Pending) @map("maintenances_status")
   is_active      Boolean           @default(false) @map("is_active")
-  mileage        Int?               @default(0) @map("mileage")
-  mileageTarget  Int?               @default(0) @map("mileage_target")
-  mileageAlert   Int?               @default(0) @map("mileage_alert")
+  mileage        Int?              @default(0) @map("mileage")
+  mileageTarget  Int?              @default(0) @map("mileage_target")
+  mileageAlert   Int?              @default(0) @map("mileage_alert")
   dateAlert      DateTime?         @map("date_alert") @db.Timestamptz
-  dateStart      DateTime?          @map("date_start") @db.Timestamptz
-  dateEnd        DateTime?          @map("date_end") @db.Timestamptz
-  dateCount      Int?               @default(0) @map("date_count")
+  dateStart      DateTime?         @map("date_start") @db.Timestamptz
+  dateEnd        DateTime?         @map("date_end") @db.Timestamptz
+  dateCount      Int?              @default(0) @map("date_count")
   createdAt      DateTime          @default(now()) @map("created_date") @db.Timestamptz
   createdBy      String            @map("created_by") @db.Uuid
   updatedAt      DateTime          @updatedAt @map("updated_date") @db.Timestamptz

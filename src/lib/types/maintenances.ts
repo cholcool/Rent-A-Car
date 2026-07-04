@@ -40,3 +40,14 @@ export type  MaintenanceProps = {
   showList?: boolean
   onClose?: () => void
 }
+
+export function getMaintenanceStatusLabel(status?: string | null) {
+  const labels: Record<string, string> = {
+    Active: "แจ้งเตือน",
+    Complete: "เสร็จสิ้น",
+    Pending: "รอแจ้งเตือน",
+    Overdue: "เกินกำหนด",
+  };
+
+  return status ? labels[status] ?? status : "Unknown";
+}

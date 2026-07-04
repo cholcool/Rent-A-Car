@@ -66,6 +66,7 @@ export function getStatusLabel(status?: string | null) {
     Rejected: "ถูกปฏิเสธ",
     Refunded: "คืนเงิน",
     Unavailable: "ไม่พร้อมใช้",
+    Tax: "ภาษี",
   };
 
   return status ? labels[status] ?? status : "Unknown";
