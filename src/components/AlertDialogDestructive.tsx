@@ -21,7 +21,7 @@ import {
 import { Button, AlertDialogVariant } from "@/components/ui"
 
 interface AlertDialogDestructiveProps {
-  onClick?: () => void
+  onClick?: (e: any) => void
   title?: string
   description?: string
   variant?: AlertDialogVariant,
@@ -89,7 +89,7 @@ export function AlertDialogDestructive({ onClick, title, description, variant, s
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel variant="outline">ยกเลิก</AlertDialogCancel>
-          <AlertDialogAction variant={variant} onClick={onClick}>ตกลง</AlertDialogAction>
+          <AlertDialogAction variant={variant} onClick={(e) => { onClick?.(e) }}>ตกลง</AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>

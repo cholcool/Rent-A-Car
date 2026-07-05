@@ -163,7 +163,7 @@ export default function DriverPageClient({ initialDrivers }: { initialDrivers: D
 
       {drawerOpen && (
         <DriverDrawer
-          initialDrivers={initialDrivers}
+          initialDrivers={drivers}
           formIn={form}
           formGuarantorIn={formGuarantor}
           errorIn={error}
