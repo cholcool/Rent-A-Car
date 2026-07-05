@@ -9,6 +9,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { createCar } from '@/app/(dashboard)/cars/cars-actions'
 import { useRouter } from 'next/navigation'
 import { CarStatusOptions, CarStatus } from '@/lib/types'
+import CarImageUploader from '@/components/CarImageUploader'
 
 interface VehicleType {
   id: string
@@ -29,6 +30,7 @@ interface CarFormProps {
 export default function CarForm({ vehicleTypes, brands, onSuccess }: CarFormProps) {
   const [isLoading, setIsLoading] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
+  const [pendingFiles, setPendingFiles] = useState<File[]>([])
   const [formData, setFormData] = useState({
     vehicleTypeId: '',
     brandId: '',
@@ -98,6 +100,13 @@ export default function CarForm({ vehicleTypes, brands, onSuccess }: CarFormProp
       })
 
       if (result.success) {
+        const carId = result.data?.id
+        if (carId && pendingFiles.length > 0) {
+          const formData = new FormData()
+          formData.append('carId', carId)
+          pendingFiles.forEach((file) => formData.append('files', file))
+          await fetch('/api/car-images', { method: 'POST', body: formData })
+        }
         router.refresh()
 
         setTimeout(() => {
@@ -338,6 +347,8 @@ export default function CarForm({ vehicleTypes, brands, onSuccess }: CarFormProp
         </div>
 
       </section>
+
+      <CarImageUploader onPendingFilesChange={setPendingFiles} />
 
       <div className="sticky bottom-0 left-0 right-0 border-t border-slate-200 bg-white pt-4">
         <div className="flex gap-3">

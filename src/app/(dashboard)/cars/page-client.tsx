@@ -113,7 +113,7 @@ export default function PageClient({carsIn} : PageProps ) {
                           }
 
                           // 4. กรณีไม่มีงานซ่อมบำรุงที่กำลัง Active อยู่เลย ให้ขึ้นเครื่องหมายขีด
-                          return <span className="text-slate-400">-</span>;
+                          return <span className="text-slate-400"></span>;
                         })()}
                       </td>
                       <td className='px-3 py-3 text-right'>

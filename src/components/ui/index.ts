@@ -9,3 +9,4 @@ export { default as Badge } from './badge'
 export { default as Textarea } from './textarea'
 export * from './field';
 export * from "./label";
+export * from "./carousel";

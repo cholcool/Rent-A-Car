@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { notFound, redirect } from 'next/navigation'
-import { ArrowLeft, CalendarDays, Car, Save, Sparkles, Gauge, RectangleEllipsis } from 'lucide-react'
+import { ArrowLeft, CalendarDays, Save, Sparkles, Gauge, RectangleEllipsis } from 'lucide-react'
 import prisma from '@/lib/prisma'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -14,6 +14,7 @@ import Select from '@/components/ui/select'
 import { MaintenanceRow, CarStatusOptions, CarStatus } from '@/lib/types'
 import { syncMaintenanceStatuses } from '@/lib/maintenance-sync'
 import { sortMaintenancesForAlert } from '@/lib/maintenance-status'
+import CarImageUploader from '@/components/CarImageUploader'
 
 export const dynamic = 'force-dynamic'
 
@@ -51,8 +52,7 @@ export default async function CarDetailPage({ params }: PageProps) {
   ])
 
   if (!car) return notFound()
-
-  const images = car.images.map((carImage) => ({ url: carImage.image.url, alt: `${car.brand.name} ${car.model}` }))
+  const images =  car.images.filter((item) => item.isDeleted !== true).map((item) => ({ id: item.image.id, url: item.image.url, name: item.image.name, alt: item.image.name }))
   const maintenanceRows: MaintenanceRow[] = (maintenances || []).map((item) => ({
     id: item.id,
     type: item.type,
@@ -114,7 +114,7 @@ export default async function CarDetailPage({ params }: PageProps) {
         </div>
 
         <div className="flex flex-wrap gap-3">
-          <Button asChild>
+          <Button asChild className='hidden'>
             <Link href={`/booking/new?id=${car.id}`} className='hidden'>
               <CalendarDays className="h-4 w-4" />
               จองรถคันนี้
@@ -129,33 +129,16 @@ export default async function CarDetailPage({ params }: PageProps) {
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(320px,1fr)]">
         <div className="space-y-6">
-          <Card className="rounded-xl shadow-sm">
-            <CardContent className="p-6">
-              <div className="mb-4 flex items-center gap-2">
-                <Car className="h-5 w-5 text-blue-700" />
-                <h2 className="text-lg font-bold text-slate-950">รูปภาพรถ</h2>
-              </div>
-              {images.length > 0 ? (
-                <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-                  {images.map((image) => (
-                    <div key={image.url} className="relative aspect-4/3 overflow-hidden rounded-xl bg-slate-100">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={image.url} alt={image.alt} className="h-full w-full object-cover" />
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="flex min-h-70 items-center justify-center rounded-xl border border-dashed border-slate-200 bg-slate-50">
-                  <div className="text-center">
-                    <Car className="mx-auto h-12 w-12 text-slate-300" />
-                    <p className="mt-3 text-sm font-semibold text-slate-500">No images available</p>
-                  </div>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+          <CarImageUploader 
+            carId={car.id} 
+            initialImages={images} 
+          />
 
-          <MaintenanceCreateDrawer carId={car.id} carMileage={car.mileage} maintenances={maintenanceRows} />
+          <MaintenanceCreateDrawer 
+            carId={car.id} 
+            carMileage={car.mileage} 
+            maintenances={maintenanceRows} 
+          />
         </div>
 
         <aside>
