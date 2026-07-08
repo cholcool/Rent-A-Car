@@ -1,4 +1,4 @@
-import { createGuarantorImageDeleteRoute, createGuarantorImagePostRoute } from '../_utils/image-upload'
+import { uploadImage, deleteImage } from '../_utils/image-upload'
 
-export const POST = createGuarantorImagePostRoute()
-export const DELETE = createGuarantorImageDeleteRoute()
+export const POST = (request: Request) => uploadImage('guarantor', request)
+export const DELETE = (request: Request) => deleteImage('guarantor', request)

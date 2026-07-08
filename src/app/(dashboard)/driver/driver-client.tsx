@@ -1,8 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { CreditCard, FileText, Plus, Contact, X, Edit } from 'lucide-react'
-import { Badge } from '@/components/ui/badge'
+import { Plus, Contact, X, Edit } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
@@ -118,9 +117,10 @@ export default function DriverPageClient({ initialDrivers }: { initialDrivers: D
               <table className="w-full min-w-250 text-left">
                 <thead>
                   <tr className="border-b border-slate-200 text-sm font-extrabold text-slate-950">
-                    <th className="px-3 py-3">ชื่อ-นามสกุล</th>
-                    <th className="px-3 py-3">เบอร์โทรศัพท์</th>
-                    <th className="px-3 py-3">เอกสาร</th>
+                    <th className="px-3 py-3">ชื่อ-นามสกุล (ผู้เช่า)</th>
+                    <th className="px-3 py-3">เบอร์โทรศัพท์ (ผู้เช่า)</th>
+                    <th className="px-3 py-3">ชื่อ-นามสกุล (ผู้ค้ำ)</th>
+                    <th className="px-3 py-3">เบอร์โทรศัพท์ (ผู้ค้ำ)</th>
                     <th className="px-3 py-3">หมายเหตุ</th>
                     <th className="px-3 py-3">จัดการ</th>
                   </tr>
@@ -130,18 +130,8 @@ export default function DriverPageClient({ initialDrivers }: { initialDrivers: D
                     <tr key={driver.id} className="border-b border-slate-100 text-sm font-medium text-slate-700">
                       <td className="px-3 py-4 font-bold text-slate-950">{driver.fullName}</td>
                       <td className="px-3 py-4">{driver.phone}</td>
-                      <td className="px-3 py-4">
-                        <div className="flex flex-wrap gap-2">
-                          <Badge variant={driver.cardImage ? 'success' : 'destructive'} className="gap-1.5">
-                            <CreditCard className="h-3.5 w-3.5" />
-                            {driver.cardImage ? 'บัตรประชาชน' : 'ยังไม่อัปโหลดบัตร'}
-                          </Badge>
-                          <Badge variant={driver.licenseImage ? 'success' : 'destructive'} className="gap-1.5">
-                            <FileText className="h-3.5 w-3.5" />
-                            {driver.licenseImage ? 'ใบขับขี่' : 'ยังไม่อัปโหลดใบขับขี่'}
-                          </Badge>
-                        </div>
-                      </td>
+                      <td className="px-3 py-4">{driver.guarantor?.fullName || '-'}</td>
+                      <td className="px-3 py-4">{driver.guarantor?.phone || '-'}</td>
                       <td className="px-3 py-4">{driver.remark || '-'}</td>
                       <td className="px-3 py-4">
                         <div className="flex items-center gap-2">

@@ -1,4 +1,4 @@
-import { createDriverImageDeleteRoute, createDriverImagePostRoute } from '../_utils/image-upload'
+import { deleteImage, uploadImage } from '../_utils/image-upload'
 
-export const POST = createDriverImagePostRoute()
-export const DELETE = createDriverImageDeleteRoute()
+export const POST = (request: Request) => uploadImage('driver', request)
+export const DELETE = (request: Request) => deleteImage('driver', request)

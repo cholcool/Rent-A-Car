@@ -58,7 +58,7 @@ async function resolveOwnerOrThrow(ownerType: OwnerType, ownerId: string) {
   return { driverId: ownerId }
 }
 
-async function uploadImage(ownerType: OwnerType, request: Request) {
+export async function uploadImage(ownerType: OwnerType, request: Request) {
   const userId = await getUserId()
   if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
@@ -114,7 +114,7 @@ async function uploadImage(ownerType: OwnerType, request: Request) {
   return NextResponse.json({ image, field })
 }
 
-async function deleteImage(ownerType: OwnerType, request: Request) {
+export async function deleteImage(ownerType: OwnerType, request: Request) {
   const userId = await getUserId()
   if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
@@ -131,12 +131,12 @@ async function deleteImage(ownerType: OwnerType, request: Request) {
     where: { id: imageId, isDeleted: false },
     select: { id: true, key: true, url: true, name: true },
   })
-  if (!image) return NextResponse.json({ error: 'Image not found' }, { status: 404 })
+  if (!image) return NextResponse.json({ error: 'ไม่พบรูปภาพ' }, { status: 404 })
 
   const owner = await resolveOwnerOrThrow(ownerType, ownerId)
   if (!owner) {
     return NextResponse.json(
-      { error: ownerType === 'driver' ? 'Driver not found' : 'Guarantor not found' },
+      { error: ownerType === 'driver' ? 'ไม่พบคนขับ' : 'ไม่พบผู้ค้ำประกัน' },
       { status: 404 }
     )
   }

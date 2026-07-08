@@ -59,14 +59,14 @@ export default function DriverDrawer({
 
   const [cardPreview, setCardPreview] = useState<string | null>(editingDriver?.cardImage?.url ?? null)
   const [licensePreview, setLicensePreview] = useState<string | null>(editingDriver?.licenseImage?.url ?? null)
-  const cardStatusLabel = cardFile ? 'ตัวอย่างรูป' : editingDriver?.cardImage ? 'อัปโหลดแล้ว' : 'ยังไม่มี'
-  const licenseStatusLabel = licenseFile ? 'ตัวอย่างรูป' : editingDriver?.licenseImage ? 'อัปโหลดแล้ว' : 'ยังไม่มี'
+  const cardStatusLabel = cardFile ? 'preview' : editingDriver?.cardImage?.url ? 'uploaded' : null
+  const licenseStatusLabel = licenseFile ? 'preview' : editingDriver?.licenseImage?.url ? 'uploaded' : null
   const [guarantorCardFile, setGuarantorCardFile] = useState<File | null>(null)
   const [guarantorLicenseFile, setGuarantorLicenseFile] = useState<File | null>(null)
   const [guarantorCardPreview, setGuarantorCardPreview] = useState<string | null>(guarantorImage?.cardImage?.url ?? null)
   const [guarantorLicensePreview, setGuarantorLicensePreview] = useState<string | null>(guarantorImage?.licenseImage?.url ?? null)
-  const guarantorCardStatusLabel = guarantorCardFile ? 'ตัวอย่างรูป' : formGuarantor.cardImageId ? 'อัปโหลดแล้ว' : 'ยังไม่มี'
-  const guarantorLicenseStatusLabel = guarantorLicenseFile ? 'ตัวอย่างรูป' : formGuarantor.licenseImageId ? 'อัปโหลดแล้ว' : 'ยังไม่มี'
+  const guarantorCardStatusLabel = guarantorCardFile ? 'preview' : formGuarantor.cardImageId ? 'uploaded' : null
+  const guarantorLicenseStatusLabel = guarantorLicenseFile ? 'preview' : formGuarantor.licenseImageId ? 'uploaded' : null
 
   function updateDriverImageInState(
     targetId: string,
@@ -115,7 +115,7 @@ export default function DriverDrawer({
     const preview = URL.createObjectURL(cardFile)
     setCardPreview(preview)
     return () => URL.revokeObjectURL(preview)
-  }, [cardFile, editingDriver?.cardImage?.url])
+  }, [cardFile, editingDriver?.cardImage, editingDriver?.cardImage?.url])
 
   useEffect(() => {
     if (!licenseFile) {
@@ -125,7 +125,7 @@ export default function DriverDrawer({
     const preview = URL.createObjectURL(licenseFile)
     setLicensePreview(preview)
     return () => URL.revokeObjectURL(preview)
-  }, [licenseFile, editingDriver?.licenseImage?.url])
+  }, [licenseFile, editingDriver?.licenseImage, editingDriver?.licenseImage?.url])
 
   useEffect(() => {
     if (!guarantorCardFile) {
@@ -280,17 +280,21 @@ export default function DriverDrawer({
       if (kind === 'card') {
         setCardFile(null)
         setForm((current) => ({ ...current, cardImageId: null }))
+        updateDriverImageInState(editingId, 'driver', 'card', { id: '', url: '', key: '', name: '' })
       } else {
         setLicenseFile(null)
         setForm((current) => ({ ...current, licenseImageId: null }))
+        updateDriverImageInState(editingId, 'driver', 'license', { id: '', url: '', key: '', name: '' })
       }
     } else {
       if (kind === 'card') {
         setGuarantorCardFile(null)
         setFormGuarantor((current) => ({ ...current, cardImageId: null }))
+        updateDriverImageInState(editingId, 'guarantor', 'card', { id: '', url: '', key: '', name: '' })
       } else {
         setGuarantorLicenseFile(null)
         setFormGuarantor((current) => ({ ...current, licenseImageId: null }))
+        updateDriverImageInState(editingId, 'guarantor', 'license', { id: '', url: '', key: '', name: '' })
       }
     }
   }

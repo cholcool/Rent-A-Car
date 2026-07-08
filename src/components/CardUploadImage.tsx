@@ -7,7 +7,7 @@ import imageCompression from 'browser-image-compression';
 type CardUploadImageProps = {
   title: string
   preview: string | null
-  statusLabel: 'ยังไม่มี' | 'ตัวอย่างรูป' | 'อัปโหลดแล้ว'
+  statusLabel: 'preview' | 'uploaded' | null
   inputRef: React.MutableRefObject<HTMLInputElement | null>
   onPick: () => void
   onChange: (file: File | null) => void
@@ -57,9 +57,9 @@ export default function CardUploadImage({
     <div onClick={onPick} className="cursor-pointer rounded-2xl border border-slate-200 p-4 text-left transition hover:border-violet-300 hover:bg-violet-50/40">
       <div className="mb-3 flex items-center justify-between">
         <div className="text-sm font-bold text-slate-950">{title}</div>
-        {statusLabel === 'อัปโหลดแล้ว' ? (
+        {statusLabel === 'uploaded' ? (
           <Badge variant="success">อัปโหลดแล้ว</Badge>
-        ) : statusLabel === 'ตัวอย่างรูป' ? (
+        ) : statusLabel === 'preview' ? (
           <Badge variant="outline">ตัวอย่างรูป</Badge>
         ) : (
           <Badge variant="destructive">ยังไม่มี</Badge>
@@ -71,7 +71,7 @@ export default function CardUploadImage({
         accept="image/*"
         className="hidden"
         onChange={(event) => handleFileChange(event)}
-        disabled={statusLabel !== 'ยังไม่มี' ? true : disabled}
+        disabled={statusLabel !== null ? true : disabled}
       />
       <div className="relative aspect-4/3 overflow-hidden rounded-xl bg-slate-100">
         {preview ? (
@@ -86,7 +86,7 @@ export default function CardUploadImage({
         )}
       </div>
       <div className="mt-3 flex items-center justify-center gap-2">
-        {statusLabel === 'อัปโหลดแล้ว' ? (
+        {statusLabel === 'uploaded' ? (
           <AlertDialogDestructive 
             onClick={(e) => { e.stopPropagation(); onDelete() }}
             variant={'destructive'} 
@@ -95,7 +95,7 @@ export default function CardUploadImage({
             size='lg'
             iconText='ลบรูปภาพ'
           />
-        ) : statusLabel === 'ตัวอย่างรูป' ? (
+        ) : statusLabel === 'preview' ? (
           <>
             <Button type="button" variant="save" size="sm" className="gap-2 px-6" onClick={(e) => { e.stopPropagation(); onUpload() }} disabled={uploading || !preview}>
               <Upload className="h-4 w-4" />
