@@ -5,6 +5,7 @@ import Image from 'next/image'
 import { Loader2, ImagePlus, ImageUp, BookImage, Car } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { AlertDialogDestructive } from '@/components/AlertDialogDestructive'
+import imageCompression from 'browser-image-compression';
 
 type ExistingImage = { id: string; url: string; name?: string | null }
 
@@ -42,10 +43,25 @@ export default function CarImageUploader({ carId, initialImages = [], onPendingF
     }
   }, [selectedFiles])
 
-  const addFiles = (files: FileList | null) => {
+  const handleFileChange = async(files: FileList | null) => {
     if (!files?.length) return
+
+    const fileArr = Array.from(files);
+
+    const compressedArr = fileArr.map(async (item:any) => {
+      const options = {
+        maxSizeMB: 1,            // ขนาดไฟล์สูงสุดที่ต้องการ (เช่น ไม่เกิน 1MB)
+        maxWidthOrHeight: 1024,  // ขนาดความกว้างหรือสูงสูงสุดไม่เกิน 1024px (รักษา Aspect Ratio อัตโนมัติ)
+        useWebWorker: true,      // ใช้ Web Worker ทำงานเบื้องหลัง เพื่อไม่ให้หน้าจอค้างขณะบีบอัด
+      };
+
+      return await imageCompression(item, options);
+    })
+
+    const compressedFiles = await Promise.all(compressedArr)
+    
     setError(null)
-    setSelectedFiles((prev) => [...prev, ...Array.from(files)])
+    setSelectedFiles((prev) => [...prev, ...compressedFiles])
   }
 
   const removeSelected = (index: number) => {
@@ -102,7 +118,7 @@ export default function CarImageUploader({ carId, initialImages = [], onPendingF
           <label className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50">
             <ImagePlus className="h-4 w-4" />
             เลือกรูป
-            <input hidden type="file" accept="image/*" multiple onChange={(e) => addFiles(e.target.files)} />
+            <input hidden type="file" accept="image/*" multiple onChange={(e) => handleFileChange(e.target.files)} />
           </label>
         </div>
 
@@ -119,7 +135,7 @@ export default function CarImageUploader({ carId, initialImages = [], onPendingF
                   onClick={() => removeExisting(image.id)} 
                   variant={'imageDelete'} 
                   title='ต้องการลบรูปภาพนี้ใช่ไหม?'
-                  description='การลบรูปภาพนี้จะไม่สามารถกู้คืนได้'
+                  description=''
                 />
               </div>
             ))}

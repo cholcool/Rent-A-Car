@@ -2,6 +2,7 @@ import Image from 'next/image'
 import { Upload, Trash2, Plus } from 'lucide-react'
 import { Badge, Button } from '@/components/ui'
 import { AlertDialogDestructive } from '@/components/AlertDialogDestructive'
+import imageCompression from 'browser-image-compression';
 
 type CardUploadImageProps = {
   title: string
@@ -28,6 +29,30 @@ export default function CardUploadImage({
   uploading,
   disabled,
 }: CardUploadImageProps) {
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const options = {
+      maxSizeMB: 1,            // ขนาดไฟล์สูงสุดที่ต้องการ (เช่น ไม่เกิน 1MB)
+      maxWidthOrHeight: 1024,  // ขนาดความกว้างหรือสูงสูงสุดไม่เกิน 1024px (รักษา Aspect Ratio อัตโนมัติ)
+      useWebWorker: true,      // ใช้ Web Worker ทำงานเบื้องหลัง เพื่อไม่ให้หน้าจอค้างขณะบีบอัด
+    };
+    const file = event.target.files?.[0];
+    if (!file) return null;
+  
+    try {
+      const compressedFile = await imageCompression(file, options);
+      
+      // console.log('ขนาดไฟล์เดิม:', (file.size / 1024 / 1024).toFixed(2), 'MB');
+      // console.log('ขนาดไฟล์ใหม่:', (compressedFile.size / 1024 / 1024).toFixed(2), 'MB');
+      // console.log('compressed:', compressedFile);
+      // console.log('original:', file);
+      
+      onChange(compressedFile);
+    } catch (error) {
+      console.error('การบีบอัดรูปภาพผิดพลาด:', error);
+      onChange(file);
+    }
+  };
+  
   return (
     <div onClick={onPick} className="cursor-pointer rounded-2xl border border-slate-200 p-4 text-left transition hover:border-violet-300 hover:bg-violet-50/40">
       <div className="mb-3 flex items-center justify-between">
@@ -45,7 +70,7 @@ export default function CardUploadImage({
         type="file"
         accept="image/*"
         className="hidden"
-        onChange={(event) => onChange(event.target.files?.[0] ?? null)}
+        onChange={(event) => handleFileChange(event)}
         disabled={statusLabel !== 'ยังไม่มี' ? true : disabled}
       />
       <div className="relative aspect-4/3 overflow-hidden rounded-xl bg-slate-100">
