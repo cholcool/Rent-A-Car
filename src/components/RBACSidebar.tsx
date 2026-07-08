@@ -6,6 +6,7 @@ import { signOut } from "next-auth/react";
 import { Car, LayoutDashboard, LogOut } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { menuItems } from "@/lib/rbac/menus";
+import { getMenuAccessForRoles } from "@/lib/rbac/access";
 
 type SidebarUser = {
   name?: string | null;
@@ -27,9 +28,8 @@ export default function RBACSidebar({ user }: { user?: SidebarUser | null }) {
   const displayName = user?.name ?? user?.email ?? "Guest";
   const roleLabel = roles[0] ? roles[0].charAt(0).toUpperCase() + roles[0].slice(1) : "User";
 
-  const visibleItems = menuItems.filter(
-    (item) => !item.roles?.length || item.roles.some((role) => roles.includes(role.toLowerCase()))
-  );
+  const visibleAccess = getMenuAccessForRoles(roles);
+  const visibleItems = menuItems.filter((item) => visibleAccess.some((access) => access.href === item.href));
 
   return (
     <aside className="flex h-full w-72 flex-col bg-blue-800 text-white shadow-xl shadow-blue-950/20">

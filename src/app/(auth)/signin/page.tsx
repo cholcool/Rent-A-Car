@@ -1,14 +1,23 @@
-'use client'
+"use client"
 
-import { type FormEvent, useState } from 'react'
+import { type FormEvent, useMemo, useState } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { signIn } from 'next-auth/react'
 import { Car, Loader2 } from 'lucide-react'
 
 export default function SignInPage() {
+  const searchParams = useSearchParams()
   const [identifier, setIdentifier] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const reason = searchParams.get('reason')
+
+  const reasonMessage = useMemo(() => {
+    if (reason === 'token-expired') return 'เซสชันหมดอายุ กรุณาเข้าสู่ระบบใหม่อีกครั้ง'
+    if (reason === 'missing-session') return 'กรุณาเข้าสู่ระบบก่อนใช้งาน'
+    return null
+  }, [reason])
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -47,6 +56,12 @@ export default function SignInPage() {
           <h1 className="mt-5 text-2xl font-bold text-slate-900">RentCar Admin</h1>
           <p className="mt-1 text-sm font-medium text-slate-500">ระบบจัดการเช่ารถ</p>
         </div>
+
+        {reasonMessage && (
+          <div className="mt-6 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-medium text-amber-900">
+            {reasonMessage}
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="mt-8 space-y-5">
           <div>
