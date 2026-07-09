@@ -4,7 +4,7 @@ export const appSurfaceClass =
   "rounded-2xl border border-slate-200 bg-white shadow-sm shadow-slate-200/60";
 
 export const appInputClass =
-  "h-11 rounded-xl border border-slate-200 bg-white px-3.5 text-sm font-medium text-slate-900 shadow-sm shadow-slate-200/50 outline-none transition-colors placeholder:text-slate-400 focus-visible:border-blue-600 focus-visible:ring-2 focus-visible:ring-blue-600/20";
+  "h-11 rounded-xl border border-slate-200 bg-white px-3.5 text-sm font-medium text-slate-900 shadow-sm shadow-slate-200/50 outline-none transition-colors placeholder:text-slate-400 focus-visible:border-[#6F3BB7] focus-visible:ring-2 focus-visible:ring-[#6F3BB7]/20";
 
 export function toNumber(value: unknown) {
   if (typeof value === "number") return value;
@@ -92,8 +92,8 @@ export function getStatusBadgeClass(status?: string | null, className?: string) 
     ["available", "active", "confirmed", "inprogress", "paid"].includes(normalized) &&
       "bg-emerald-100 text-emerald-700",
     ["pending", "maintenance"].includes(normalized) && "bg-amber-100 text-amber-700",
-    ["booked", "reserved"].includes(normalized) && "bg-blue-100 text-blue-700",
-    ["completed", "complete", "refunded"].includes(normalized) && "bg-blue-100 text-blue-700",
+    ["booked", "reserved"].includes(normalized) && "bg-[#F4E7B0] text-[#4E2788]",
+    ["completed", "complete", "refunded"].includes(normalized) && "bg-[#F4E7B0] text-[#4E2788]",
     ["cancelled", "rejected", "failed", "unavailable"].includes(normalized) &&
       "bg-red-100 text-red-700",
     className

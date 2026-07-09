@@ -163,7 +163,7 @@ function MonthlyChart({
                 <div key={row.monthKey} className="flex flex-1 flex-col items-center gap-3">
                   <div className="flex h-full w-full items-end">
                     <div
-                      className="group relative mx-auto w-full max-w-16 rounded-t-2xl bg-linear-to-t from-indigo-600 via-indigo-500 to-cyan-400 shadow-lg shadow-indigo-200 transition-transform hover:-translate-y-1"
+                      className="group relative mx-auto w-full max-w-16 rounded-t-2xl bg-linear-to-t from-[#4E2788] via-[#6F3BB7] to-[#E0B21F] shadow-lg shadow-[#6F3BB7]/20 transition-transform hover:-translate-y-1"
                       style={{ height: `${height}%` }}
                     >
                       <div className="absolute inset-x-0 -top-8 text-center text-xs font-bold text-slate-700 opacity-0 transition-opacity group-hover:opacity-100">
@@ -195,7 +195,7 @@ function MonthlyChart({
                 </div>
                 <div className="h-3 overflow-hidden rounded-full bg-slate-200">
                   <div
-                    className="h-full rounded-full bg-linear-to-r from-emerald-500 to-teal-400"
+                    className="h-full rounded-full bg-linear-to-r from-[#6F3BB7] to-[#E0B21F]"
                     style={{ width: `${width}%` }}
                   />
                 </div>
@@ -480,12 +480,12 @@ export default async function DashboardPage({ searchParams }: PageProps) {
 
   return (
     <div className="space-y-8">
-      <div className="absolute inset-x-0 top-0 -z-10 h-72 bg-linear-to-b from-indigo-100/70 via-slate-50 to-transparent" />
+      <div className="absolute inset-x-0 top-0 -z-10 h-72 bg-linear-to-b from-[#F4E7B0]/80 via-slate-50 to-transparent" />
 
       <header className="rounded-3xl border border-slate-200/80 bg-white/80 p-6 shadow-xl shadow-slate-200/70 backdrop-blur sm:p-8">
         <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
           <div className="max-w-3xl">
-            <p className="inline-flex items-center gap-2 rounded-full bg-indigo-50 px-3 py-1 text-xs font-bold uppercase tracking-[0.2em] text-indigo-700">
+            <p className="inline-flex items-center gap-2 rounded-full bg-[#F4E7B0] px-3 py-1 text-xs font-bold uppercase tracking-[0.2em] text-[#4E2788]">
               <LayoutGrid className="h-3.5 w-3.5" />
               Dashboard
             </p>
@@ -544,8 +544,8 @@ export default async function DashboardPage({ searchParams }: PageProps) {
               value={formatCompactNumber(overviewStats.activeRentals)}
               unit="รายการ"
               icon={Clock3}
-              iconClassName="h-6 w-6 text-indigo-600"
-              valueClassName="text-indigo-700"
+              iconClassName="h-6 w-6 text-[#6F3BB7]"
+              valueClassName="text-[#4E2788]"
             />
             <StatCard
               title="รายได้เดือนนี้"
@@ -631,8 +631,8 @@ export default async function DashboardPage({ searchParams }: PageProps) {
               value={formatBaht(reportStats.totalRevenue)}
               unit="บาท"
               icon={TrendingUp}
-              iconClassName="h-6 w-6 text-indigo-600"
-              valueClassName="text-indigo-700"
+              iconClassName="h-6 w-6 text-[#6F3BB7]"
+              valueClassName="text-[#4E2788]"
             />
             <StatCard
               title="จำนวนการจองทั้งหมด"

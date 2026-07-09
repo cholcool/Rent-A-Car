@@ -25,7 +25,7 @@ const buttonVariants = cva(
         warning:
           "bg-amber-50 text-amber-700 hover:bg-amber-100 focus-visible:ring-amber-300 dark:bg-amber-100 dark:text-amber-800 dark:hover:bg-amber-200 dark:focus-visible:ring-amber-400",
         notification:
-          "bg-amber-50 text-yellow-500 hover:bg-amber-100 focus-visible:ring-yellow-300 dark:bg-amber-100 dark:text-yellow-800 dark:hover:bg-amber-200 dark:focus-visible:ring-amber-400",
+          "bg-[#F4E7B0] text-[#4E2788] hover:bg-[#EEDC96] focus-visible:ring-[#E0B21F]/40 dark:bg-[#F4E7B0] dark:text-[#4E2788] dark:hover:bg-[#EEDC96] dark:focus-visible:ring-[#E0B21F]/40",
         imageDelete: "bg-red-50 text-red-600 hover:bg-red-100 focus-visible:ring-red-300 dark:bg-red-100 dark:text-red-800 dark:hover:bg-red-200 dark:focus-visible:ring-red-400",
       },
       size: {

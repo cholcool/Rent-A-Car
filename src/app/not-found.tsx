@@ -19,8 +19,8 @@ export default async function NotFound() {
     <main className="min-h-screen bg-[#f6f7f9] px-4 py-8 sm:px-6 lg:px-8">
       <section className="mx-auto max-w-6xl overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-xl shadow-slate-200/60">
         <div className="grid lg:grid-cols-[1.4fr_1fr]">
-          <div className="bg-linear-to-br from-slate-950 via-blue-950 to-slate-900 px-6 py-10 text-white sm:px-10 lg:px-12 lg:py-14">
-            <p className="text-sm font-semibold uppercase tracking-[0.24em] text-blue-100">404 not found</p>
+          <div className="bg-linear-to-br from-[#4E2788] via-[#6F3BB7] to-[#E0B21F] px-6 py-10 text-white sm:px-10 lg:px-12 lg:py-14">
+            <p className="text-sm font-semibold uppercase tracking-[0.24em] text-[#F4E7B0]">404 not found</p>
             <h1 className="mt-3 text-4xl font-black tracking-tight sm:text-5xl">ไม่พบหน้านี้</h1>
             <p className="mt-4 max-w-xl text-base leading-7 text-slate-200">
               ลิงก์ที่คุณเปิดอาจถูกย้าย ลบ หรือพิมพ์ไม่ถูกต้อง แต่คุณยังสามารถไปต่อจากเมนูด้านล่างได้ทันที
@@ -44,7 +44,7 @@ export default async function NotFound() {
 
           <div className="border-t border-slate-200 bg-slate-50 p-6 sm:p-8 lg:border-l lg:border-t-0">
             <div className="flex items-center gap-3">
-              <SearchX className="h-6 w-6 text-blue-700" />
+              <SearchX className="h-6 w-6 text-[#6F3BB7]" />
               <div>
                 <h2 className="text-xl font-black text-slate-950">เมนูนำทาง</h2>
                 <p className="text-sm font-medium text-slate-500">เลือกทางไปต่อจากเมนูหลักของระบบ</p>
@@ -59,7 +59,7 @@ export default async function NotFound() {
                     <Card key={item.href} className="border-slate-200 bg-white/90">
                       <CardContent className="flex items-center justify-between gap-4 p-4">
                         <div className="flex items-center gap-3">
-                          <div className="rounded-2xl bg-blue-50 p-2 text-blue-700">
+                          <div className="rounded-2xl bg-[#F4E7B0] p-2 text-[#4E2788]">
                             <Icon className="h-5 w-5" />
                           </div>
                           <div>
@@ -88,7 +88,7 @@ export default async function NotFound() {
 
             <footer className="mt-8 border-t border-slate-200 pt-4 text-sm font-medium text-slate-500">
               หากต้องการเริ่มใหม่ คุณสามารถไปหน้าเข้าสู่ระบบได้เสมอ
-              <Link href="/signin" className="ml-2 font-bold text-blue-700 hover:text-blue-800">
+              <Link href="/signin" className="ml-2 font-bold text-[#6F3BB7] hover:text-[#4E2788]">
                 ไปหน้า signin
               </Link>
             </footer>

@@ -11,8 +11,6 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
   const { menus } = await getUserAccess({ session: session.user as any, userEmail: session.user.email, rawRoles: (session.user as any)?.roles });
   const menuItems = toMenuItems(menus);
-  console.log('menu', menus)
-  console.log('menuItem', menuItems)
 
   return (
     <ResponsiveShell sidebar={<RBACSidebar user={session?.user ?? null} menuItems={menuItems} />}>
