@@ -1,14 +1,9 @@
-import type { ComponentType } from "react";
-import { Car, ClipboardList, CreditCard, LayoutDashboard, Settings, Tag, Users } from "lucide-react";
-import { appAccessMap } from "./access";
+import { Car, ClipboardList, CreditCard, LayoutDashboard, Settings, Tag, Users } from 'lucide-react'
+import type { MenuAccessItem } from '@/lib/rbac/access'
 
-export type MenuItem = {
-  title: string;
-  href: string;
-  icon: ComponentType<{ className?: string }>;
-};
+export type MenuItem = Pick<MenuAccessItem, 'title' | 'href' | 'iconKey'>
 
-const iconByKey: Record<string, MenuItem["icon"]> = {
+export const iconByKey = {
   dashboard: LayoutDashboard,
   car: Car,
   users: Users,
@@ -16,12 +11,12 @@ const iconByKey: Record<string, MenuItem["icon"]> = {
   clipboard: ClipboardList,
   creditCard: CreditCard,
   settings: Settings,
-};
+} as const
 
-export const menuItems: MenuItem[] = appAccessMap.map((item) => ({
-  title: item.title,
-  href: item.href,
-  icon: iconByKey[item.iconKey] ?? Settings,
-}));
-
-export default menuItems;
+export function toMenuItems(menus: MenuAccessItem[]): MenuItem[] {
+  return menus.map((item) => ({
+    title: item.title,
+    href: item.href,
+    iconKey: item.iconKey,
+  }))
+}

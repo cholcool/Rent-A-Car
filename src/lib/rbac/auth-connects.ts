@@ -1,6 +1,7 @@
 import { randomBytes, scryptSync, timingSafeEqual } from 'node:crypto';
 import { auth } from '@/lib/auth'
 import prisma from '@/lib/prisma'
+import { ROLE_GROUPS, hasAnyRole } from '@/lib/rbac/access'
 
 export function userHasRole(userRoles: string[] | undefined, role: string) {
   if (!userRoles || userRoles.length === 0) return false
@@ -20,7 +21,7 @@ export async function getAuthorizedUserId() {
     select: { id: true, roles: { select: { role: { select: { code: true } } } } },
   })
   const roles = (user?.roles ?? []).map((entry) => entry.role.code)
-  if (!user?.id || !roles.some((role) => ['ADMIN', 'MANAGER'].includes(role))) return null
+  if (!user?.id || !hasAnyRole(roles, ROLE_GROUPS.ADMIN_STAFF)) return null
   return user.id
 }
 

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import prisma from '@/lib/prisma';
+import { ROLE_GROUPS, hasAnyRole } from '@/lib/rbac/access';
 
 export async function GET() {
   const session = await auth();
@@ -11,8 +12,7 @@ export async function GET() {
     include: { roles: { include: { role: true } } },
   });
   const roles = (user?.roles ?? []).map((ur: any) => ur.role.code);
-  const allowed = ['ADMIN', 'MANAGER'];
-  if (!roles.some((r) => allowed.includes(r)))
+  if (!hasAnyRole(roles, ROLE_GROUPS.ADMIN_STAFF))
     return NextResponse.json({ message: 'Forbidden' }, { status: 403 });
 
   const payments = await prisma.payment.findMany({

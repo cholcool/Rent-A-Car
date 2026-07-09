@@ -1,13 +1,14 @@
 import { NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import prisma from '@/lib/prisma'
+import { ROLE_GROUPS, hasAnyRole } from '@/lib/rbac/access'
 
 async function getUserId() {
   const session = await auth()
   if (!session?.user?.email) return null
   const user = await prisma.user.findUnique({ where: { email: session.user.email }, select: { id: true, roles: { select: { role: { select: { code: true } } } } } })
   const roles = (user?.roles ?? []).map((entry) => entry.role.code)
-  if (!user?.id || !roles.some((role) => ['ADMIN', 'MANAGER', 'AGENT'].includes(role))) return null
+  if (!user?.id || !hasAnyRole(roles, ROLE_GROUPS.EDITORS)) return null
   return user.id
 }
 

@@ -1,22 +1,19 @@
 import Link from 'next/link'
 import { auth } from '@/lib/auth'
-import { menuItems } from '@/lib/rbac/menus'
-import { getMenuAccessForRoles } from '@/lib/rbac/access'
+import { getUserAccess } from '@/lib/rbac/access'
+import { iconByKey, toMenuItems } from '@/lib/rbac/menus'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { ArrowRight, Car, LayoutDashboard, SearchX } from 'lucide-react'
 
 export default async function NotFound() {
   const session = await auth()
-  const userRoles = (session?.user as any)?.roles
-  const roles = Array.isArray(userRoles)
-    ? userRoles.map((role: string) => String(role).toLowerCase())
-    : typeof userRoles === 'string'
-      ? userRoles.split(',').map((role: string) => role.trim().toLowerCase()).filter(Boolean)
-      : []
-
-  const visibleAccess = getMenuAccessForRoles(roles)
-  const visibleMenu = menuItems.filter((item) => visibleAccess.some((access) => access.href === item.href))
+  const { menus } = await getUserAccess({
+    session: session?.user as any,
+    userEmail: session?.user?.email ?? null,
+    rawRoles: (session?.user as any)?.roles,
+  })
+  const visibleMenu = toMenuItems(menus)
 
   return (
     <main className="min-h-screen bg-[#f6f7f9] px-4 py-8 sm:px-6 lg:px-8">
@@ -31,7 +28,7 @@ export default async function NotFound() {
 
             <div className="mt-8 flex flex-wrap gap-3">
               <Button asChild className="bg-white text-slate-950 hover:bg-slate-100">
-                <Link href="/dashboard">
+                <Link href={visibleMenu[0]?.href ?? '/signin'}>
                   <LayoutDashboard className="h-4 w-4" />
                   กลับ Dashboard
                 </Link>
@@ -57,7 +54,7 @@ export default async function NotFound() {
             <div className="mt-6 grid gap-3">
               {visibleMenu.length > 0 ? (
                 visibleMenu.map((item) => {
-                  const Icon = item.icon
+                  const Icon = iconByKey[item.iconKey] ?? LayoutDashboard
                   return (
                     <Card key={item.href} className="border-slate-200 bg-white/90">
                       <CardContent className="flex items-center justify-between gap-4 p-4">

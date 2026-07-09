@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import { getToken } from 'next-auth/jwt'
-import { getAuthFailureReason } from '@/lib/rbac/access'
 
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl
@@ -20,18 +19,10 @@ export async function middleware(req: NextRequest) {
   }
 
   const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET })
-  const reason = getAuthFailureReason(pathname, token, token?.roles)
-
-  if (reason === 'missing-session' || reason === 'token-expired') {
+  if (!token || (token.exp && Date.now() >= token.exp * 1000)) {
     const signInUrl = new URL('/signin', req.url)
-    signInUrl.searchParams.set('reason', reason)
+    signInUrl.searchParams.set('reason', !token ? 'missing-session' : 'token-expired')
     return NextResponse.redirect(signInUrl)
-  }
-
-  if (reason === 'role-denied') {
-    const unauthorizedUrl = new URL('/unauthorized', req.url)
-    unauthorizedUrl.searchParams.set('reason', reason)
-    return NextResponse.redirect(unauthorizedUrl)
   }
 
   return NextResponse.next()

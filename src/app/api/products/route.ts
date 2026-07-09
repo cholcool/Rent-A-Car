@@ -2,6 +2,7 @@ import { Prisma } from '@prisma/client'
 import { NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import prisma from '@/lib/prisma'
+import { ROLE_GROUPS, hasAnyRole } from '@/lib/rbac/access'
 
 function parseDateOnly(value: unknown) {
   if (typeof value !== 'string' || !value.trim()) return null
@@ -23,8 +24,7 @@ async function getAuthorizedUserId() {
   })
 
   const roles = (user?.roles ?? []).map((entry) => entry.role.code)
-  const allowed = ['ADMIN', 'MANAGER', 'AGENT']
-  if (!user?.id || !roles.some((role) => allowed.includes(role))) return null
+  if (!user?.id || !hasAnyRole(roles, ROLE_GROUPS.EDITORS)) return null
   return user.id
 }
 

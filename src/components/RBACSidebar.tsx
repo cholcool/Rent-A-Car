@@ -3,33 +3,18 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
-import { Car, LayoutDashboard, LogOut } from "lucide-react";
+import { Car, LogOut } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { menuItems } from "@/lib/rbac/menus";
-import { getMenuAccessForRoles } from "@/lib/rbac/access";
+import { iconByKey, type MenuItem } from "@/lib/rbac/menus";
 
 type SidebarUser = {
   name?: string | null;
   email?: string | null;
-  role?: string | null;
-  roles?: string[] | string | null;
-  user_roles?: string[] | string | null;
 };
 
-function normalizeRoles(user?: SidebarUser | null) {
-  const raw = user?.roles ?? user?.role ?? user?.user_roles ?? [];
-  const roles = Array.isArray(raw) ? raw : typeof raw === "string" ? [raw] : [];
-  return roles.map((role) => role.toLowerCase());
-}
-
-export default function RBACSidebar({ user }: { user?: SidebarUser | null }) {
+export default function RBACSidebar({ user, menuItems }: { user?: SidebarUser | null; menuItems: MenuItem[] }) {
   const pathname = usePathname();
-  const roles = normalizeRoles(user);
   const displayName = user?.name ?? user?.email ?? "Guest";
-  const roleLabel = roles[0] ? roles[0].charAt(0).toUpperCase() + roles[0].slice(1) : "User";
-
-  const visibleAccess = getMenuAccessForRoles(roles);
-  const visibleItems = menuItems.filter((item) => visibleAccess.some((access) => access.href === item.href));
 
   return (
     <aside className="flex h-full w-72 flex-col bg-blue-800 text-white shadow-xl shadow-blue-950/20">
@@ -46,9 +31,9 @@ export default function RBACSidebar({ user }: { user?: SidebarUser | null }) {
       </div>
 
       <nav className="flex-1 space-y-3 px-4 py-6">
-        {visibleItems.map((item) => {
+        {menuItems.map((item) => {
           const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
-          const Icon = item.icon ?? LayoutDashboard;
+          const Icon = iconByKey[item.iconKey] ?? Car;
 
           return (
             <Link
@@ -71,7 +56,7 @@ export default function RBACSidebar({ user }: { user?: SidebarUser | null }) {
       <div className="border-t border-white/15 px-6 py-7">
         <div className="mb-7">
           <div className="truncate text-base font-bold">{displayName}</div>
-          <div className="mt-1 truncate text-sm font-medium text-blue-100">{user?.email ?? roleLabel}</div>
+          <div className="mt-1 truncate text-sm font-medium text-blue-100">{user?.email ?? 'User'}</div>
         </div>
 
         <button

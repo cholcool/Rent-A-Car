@@ -2,8 +2,17 @@ import Link from 'next/link'
 import { ShieldAlert, ArrowRight, Car, LayoutDashboard } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { auth } from '@/lib/auth'
+import { getDefaultLandingPath } from '@/lib/rbac/access'
 
-export default function UnauthorizedPage() {
+export default async function UnauthorizedPage() {
+  const session = await auth()
+  const target = await getDefaultLandingPath({
+    session: session?.user as any,
+    userEmail: session?.user?.email ?? null,
+    rawRoles: (session?.user as any)?.roles,
+  })
+
   return (
     <div className="space-y-8">
       <section className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-lg shadow-slate-200/60">
@@ -27,12 +36,12 @@ export default function UnauthorizedPage() {
             <CardContent className="p-5">
               <div className="flex items-center gap-3">
                 <LayoutDashboard className="h-5 w-5 text-blue-700" />
-                <h2 className="text-base font-bold text-slate-950">ไปหน้า Dashboard</h2>
+                <h2 className="text-base font-bold text-slate-950">ไปหน้าเริ่มต้น</h2>
               </div>
-              <p className="mt-2 text-sm font-medium text-slate-500">กลับไปดูภาพรวมและเมนูหลักของระบบ</p>
+              <p className="mt-2 text-sm font-medium text-slate-500">กลับไปยังหน้าแรกที่ role นี้เข้าถึงได้</p>
               <Button asChild className="mt-4 w-full">
-                <Link href="/dashboard">
-                  เปิด Dashboard
+                <Link href={target}>
+                  เปิดหน้าเริ่มต้น
                   <ArrowRight className="h-4 w-4" />
                 </Link>
               </Button>

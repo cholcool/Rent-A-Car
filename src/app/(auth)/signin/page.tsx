@@ -33,7 +33,7 @@ export default function SignInPage() {
       email: credential,
       password,
       redirect: false,
-      callbackUrl: '/dashboard',
+      callbackUrl: '/post-login',
     })
 
     setLoading(false)
