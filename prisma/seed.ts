@@ -61,30 +61,22 @@ async function main() {
     });
   }
 
-  const permissions = [
-    { code: 'cars.view', name: 'View cars', remark: 'Read car inventory' },
-    { code: 'cars.manage', name: 'Manage cars', remark: 'Create and update car inventory' },
-    { code: 'bookings.view', name: 'View bookings', remark: 'Read bookings' },
-    { code: 'bookings.manage', name: 'Manage bookings', remark: 'Create and update bookings' },
-    { code: 'payments.view', name: 'View payments', remark: 'Read payment records' },
-    { code: 'users.manage', name: 'Manage users', remark: 'Create and update users and roles' },
+  const menuData = [
+    { key: 'dashboard', title: 'Dashboard', icon: 'dashboard', path: '/dashboard', sequence: 1, requiredPermission: 'ADMIN,MANAGER', isActive: true, createdBy: '00000000-0000-0000-0000-000000000000', updatedBy: '00000000-0000-0000-0000-000000000000' },
+    { key: 'cars', title: 'จัดการรถ', icon: 'car', path: '/cars', sequence: 2, requiredPermission: 'ADMIN,MANAGER,AGENT,VIEWER', isActive: true, createdBy: '00000000-0000-0000-0000-000000000000', updatedBy: '00000000-0000-0000-0000-000000000000' },
+    { key: 'driver', title: 'ข้อมูลลูกค้า', icon: 'users', path: '/driver', sequence: 3, requiredPermission: 'ADMIN,MANAGER,AGENT,VIEWER', isActive: true, createdBy: '00000000-0000-0000-0000-000000000000', updatedBy: '00000000-0000-0000-0000-000000000000' },
+    { key: 'products', title: 'ข้อมูลบริการ', icon: 'tag', path: '/products', sequence: 4, requiredPermission: 'ADMIN,MANAGER,AGENT,VIEWER', isActive: true, createdBy: '00000000-0000-0000-0000-000000000000', updatedBy: '00000000-0000-0000-0000-000000000000' },
+    { key: 'bookings', title: 'บันทึกรายการ', icon: 'clipboard', path: '/bookings', sequence: 5, requiredPermission: 'ADMIN,MANAGER,AGENT,VIEWER', isActive: true, createdBy: '00000000-0000-0000-0000-000000000000', updatedBy: '00000000-0000-0000-0000-000000000000' },
+    { key: 'payments', title: 'การชำระเงิน', icon: 'creditCard', path: '/payments', sequence: 6, requiredPermission: 'UNSPECIFIED', isActive: true, createdBy: '00000000-0000-0000-0000-000000000000', updatedBy: '00000000-0000-0000-0000-000000000000' },
+    { key: 'setting-user', title: 'ตั้งค่าระบบ', icon: 'settings', path: '/setting/user', sequence: 7, requiredPermission: 'ADMIN,MANAGER', isActive: true, createdBy: '00000000-0000-0000-0000-000000000000', updatedBy: '00000000-0000-0000-0000-000000000000' },
+    { key: 'setting-roles', title: 'ตั้งค่าระบบ', icon: 'settings', path: '/setting/roles', sequence: 8, requiredPermission: 'UNSPECIFIED', isActive: true, createdBy: '00000000-0000-0000-0000-000000000000', updatedBy: '00000000-0000-0000-0000-000000000000' },
+    { key: 'setting-permissions', title: 'ตั้งค่าระบบ', icon: 'settings', path: '/setting/permissions', sequence: 9, requiredPermission: 'UNSPECIFIED', isActive: true, createdBy: '00000000-0000-0000-0000-000000000000', updatedBy: '00000000-0000-0000-0000-000000000000' },
   ];
 
-  for (const permission of permissions) {
-    await prisma.permission.upsert({
-      where: { code: permission.code },
-      update: {
-        name: permission.name,
-        remark: permission.remark,
-        updatedBy: SYSTEM_USER_ID,
-      },
-      create: {
-        ...permission,
-        createdBy: SYSTEM_USER_ID,
-        updatedBy: SYSTEM_USER_ID,
-      },
-    });
-  }
+  await prisma.menu.createMany({
+    data: menuData,
+    skipDuplicates: true,
+  });
 
   const adminEmail = process.env.SEED_ADMIN_EMAIL ?? 'admin@example.com';
   const adminUserName = process.env.SEED_ADMIN_USERNAME ?? 'admin';

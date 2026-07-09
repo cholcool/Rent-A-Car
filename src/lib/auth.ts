@@ -1,21 +1,8 @@
-import { scryptSync, timingSafeEqual } from 'node:crypto';
 import NextAuth, { type NextAuthConfig } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import prisma from './prisma'
 import { SessionUser } from '@/types/session';
-
-function verifyPassword(password: string, storedHash: string | null) {
-  if (!storedHash) return false;
-
-  const [algorithm, salt, hash] = storedHash.split(':');
-  if (algorithm !== 'scrypt' || !salt || !hash) return false;
-
-  const hashBuffer = Buffer.from(hash, 'hex');
-  const candidateBuffer = scryptSync(password, salt, hashBuffer.length);
-  return (
-    hashBuffer.length === candidateBuffer.length && timingSafeEqual(hashBuffer, candidateBuffer)
-  );
-}
+import { verifyPassword } from '@/rbac/auth-connects'
 
 export const authConfig: NextAuthConfig = {
   providers: [

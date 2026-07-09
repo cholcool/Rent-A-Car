@@ -13,15 +13,15 @@ export type MenuAccess = {
 }
 
 export const appAccessMap: MenuAccess[] = [
-  { title: 'Dashboard', href: '/dashboard', iconKey: 'dashboard', roles: ['admin', 'manager'] },
-  { title: 'จัดการรถ', href: '/cars', iconKey: 'car', roles: ['admin', 'manager', 'agent', 'user'] },
-  { title: 'ข้อมูลลูกค้า', href: '/driver', iconKey: 'users', roles: ['admin', 'manager', 'agent', 'user'] },
-  { title: 'ข้อมูลบริการ', href: '/products', iconKey: 'tag', roles: ['admin', 'manager', 'agent', 'user'] },
-  { title: 'บันทึกรายการ', href: '/bookings', iconKey: 'clipboard', roles: ['admin', 'manager', 'agent', 'user'] },
-  { title: 'การชำระเงิน', href: '/payments', iconKey: 'creditCard', roles: [''] },
-  { title: 'ตั้งค่าระบบ', href: '/setting/users', iconKey: 'settings', roles: ['admin', 'manager'] },
-  { title: 'ตั้งค่าระบบ', href: '/setting/roles', iconKey: 'settings', roles: [''] },
-  { title: 'ตั้งค่าระบบ', href: '/setting/permissions', iconKey: 'settings', roles: [''] },
+  { title: 'Dashboard', href: '/dashboard', iconKey: 'dashboard', roles: ['ADMIN', 'MANAGER'] },
+  { title: 'จัดการรถ', href: '/cars', iconKey: 'car', roles: ['ADMIN', 'MANAGER', 'AGENT', 'VIEWER'] },
+  { title: 'ข้อมูลลูกค้า', href: '/driver', iconKey: 'users', roles: ['ADMIN', 'MANAGER', 'AGENT', 'VIEWER'] },
+  { title: 'ข้อมูลบริการ', href: '/products', iconKey: 'tag', roles: ['ADMIN', 'MANAGER', 'AGENT', 'VIEWER'] },
+  { title: 'บันทึกรายการ', href: '/bookings', iconKey: 'clipboard', roles: ['ADMIN', 'MANAGER', 'AGENT', 'VIEWER'] },
+  { title: 'การชำระเงิน', href: '/payments', iconKey: 'creditCard', roles: ['UNSPECIFIED'] },
+  { title: 'ตั้งค่าระบบ', href: '/setting/user', iconKey: 'settings', roles: ['ADMIN', 'MANAGER'] },
+  { title: 'ตั้งค่าระบบ', href: '/setting/roles', iconKey: 'settings', roles: ['UNSPECIFIED'] },
+  { title: 'ตั้งค่าระบบ', href: '/setting/permissions', iconKey: 'settings', roles: ['UNSPECIFIED'] },
 ]
 
 export const routeAccessMap: RouteAccess[] = appAccessMap.map(({ href, roles }) => ({

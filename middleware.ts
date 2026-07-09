@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import { getToken } from 'next-auth/jwt'
-import { getAuthFailureReason } from './src/lib/rbac/access'
+import { getAuthFailureReason } from '@/lib/rbac/access'
 
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl
