@@ -1,7 +1,6 @@
 import type { LucideIcon } from 'lucide-react'
 import type { ReactNode } from 'react'
 import {
-  ArrowUpRight,
   Car,
   CheckCircle2,
   CircleDollarSign,
@@ -14,8 +13,6 @@ import prisma from '@/lib/prisma'
 import {
   formatBaht,
   formatCompactNumber,
-  formatThaiDate,
-  getStatusBadgeClass,
   getStatusLabel,
 } from '@/lib/ui-format'
 import { serializePrismaRows } from '@/lib/serialize'
@@ -154,7 +151,7 @@ function MonthlyChart({
           <div className="text-sm font-bold text-slate-700">รายได้รายเดือน</div>
           <div className="text-xs font-medium text-slate-500">ยอดเงินสุทธิ</div>
         </div>
-        <div className="relative mt-4 h-full rounded-2xl bg-white p-4">
+        <div className="relative mt-4 h-full min-h-80 rounded-2xl bg-white p-4">
           <GridLines rows={4} />
           <div className="relative flex h-full gap-3 py-4">
             {rows.map((row) => {
@@ -483,40 +480,14 @@ export default async function DashboardPage({ searchParams }: PageProps) {
       <div className="absolute inset-x-0 top-0 -z-10 h-72 bg-linear-to-b from-[#F4E7B0]/80 via-slate-50 to-transparent" />
 
       <header className="rounded-3xl border border-slate-200/80 bg-white/80 p-6 shadow-xl shadow-slate-200/70 backdrop-blur sm:p-8">
-        <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-          <div className="max-w-3xl">
-            <p className="inline-flex items-center gap-2 rounded-full bg-[#F4E7B0] px-3 py-1 text-xs font-bold uppercase tracking-[0.2em] text-[#4E2788]">
-              <LayoutGrid className="h-3.5 w-3.5" />
-              Dashboard
-            </p>
-            <h1 className="mt-4 text-4xl font-black tracking-tight text-slate-950 sm:text-5xl">Dashboard</h1>
-            <p className="mt-3 text-base font-medium leading-7 text-slate-600 sm:text-lg">
-              ติดตามสถานะรถ รายได้ และแนวโน้มการจองได้อย่างรวดเร็วจากภาพรวมและรายงานเชิงลึก
-            </p>
-          </div>
-
-          <div className="grid gap-3 sm:grid-cols-2 lg:min-w-88">
-            <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
-              <div className="text-xs font-bold uppercase tracking-[0.2em] text-slate-500">โหมดปัจจุบัน</div>
-              <div className="mt-1 text-lg font-black text-slate-950">
-                {activeTab === 'overview' ? 'ภาพรวม' : 'รายงาน'}
-              </div>
-            </div>
-            <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3">
-              <div className="text-xs font-bold uppercase tracking-[0.2em] text-emerald-700">อัปเดตแบบ</div>
-              <div className="mt-1 text-lg font-black text-emerald-900">Real-time</div>
-            </div>
-          </div>
-        </div>
-
-        <nav className="mt-8 grid grid-cols-2 rounded-2xl bg-slate-100 p-1">
+        <nav className="grid grid-cols-2 rounded-2xl bg-slate-100 p-1">
           <a href="?tab=overview" className={tabLinkClass('overview')}>
-            <Car className="h-4 w-4" />
-            ภาพรวม
+            <LayoutGrid className="h-4 w-4" />
+            Dashboard
           </a>
           <a href="?tab=reports" className={tabLinkClass('reports')}>
             <TrendingUp className="h-4 w-4" />
-            รายงาน
+            สถิติ
           </a>
         </nav>
       </header>
@@ -556,70 +527,6 @@ export default async function DashboardPage({ searchParams }: PageProps) {
               valueClassName="text-emerald-700"
             />
           </section>
-
-          <Card className="border-slate-200/80 bg-white/90 shadow-lg shadow-slate-200/60">
-            <CardContent className="p-6 sm:p-8">
-              <div className="flex items-center justify-between gap-4">
-                <div>
-                  <h2 className="text-2xl font-black tracking-tight text-slate-950">รายการเช่าล่าสุด</h2>
-                  <p className="mt-2 text-sm font-medium text-slate-500">5 รายการล่าสุดจากระบบ</p>
-                </div>
-                <ArrowUpRight className="h-5 w-5 text-slate-400" />
-              </div>
-
-              <div className="mt-6 overflow-x-auto">
-                <table className="w-full min-w-275 text-left">
-                  <thead>
-                    <tr className="border-b border-slate-200 text-xs font-bold uppercase tracking-[0.18em] text-slate-500">
-                      <th className="px-3 py-3">ชื่อลูกค้า</th>
-                      <th className="px-3 py-3">ข้อมูลรถ</th>
-                      <th className="px-3 py-3">ข้อมูลบริการ</th>
-                      <th className="px-3 py-3">วันเริ่ม</th>
-                      <th className="px-3 py-3">วันสิ้นสุด</th>
-                      <th className="px-3 py-3 text-right">จำนวนเงินสุทธิ</th>
-                      <th className="px-3 py-3">สถานะ</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {overviewStats.latestBookings.map((booking) => {
-                      const carName = `${booking.car?.brand?.name ?? ''} ${booking.car?.model ?? ''}`.trim()
-
-                      return (
-                        <tr
-                          key={booking.id}
-                          className="border-b border-slate-100 text-sm font-medium text-slate-900 last:border-0 hover:bg-slate-50/70"
-                        >
-                          <td className="px-3 py-4">{booking.driver?.fullName.trim() || '-'}</td>
-                          <td className="px-3 py-4">
-                            <div className="font-semibold text-slate-950">{carName || '-'}</div>
-                            <div className="text-xs text-slate-500">{booking.car?.license ?? '-'}</div>
-                          </td>
-                          <td className="px-3 py-4">
-                            <div className="font-semibold text-slate-950">{booking.product?.name.trim() || '-'}</div>
-                            <div className="text-xs text-slate-500">{formatBaht(booking.product?.price)}</div>
-                          </td>
-                          <td className="px-3 py-4">{formatThaiDate(booking.dateStart)}</td>
-                          <td className="px-3 py-4">{formatThaiDate(booking.dateEnd)}</td>
-                          <td className="px-3 py-4 text-right font-bold text-slate-950">
-                            {formatBaht(booking.netAmount)}
-                          </td>
-                          <td className="px-3 py-4">
-                            <Badge className={getStatusBadgeClass(booking.status)}>{getStatusLabel(booking.status)}</Badge>
-                          </td>
-                        </tr>
-                      )
-                    })}
-                  </tbody>
-                </table>
-              </div>
-
-              {overviewStats.latestBookings.length === 0 && (
-                <div className="py-12 text-center text-sm font-semibold text-slate-500">
-                  ยังไม่มีรายการเช่าในระบบ
-                </div>
-              )}
-            </CardContent>
-          </Card>
         </>
       )}
 
@@ -652,7 +559,7 @@ export default async function DashboardPage({ searchParams }: PageProps) {
           </ChartShell>
 
           <div className="grid gap-6 xl:grid-cols-3">
-            <Card className="xl:col-span-2 border-slate-200/80 bg-white/90 shadow-lg shadow-slate-200/60">
+            <Card className="xl:col-span-2 border-slate-200/80 bg-white/90 shadow-lg shadow-slate-200/60 overflow-auto">
               <CardContent className="p-6 sm:p-8">
                 <h3 className="text-xl font-black tracking-tight text-slate-950">ตารางรายได้ย้อนหลัง 6 เดือน</h3>
                 <p className="mt-2 text-sm font-medium text-slate-500">ดูตัวเลขแบบละเอียดพร้อมใช้ตรวจสอบย้อนหลัง</p>

@@ -122,7 +122,7 @@ export default function DriverPageClient({ initialDrivers }: { initialDrivers: D
                     <th className="px-3 py-3">ชื่อ-นามสกุล (ผู้ค้ำ)</th>
                     <th className="px-3 py-3">เบอร์โทรศัพท์ (ผู้ค้ำ)</th>
                     <th className="px-3 py-3">หมายเหตุ</th>
-                    <th className="px-3 py-3">จัดการ</th>
+                    <th className="w-10 text-center sticky bg-white right-0 p-3 drop-shadow-[-4px_0_4px_rgba(0,0,0,0.05)]">จัดการ</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -133,7 +133,7 @@ export default function DriverPageClient({ initialDrivers }: { initialDrivers: D
                       <td className="px-3 py-4">{driver.guarantor?.fullName || '-'}</td>
                       <td className="px-3 py-4">{driver.guarantor?.phone || '-'}</td>
                       <td className="px-3 py-4">{driver.remark || '-'}</td>
-                      <td className="px-3 py-4">
+                      <td className="sticky right-0 bg-white p-3 border-l drop-shadow-[-4px_0_4px_rgba(0,0,0,0.05)]">
                         <div className="flex items-center gap-2">
                           <Button type="button" variant="outline" size="sm" className="gap-2" onClick={() => openEdit(driver)}>
                             <Edit className="h-4 w-4" />

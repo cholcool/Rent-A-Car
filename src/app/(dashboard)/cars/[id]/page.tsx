@@ -96,7 +96,7 @@ export default async function CarDetailPage({ params }: PageProps) {
 
   return (
     <div className="space-y-8">
-      <header className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+      <header className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
         <div className="space-y-4">
           <Link href="/cars" className="inline-flex items-center gap-2 text-sm font-semibold text-slate-600 hover:text-blue-700">
             <ArrowLeft className="h-4 w-4" />
@@ -104,7 +104,7 @@ export default async function CarDetailPage({ params }: PageProps) {
           </Link>
           <div>
             <div className="flex flex-wrap items-center gap-3">
-              <h1 className="text-3xl font-extrabold tracking-tight text-slate-950 sm:text-4xl">
+              <h1 className="lg:text-3xl text-2xl font-extrabold tracking-tight text-slate-950">
                 {car.brand.name} {car.model}
               </h1>
               <Badge className={getStatusBadgeClass(car.status)}>{getStatusLabel(car.status)}</Badge>
@@ -113,7 +113,7 @@ export default async function CarDetailPage({ params }: PageProps) {
           </div>
         </div>
 
-        <div className="flex flex-wrap gap-3">
+        <div className="flex flex-wrap gap-3 align-baseline justify-end">
           <Button asChild className='hidden'>
             <Link href={`/booking/new?id=${car.id}`} className='hidden'>
               <CalendarDays className="h-4 w-4" />
@@ -127,8 +127,8 @@ export default async function CarDetailPage({ params }: PageProps) {
         </div>
       </header>
 
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,2fr)_minmax(320px,1fr)]">
-        <div className="space-y-6">
+      <div className="grid gap-6 xl:grid-cols-[minmax(0,2fr)_minmax(320px,1fr)]">
+        <div className="space-y-6 overflow-auto">
           <CarImageUploader 
             carId={car.id} 
             initialImages={images} 

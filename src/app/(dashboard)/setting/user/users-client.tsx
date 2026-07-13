@@ -8,7 +8,7 @@ import Input from '@/components/ui/input'
 import Label from '@/components/ui/label'
 import Textarea from '@/components/ui/textarea'
 import { cn } from '@/lib/utils'
-import { Plus, UserPlus, PenLine, X } from 'lucide-react'
+import { Plus, UserPlus, Edit, X } from 'lucide-react'
 import { AlertDialogDestructive } from '@/components/AlertDialogDestructive'
 
 export type UserRow = {
@@ -206,7 +206,6 @@ export default function UsersPageClient({
       <header className="flex flex-col gap-3">
         <p className="text-sm font-bold uppercase tracking-[0.2em] text-slate-400">Setting</p>
         <h1 className="text-4xl font-extrabold tracking-tight text-slate-950">ผู้ใช้และสิทธิ์การใช้งาน</h1>
-        <p className="max-w-3xl text-lg font-semibold text-slate-500">แบ่ง UI ชัดเจนระหว่างการจัดการผู้ใช้ และการจัดการบทบาท/สิทธิ์</p>
       </header>
 
       <Card>
@@ -220,7 +219,7 @@ export default function UsersPageClient({
           {error ? <div className="mt-4 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-700">{error}</div> : null}
 
           <div className="mt-6 overflow-x-auto">
-            <table className="w-full min-w-275 text-left">
+            <table className="w-full min-w-225 text-left">
               <thead>
                 <tr className="border-b border-slate-200 text-sm font-extrabold text-slate-950">
                   <th className="px-3 py-3">ชื่อ</th>
@@ -228,7 +227,7 @@ export default function UsersPageClient({
                   <th className="px-3 py-3">อีเมล</th>
                   <th className="px-3 py-3">โทรศัพท์</th>
                   <th className="px-3 py-3">บทบาท</th>
-                  <th className="px-3 py-3">จัดการ</th>
+                  <th className="text-center sticky bg-white right-0 p-3 drop-shadow-[-4px_0_4px_rgba(0,0,0,0.05)]">จัดการ</th>
                 </tr>
               </thead>
               <tbody>
@@ -243,11 +242,10 @@ export default function UsersPageClient({
                         {user.role_ids.length ? user.role_ids.map((roleId) => <Badge key={roleId}>{roleMap.get(roleId)?.role_code ?? roleId}</Badge>) : <span className="text-sm font-semibold text-slate-400">ยังไม่มีบทบาท</span>}
                       </div>
                     </td>
-                    <td className="px-3 py-4">
+                    <td className="sticky right-0 bg-white p-3 border-l drop-shadow-[-4px_0_4px_rgba(0,0,0,0.05)]">
                       <div className="flex items-center gap-2">
                         <Button type="button" variant="outline" size="sm" className="gap-2" onClick={() => openUserEdit(user)}>
-                          <PenLine className="h-4 w-4" />
-                          แก้ไข
+                          <Edit className="size-4" />
                         </Button>
                         <AlertDialogDestructive onClick={() => deleteRow('user', user.id)} variant={'destructive'} />
                       </div>

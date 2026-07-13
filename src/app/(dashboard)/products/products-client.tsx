@@ -201,7 +201,7 @@ export default function ProductsClient({ initialProducts }: { initialProducts: P
                     <th className="px-3 py-3">ระยะเวลา</th>
                     <th className="px-3 py-3">จำนวนวัน</th>
                     <th className="px-3 py-3">สถานะ</th>
-                    <th className="px-3 py-3">การจัดการ</th>
+                    <th className="w-10 text-center sticky bg-white right-0 p-3 drop-shadow-[-4px_0_4px_rgba(0,0,0,0.05)]">จัดการ</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -219,7 +219,7 @@ export default function ProductsClient({ initialProducts }: { initialProducts: P
                           {product.is_active ? 'Active' : 'Inactive'}
                         </Badge>
                       </td>
-                      <td className="px-3 py-4">
+                      <td className="sticky right-0 bg-white p-3 border-l drop-shadow-[-4px_0_4px_rgba(0,0,0,0.05)]">
                         <div className="flex items-center gap-2">
                           <Button type="button" variant="outline" size="sm" className="gap-2" onClick={() => openEdit(product)}>
                             <Edit className="h-4 w-4" />

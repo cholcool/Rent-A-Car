@@ -161,7 +161,7 @@ export default function CarImageUploader({ carId, initialImages = [], onPendingF
         )}
 
         {existingImages.length === 0 && previews.length === 0 && (
-          <div className="flex min-h-70 items-center justify-center rounded-xl border border-dashed border-slate-200 bg-slate-50">
+          <div className="flex min-h-40 items-center justify-center rounded-xl border border-dashed border-slate-200 bg-slate-50">
             <div className="text-center">
               <BookImage className="mx-auto h-12 w-12 text-slate-300" />
               <p className="mt-3 text-sm font-semibold text-slate-500">ไม่มีรูปภาพ</p>

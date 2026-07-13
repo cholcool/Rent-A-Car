@@ -77,7 +77,7 @@ export default function PageClient({carsIn} : PageProps ) {
                   <th className="px-3 py-3 text-right">เลขไมล์</th>
                   <th className="px-3 py-3">สถานะ</th>
                   <th className="px-3 py-3">แจ้งเตือน</th>
-                  <th className='px-3 py-3 text-right'>จัดการ</th>
+                  <th className='w-10 text-center sticky bg-white right-0 p-3 drop-shadow-[-4px_0_4px_rgba(0,0,0,0.05)]'>จัดการ</th>
                 </tr>
               </thead>
               <tbody>
@@ -91,7 +91,7 @@ export default function PageClient({carsIn} : PageProps ) {
                       <td className="px-3 py-3">{car.vehicleType?.name}</td>
                       <td className="px-3 py-3 text-right">{formatCompactNumber(toNumber(car.mileage))}</td>
                       <td className="px-3 py-3"><Badge className={getStatusBadgeClass(car.status)}>{getStatusLabel(car.status)}</Badge></td>
-                      <td className='px-3 py-3'>
+                      <td className='px-3 py-3 sticky'>
                         {(() => {
                           // 1. กรองเอาเฉพาะอันที่สถานะเป็น Active เท่านั้น
                           const alertMaintenances = [...(car.maintenances || [])]
@@ -116,7 +116,7 @@ export default function PageClient({carsIn} : PageProps ) {
                           return <span className="text-slate-400"></span>;
                         })()}
                       </td>
-                      <td className='px-3 py-3 text-right'>
+                      <td className='sticky right-0 bg-white p-3 border-l drop-shadow-[-4px_0_4px_rgba(0,0,0,0.05)]'>
                         <div className="flex justify-end gap-2">
                           <Button asChild size={"sm"} variant="ghost">
                             <Link href={`/cars/${car.id}`}>

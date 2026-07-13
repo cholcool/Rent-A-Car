@@ -138,14 +138,14 @@ export default function BookingsClient({
           <div className="overflow-x-auto">
             <table className="mt-6 w-full min-w-275 text-left">
               <thead>
-                <tr>
-                  <th className="border-b border-slate-200 px-3 py-3 text-sm font-extrabold text-slate-950">ข้อมูลลูกค้า</th>
-                  <th className="border-b border-slate-200 px-3 py-3 text-sm font-extrabold text-slate-950">รายการรถ</th>
-                  <th className="border-b border-slate-200 px-3 py-3 text-sm font-extrabold text-slate-950">ข้อมูลบริการ</th>
-                  <th className="border-b border-slate-200 px-3 py-3 text-sm font-extrabold text-slate-950">วันรับรถ - วันคืนรถ</th>
-                  <th className="border-b border-slate-200 px-3 py-3 text-sm font-extrabold text-slate-950 text-right">ยอดรวมสุทธิ</th>
-                  <th className="border-b border-slate-200 px-3 py-3 text-sm font-extrabold text-slate-950">สถานะ</th>
-                  <th className="border-b border-slate-200 px-3 py-3 text-sm font-extrabold text-slate-950">จัดการ</th>
+                <tr className="border-b border-slate-200 text-sm font-extrabold text-slate-950">
+                  <th className="px-3 py-3">ข้อมูลลูกค้า</th>
+                  <th className="px-3 py-3">รายการรถ</th>
+                  <th className="px-3 py-3">ข้อมูลบริการ</th>
+                  <th className="px-3 py-3">วันรับรถ - วันคืนรถ</th>
+                  <th className="px-3 py-3 text-right">ยอดรวมสุทธิ</th>
+                  <th className="px-3 py-3">สถานะ</th>
+                  <th className="w-10 text-center sticky bg-white right-0 p-3 drop-shadow-[-4px_0_4px_rgba(0,0,0,0.05)]">จัดการ</th>
                 </tr>
               </thead>
               <tbody>
@@ -163,7 +163,7 @@ export default function BookingsClient({
                     <td className="px-3 py-4">{formatThaiDate(booking.dateStart)} - {formatThaiDate(booking.dateEnd)}</td>
                     <td className="px-3 py-4 text-right font-semibold">{formatBaht(booking.netAmount)}</td>
                     <td className="px-3 py-4"><Badge className={getStatusBadgeClass(booking.status)}>{getStatusLabel(booking.status)}</Badge></td>
-                    <td className="px-3 py-4">
+                    <td className="sticky right-0 bg-white p-3 border-l drop-shadow-[-4px_0_4px_rgba(0,0,0,0.05)]">
                       <div className="flex items-center gap-2">
                         <Button size="sm" variant="outline" onClick={() => openFile(booking)} className='gap-2'><FileDown className="h-4 w-4" /></Button>
                         <Button size="sm" variant="outline" onClick={() => openEdit(booking)} className="gap-2"><Edit className="h-4 w-4" /></Button>

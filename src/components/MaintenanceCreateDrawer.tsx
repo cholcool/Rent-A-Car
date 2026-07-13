@@ -242,8 +242,8 @@ export default function MaintenanceCreateDrawer({
     <>
       {showList ? (
         <Card className="rounded-xl shadow-sm">
-          <CardContent className="p-6">
-            <div className="mb-4 flex items-center justify-between gap-3">
+          <CardContent className="px-0 md:px-6">
+            <div className="mb-4 flex items-center justify-between gap-3 px-3 md:px-0">
               <div className="flex items-center gap-2">
                 <Settings2 className="h-5 w-5 text-blue-700" />
                 <h2 className="text-lg font-bold text-slate-950">ประวัติการบำรุงรักษา</h2>
@@ -254,17 +254,17 @@ export default function MaintenanceCreateDrawer({
               </Button>
             </div>
 
-            <div className="overflow-auto rounded-xl border border-slate-200">
-              <table className="w-full min-w-300 text-left border-collapse">
+            <div className="overflow-x-auto rounded-xl md:border border-slate-200">
+              <table className="w-full min-w-max text-left border-collapse">
                 <thead className="bg-slate-50">
                   <tr className="text-left text-sm font-semibold text-slate-600">
-                    <th className="w-30 px-4 py-3">สถานะ</th>
-                    <th className="w-45 px-4 py-3">ประเภทการบำรุงรักษา</th>
-                    <th className="w-45 px-4 py-3">รายละเอียด</th>
-                    <th className="w-60 px-4 py-3">วันที่แจ้งเตือน</th>
-                    <th className="w-50 px-4 py-3">กำหนดเลขไมล์</th>
-                    <th className="w-45 px-4 py-3">แจ้งเตือนเลขไมล์</th>
-                    <th className="w-35 px-4 py-3 text-center sticky right-0 bg-muted p-3 drop-shadow-[-4px_0_4px_rgba(0,0,0,0.05)]">จัดการ</th>
+                    <th className="px-4 py-3">สถานะ</th>
+                    <th className="px-4 py-3">ประเภทการบำรุงรักษา</th>
+                    <th className="px-4 py-3">รายละเอียด</th>
+                    <th className="px-4 py-3">วันที่แจ้งเตือน</th>
+                    <th className="px-4 py-3">กำหนดเลขไมล์</th>
+                    <th className="px-4 py-3">แจ้งเตือนเลขไมล์</th>
+                    <th className="w-10 text-center sticky right-0 bg-muted p-3 drop-shadow-[-4px_0_4px_rgba(0,0,0,0.05)]">จัดการ</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
@@ -319,9 +319,13 @@ export default function MaintenanceCreateDrawer({
       ) : null}
 
       {isOpen ? (
-        <div className="fixed inset-0 z-50 my-0">
-          <button type="button" className="absolute inset-0 bg-slate-950/30 my-0" onClick={() => handleClose(false)} />
-          <aside className="absolute right-0 top-0 h-full w-full max-w-xl overflow-y-auto bg-white shadow-2xl">
+        <div className="fixed inset-0 z-50 overflow-hidden">
+          <button
+            type="button"
+            className="fixed inset-0 bg-slate-950/30"
+            onClick={() => handleClose(false)}
+          />
+          <aside className="fixed right-0 top-0 h-dvh w-full max-w-full overflow-y-auto overflow-x-hidden bg-white shadow-2xl sm:max-w-xl">
             <div className="flex items-start justify-between border-b border-slate-200 p-6">
               <div>
                 <h3 className="text-2xl font-extrabold text-slate-950">{title}</h3>
