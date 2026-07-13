@@ -2,9 +2,9 @@ import type { LucideIcon } from 'lucide-react'
 import type { ReactNode } from 'react'
 import {
   Car,
-  CheckCircle2,
-  CircleDollarSign,
-  Clock3,
+  Users,
+  ClipboardList,
+  Tag,
   LayoutGrid,
   ListOrdered,
   TrendingUp,
@@ -15,10 +15,10 @@ import {
   formatCompactNumber,
   getStatusLabel,
 } from '@/lib/ui-format'
-import { serializePrismaRows } from '@/lib/serialize'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
+import Link from 'next/link'
 
 export const dynamic = 'force-dynamic'
 
@@ -29,6 +29,7 @@ type PageProps = {
 type TabKey = 'overview' | 'reports'
 
 type StatCardProps = {
+  href?: string
   title: string
   value: string
   unit: string
@@ -56,23 +57,25 @@ type StatusRow = {
   _count: { status: number }
 }
 
-function StatCard({ title, value, unit, icon: Icon, iconClassName, valueClassName = 'text-slate-950' }: StatCardProps) {
+function StatCard({ href = '/dashboard', title, value, unit, icon: Icon, iconClassName, valueClassName = 'text-slate-950' }: StatCardProps) {
   return (
-    <Card className="border-slate-200/80 bg-white/90 shadow-lg shadow-slate-200/60 backdrop-blur">
-      <CardContent className="flex h-full flex-col justify-between p-6">
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <p className="text-sm font-semibold uppercase tracking-wide text-slate-500">{title}</p>
+    <Link href={href}>
+      <Card className="border-slate-200/80 bg-white/90 shadow-lg shadow-slate-200/60 backdrop-blur">
+        <CardContent className="flex h-full flex-col justify-between p-6">
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <p className="text-sm font-semibold uppercase tracking-wide text-slate-500">{title}</p>
+            </div>
+            <Icon className={iconClassName} aria-hidden="true" />
           </div>
-          <Icon className={iconClassName} aria-hidden="true" />
-        </div>
 
-        <div className="mt-6">
-          <div className={cn('text-4xl font-black leading-none tracking-tight', valueClassName)}>{value}</div>
-          <div className="mt-2 text-sm font-semibold text-slate-500">{unit}</div>
-        </div>
-      </CardContent>
-    </Card>
+          <div className="mt-6">
+            <div className={cn('text-4xl font-black leading-none tracking-tight', valueClassName)}>{value}</div>
+            <div className="mt-2 text-sm font-semibold text-slate-500">{unit}</div>
+          </div>
+        </CardContent>
+      </Card>
+    </Link>
   )
 }
 
@@ -87,10 +90,6 @@ function getThaiMonthLabel(date: Date) {
 function getTabValue(params: Record<string, string | string[] | undefined>): TabKey {
   const tab = typeof params.tab === 'string' ? params.tab : 'overview'
   return tab === 'reports' ? 'reports' : 'overview'
-}
-
-function monthStart(date: Date) {
-  return new Date(date.getFullYear(), date.getMonth(), 1)
 }
 
 function addMonths(date: Date, months: number) {
@@ -300,48 +299,15 @@ export default async function DashboardPage({ searchParams }: PageProps) {
   const activeTab = getTabValue(params)
 
   const now = new Date()
-  const currentMonthStart = monthStart(now)
-  const nextMonthStart = addMonths(now, 1)
   const sixMonthsAgoStart = addMonths(now, -5)
   const reportWindowEnd = addMonths(now, 1)
 
   const overviewPromise = activeTab === 'overview'
     ? Promise.all([
         prisma.car.count({ where: { isDeleted: false } }),
-        prisma.car.count({ where: { isDeleted: false, status: 'Available' } }),
-        prisma.booking.count({
-          where: {
-            isDeleted: false,
-            status: { in: ['Confirmed', 'InProgress'] },
-          },
-        }),
-        prisma.booking.aggregate({
-          where: {
-            isDeleted: false,
-            createdAt: {
-              gte: currentMonthStart,
-              lt: nextMonthStart,
-            },
-            status: {
-              notIn: ['Cancelled', 'Rejected'],
-            },
-          },
-          _sum: { netAmount: true },
-        }),
-        prisma.booking.findMany({
-          where: { isDeleted: false },
-          orderBy: { createdAt: 'desc' },
-          take: 5,
-          include: {
-            product: true,
-            driver: true,
-            car: {
-              include: {
-                brand: true,
-              },
-            },
-          },
-        }),
+        prisma.driver.count({ where: { isDeleted: false } }),
+        prisma.product.count({ where: { isDeleted: false } }),
+        prisma.booking.count({ where: { isDeleted: false } }),
       ])
     : null
 
@@ -456,10 +422,9 @@ export default async function DashboardPage({ searchParams }: PageProps) {
   const overviewStats = overviewData
     ? {
         totalCars: overviewData[0],
-        availableCars: overviewData[1],
-        activeRentals: overviewData[2],
-        monthlyRevenue: overviewData[3],
-        latestBookings: serializePrismaRows(overviewData[4]),
+        totalDriver: overviewData[1],
+        totalProduct: overviewData[2],
+        totalBooking: overviewData[3],
       }
     : null
 
@@ -496,33 +461,37 @@ export default async function DashboardPage({ searchParams }: PageProps) {
         <>
           <section className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
             <StatCard
+              href='/cars'
               title="รถทั้งหมด"
               value={formatCompactNumber(overviewStats.totalCars)}
-              unit="คัน"
+              unit=""
               icon={Car}
               iconClassName="h-5 w-5 text-slate-400"
             />
             <StatCard
-              title="รถว่างพร้อมใช้งาน"
-              value={formatCompactNumber(overviewStats.availableCars)}
-              unit="คัน"
-              icon={CheckCircle2}
+              href='/driver'
+              title="ลูกค้าทั้งหมด"
+              value={formatCompactNumber(overviewStats.totalDriver)}
+              unit=""
+              icon={Users}
               iconClassName="h-6 w-6 text-emerald-500"
               valueClassName="text-emerald-600"
             />
             <StatCard
-              title="กำลังเช่า"
-              value={formatCompactNumber(overviewStats.activeRentals)}
-              unit="รายการ"
-              icon={Clock3}
+              href='/products'
+              title="บริการทั้งหมด"
+              value={formatCompactNumber(overviewStats.totalProduct)}
+              unit=""
+              icon={Tag}
               iconClassName="h-6 w-6 text-[#6F3BB7]"
               valueClassName="text-[#4E2788]"
             />
             <StatCard
-              title="รายได้เดือนนี้"
-              value={formatBaht(overviewStats.monthlyRevenue._sum.netAmount ?? 0)}
-              unit="บาท"
-              icon={CircleDollarSign}
+              href='/bookings'
+              title="รายการทั้งหมด"
+              value={formatCompactNumber(overviewStats.totalBooking)}
+              unit=""
+              icon={ClipboardList}
               iconClassName="h-6 w-6 text-emerald-600"
               valueClassName="text-emerald-700"
             />
