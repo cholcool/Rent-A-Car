@@ -1,9 +1,11 @@
 import { auth } from "@/lib/auth";
-import RBACSidebar from "@/components/RBACSidebar";
 import ResponsiveShell from "@/components/ResponsiveShell";
 import { getUserAccess } from "@/lib/rbac/access";
 import { toMenuItems } from "@/lib/rbac/menus";
 import { redirect } from "next/navigation";
+// import RBACSidebar from "@/components/RBACSidebar";
+import AppSidebar from "@/components/AppSidebar"
+
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const session = await auth();
@@ -13,7 +15,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
   const menuItems = toMenuItems(menus);
 
   return (
-    <ResponsiveShell sidebar={<RBACSidebar user={session?.user ?? null} menuItems={menuItems} />}>
+    <ResponsiveShell sidebar={<AppSidebar user={session?.user ?? null} menuItems={menuItems} />}>
       {children}
     </ResponsiveShell>
   );

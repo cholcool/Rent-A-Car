@@ -1,0 +1,124 @@
+"use client";
+
+import {
+  SidebarTrigger,
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarGroup,
+  SidebarHeader,
+  SidebarMenu,
+  SidebarMenuItem,
+  SidebarMenuButton,
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuGroup,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+} from "@/components/ui"
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { signOut } from "next-auth/react";
+import { Car, LogOut, ChevronsUpDown, CircleUser } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { iconByKey, type MenuItem } from "@/lib/rbac/menus";
+
+type SidebarUser = {
+  name?: string | null;
+  email?: string | null;
+};
+
+export default function AppSidebar({ user, menuItems }: { user?: SidebarUser | null; menuItems: MenuItem[] }) {
+  const pathname = usePathname();
+  const displayName = user?.name ?? user?.email ?? "Guest";
+
+  return (
+    <Sidebar collapsible="icon" className="relative">
+      <aside className="flex flex-col h-full relative bg-linear-to-b from-[#6F3BB7] to-[#4E2788] text-white shadow-xl shadow-[#4E2788]/25">
+        <SidebarTrigger className="lg:flex hidden absolute -right-7 top-10 ml-auto text-black" />
+
+        <SidebarHeader>
+          <div className="border-b border-white/15 py-8">
+            <div className="flex items-center gap-3">
+              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/10">
+                <Car aria-hidden="true" />
+              </div>
+              <div className="group-data-[collapsible=icon]:hidden">
+                <div className="font-bold leading-tight">RentCar Admin</div>
+                <div className="mt-0.5 text-sm font-semibold text-[#F4E7B0]">ระบบจัดการเช่ารถ</div>
+              </div>
+            </div>
+          </div>
+        </SidebarHeader>
+
+        <SidebarContent>
+          <SidebarMenu className="flex-1 space-y-3 px-2">
+            {menuItems.map((item) => {
+              const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
+              const Icon = iconByKey[item.iconKey] ?? Car;
+
+              return (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton asChild>
+                      <Link
+                        key={item.href}
+                        href={item.href}
+                        className={cn(
+                          "flex items-center gap-4 rounded-xl text-base font-bold transition-colors",
+                          active
+                            ? "bg-white/16 text-white shadow-lg shadow-black/10"
+                            : "text-[#F4E7B0] hover:bg-white/10 hover:text-white"
+                        )}
+                      >
+                        <Icon aria-hidden="true" />
+                        <SidebarGroup className="group-data-[collapsible=icon]:hidden">{item.title}</SidebarGroup>
+                      </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              );
+            })}
+          </SidebarMenu>
+        </SidebarContent>
+
+        <SidebarFooter>
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <SidebarMenuButton>
+                    <CircleUser />
+                    <div className="grid flex-1 text-left text-sm leading-tight">
+                      <span className="truncate font-medium">{displayName}</span>
+                      <span className="truncate text-xs">{user?.email}</span>
+                    </div>
+                    <ChevronsUpDown className="ml-auto" />
+                  </SidebarMenuButton>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="center">
+                  <DropdownMenuGroup>
+                    <DropdownMenuLabel className="flex justify-between items-center gap-2">
+                      <CircleUser />
+                      <div className="grid flex-1 text-left text-sm leading-tight">
+                        <span className="truncate font-medium">{displayName}</span>
+                        <span className="truncate text-xs">{user?.email}</span>
+                      </div>
+                    </DropdownMenuLabel>
+                  </DropdownMenuGroup>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuGroup>
+                    <DropdownMenuItem onClick={() => signOut({ callbackUrl: "/signin" })}>
+                      <LogOut aria-hidden="true" />
+                      ออกจากระบบ
+                    </DropdownMenuItem>
+                  </DropdownMenuGroup>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </SidebarMenuItem>
+          </SidebarMenu>
+        </SidebarFooter>
+      </aside>
+    </Sidebar>
+  )
+}
