@@ -44,7 +44,7 @@ export default function ResponsiveShell({
           <SidebarInset
             data-slot="sidebar-inset"
             slot="body"
-            className="flex min-h-screen min-w-0 flex-1 flex-col bg-[#f6f7f9] transition-[margin-left,width] duration-200 ease-linear md:peer-data-[state=collapsed]:ml-[3rem] lg:pl-0"
+            className="flex min-h-screen min-w-0 flex-1 flex-col bg-[#f6f7f9] transition-[margin-left,width] duration-200 ease-linear md:peer-data-[state=collapsed]:ml-12 lg:pl-0"
           >
             <header className="sticky top-0 z-30 flex h-16 items-center gap-3 border-b border-slate-200 bg-white/90 px-4 backdrop-blur lg:hidden">
               <button
@@ -57,7 +57,7 @@ export default function ResponsiveShell({
               </button>
               <span className="text-base font-bold text-slate-950">RentCar Admin</span>
             </header>
-            <main className="flex-1 px-4 py-6 sm:px-6 lg:px-6 lg:py-10">{children}</main>
+            <main className="flex-1 px-4 py-6 sm:px-6 lg:px-8 lg:py-10">{children}</main>
           </SidebarInset>
         </div>
       </div>

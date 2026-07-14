@@ -2,11 +2,7 @@
 
 import { Dispatch, SetStateAction, useMemo, useState, type FormEvent } from 'react'
 import { X } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import Input from '@/components/ui/input'
-import Label from '@/components/ui/label'
-import Select from '@/components/ui/select'
-import Textarea from '@/components/ui/textarea'
+import { Button, Input, Label, Select, Textarea } from '@/components/ui'
 import { useRouter } from 'next/navigation'
 import { BookingStatusOptions } from '@/lib/types'
      

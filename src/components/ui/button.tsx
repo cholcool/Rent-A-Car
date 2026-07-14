@@ -19,6 +19,12 @@ const buttonVariants = cva(
         destructive:
           "bg-destructive/10 text-destructive hover:bg-destructive/20 focus-visible:border-destructive/40 focus-visible:ring-destructive/20 dark:bg-destructive/20 dark:hover:bg-destructive/30 dark:focus-visible:ring-destructive/40",
         link: "text-primary underline-offset-4 hover:underline",
+        save: "bg-green-500 text-white hover:bg-green-600 focus-visible:ring-green-300",
+        warning:
+          "bg-amber-50 text-amber-700 hover:bg-amber-100 focus-visible:ring-amber-300 dark:bg-amber-100 dark:text-amber-800 dark:hover:bg-amber-200 dark:focus-visible:ring-amber-400",
+        notification:
+          "bg-[#F4E7B0] text-[#4E2788] hover:bg-[#EEDC96] focus-visible:ring-[#E0B21F]/40 dark:bg-[#F4E7B0] dark:text-[#4E2788] dark:hover:bg-[#EEDC96] dark:focus-visible:ring-[#E0B21F]/40",
+        imageDelete: "bg-red-50 text-red-600 hover:bg-red-100 focus-visible:ring-red-300 dark:bg-red-100 dark:text-red-800 dark:hover:bg-red-200 dark:focus-visible:ring-red-400",
       },
       size: {
         default:
@@ -41,7 +47,7 @@ const buttonVariants = cva(
   }
 )
 
-function Button({
+export default function Button({
   className,
   variant = "default",
   size = "default",
