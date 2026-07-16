@@ -2,23 +2,14 @@ import { randomUUID } from 'node:crypto'
 import { mkdir, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { NextResponse } from 'next/server'
-import { auth } from '@/lib/auth'
 import prisma from '@/lib/prisma'
-import { ROLE_GROUPS, hasAnyRole } from '@/lib/rbac/access'
+import { ROLE_GROUPS } from '@/lib/rbac/access'
+import { getAuthorizedUserIdByRoles } from '@/lib/auth-server'
 
 const UPLOAD_DIR = join(process.cwd(), 'public', 'uploads')
 
 async function getAuthorizedUserId() {
-  const session = await auth()
-  if (!session?.user?.email) return null
-
-  const user = await prisma.user.findUnique({
-    where: { email: session.user.email },
-    select: { id: true, roles: { select: { role: { select: { code: true } } } } },
-  })
-  const roles = (user?.roles ?? []).map((entry) => entry.role.code)
-  if (!user?.id || !hasAnyRole(roles, ROLE_GROUPS.EDITORS)) return null
-  return user.id
+  return getAuthorizedUserIdByRoles(ROLE_GROUPS.EDITORS)
 }
 
 async function ensureUploadDir() {

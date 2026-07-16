@@ -1,8 +1,8 @@
 import { Prisma } from '@prisma/client'
 import { NextResponse } from 'next/server'
-import { auth } from '@/lib/auth'
 import prisma from '@/lib/prisma'
-import { ROLE_GROUPS, hasAnyRole } from '@/lib/rbac/access'
+import { ROLE_GROUPS } from '@/lib/rbac/access'
+import { getAuthorizedUserIdByRoles } from '@/lib/auth-server'
 
 function parseDateOnly(value: unknown) {
   if (typeof value !== 'string' || !value.trim()) return null
@@ -15,17 +15,7 @@ function parseBody(body: unknown) {
 }
 
 async function getAuthorizedUserId() {
-  const session = await auth()
-  if (!session?.user?.email) return null
-
-  const user = await prisma.user.findUnique({
-    where: { email: session.user.email },
-    select: { id: true, roles: { select: { role: { select: { code: true } } } } },
-  })
-
-  const roles = (user?.roles ?? []).map((entry) => entry.role.code)
-  if (!user?.id || !hasAnyRole(roles, ROLE_GROUPS.EDITORS)) return null
-  return user.id
+  return getAuthorizedUserIdByRoles(ROLE_GROUPS.EDITORS)
 }
 
 export async function POST(request: Request) {

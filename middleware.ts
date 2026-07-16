@@ -3,21 +3,6 @@ import type { NextRequest } from 'next/server'
 import { getToken } from 'next-auth/jwt'
 
 export async function middleware(req: NextRequest) {
-  const { pathname } = req.nextUrl
-
-  // Allow static files, api/auth, and auth pages
-  if (
-    pathname.startsWith('/_next') ||
-    pathname.startsWith('/static') ||
-    pathname.startsWith('/api/auth') ||
-    pathname.startsWith('/auth') ||
-    pathname === '/signin' ||
-    pathname === '/unauthorized' ||
-    pathname === '/favicon.ico'
-  ) {
-    return NextResponse.next()
-  }
-
   const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET })
   if (!token || (token.exp && Date.now() >= token.exp * 1000)) {
     const signInUrl = new URL('/signin', req.url)
@@ -29,5 +14,5 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/:path*']
+  matcher: ['/((?!_next/static|_next/image|favicon.ico|api/auth|signin|unauthorized|auth).*)']
 }

@@ -18,6 +18,40 @@ export type MenuAccessItem = {
 }
 
 const MENU_ICON_KEYS = ['dashboard', 'car', 'users', 'tag', 'clipboard', 'creditCard', 'settings'] as const
+const ACCESS_CACHE_TTL_MS = 60_000
+
+type CacheEntry<T> = {
+  expiresAt: number
+  value: T
+}
+
+const roleCache = new Map<string, CacheEntry<string[]>>()
+const menuCache = new Map<string, CacheEntry<MenuAccessItem[]>>()
+
+function now() {
+  return Date.now()
+}
+
+function logIfSlow(label: string, startedAt: number, thresholdMs = 25) {
+  const duration = now() - startedAt
+  if (process.env.NODE_ENV === 'development' && duration >= thresholdMs) {
+    console.debug(`[auth/access] ${label} took ${duration}ms`)
+  }
+}
+
+function getCacheValue<T>(cache: Map<string, CacheEntry<T>>, key: string) {
+  const entry = cache.get(key)
+  if (!entry) return null
+  if (entry.expiresAt <= now()) {
+    cache.delete(key)
+    return null
+  }
+  return entry.value
+}
+
+function setCacheValue<T>(cache: Map<string, CacheEntry<T>>, key: string, value: T) {
+  cache.set(key, { expiresAt: now() + ACCESS_CACHE_TTL_MS, value })
+}
 
 function normalizeIconKey(value: string | null | undefined): MenuAccessItem['iconKey'] {
   return MENU_ICON_KEYS.includes(value as MenuAccessItem['iconKey']) ? (value as MenuAccessItem['iconKey']) : 'settings'
@@ -48,6 +82,11 @@ export function isExpired(token: { exp?: number } | null | undefined) {
 
 async function getDbRoleCodesForUser(userEmail?: string | null) {
   if (!userEmail) return []
+  const normalizedEmail = userEmail.trim().toLowerCase()
+  const cached = getCacheValue(roleCache, normalizedEmail)
+  if (cached) return cached
+
+  const startedAt = now()
   const user = await prisma.user.findUnique({
     where: { email: userEmail },
     select: {
@@ -58,28 +97,41 @@ async function getDbRoleCodesForUser(userEmail?: string | null) {
     },
   })
 
-  return (user?.roles ?? [])
+  const roles = (user?.roles ?? [])
     .map((entry) => entry.role)
     .filter((role) => role.isActive && !role.isDeleted)
     .map((role) => role.code.toUpperCase())
+
+  setCacheValue(roleCache, normalizedEmail, roles)
+  logIfSlow('getDbRoleCodesForUser', startedAt)
+  return roles
 }
 
 async function getDbAccessibleMenus(roleCodes: string[]) {
+  const normalizedKey = [...roleCodes].map((role) => role.trim().toUpperCase()).sort().join('|')
+  const cached = getCacheValue(menuCache, normalizedKey)
+  if (cached) return cached
+
+  const startedAt = now()
   const menus = await prisma.menu.findMany({
     where: { isDeleted: false, isActive: true },
-    include: {
+    select: {
+      title: true,
+      path: true,
+      icon: true,
+      sequence: true,
+      requiredPermission: true,
       roleMenuPermissions: {
         where: { isDeleted: false, role: { isDeleted: false, isActive: true } },
-        include: {
+        select: {
           role: { select: { code: true } },
-          permission: { select: { code: true } },
         },
       },
     },
     orderBy: [{ sequence: 'asc' }, { title: 'asc' }],
   })
 
-  return menus
+  const mappedMenus = menus
     .map((menu) => {
       const mappedRoles = menu.roleMenuPermissions.map((mapping) => mapping.role.code.toUpperCase())
       const fallbackRoles = menu.requiredPermission
@@ -95,6 +147,10 @@ async function getDbAccessibleMenus(roleCodes: string[]) {
       } satisfies MenuAccessItem
     })
     .filter((menu) => menu.href && (!menu.roles.length || menu.roles.some((role) => roleCodes.includes(role))))
+
+  setCacheValue(menuCache, normalizedKey, mappedMenus)
+  logIfSlow('getDbAccessibleMenus', startedAt)
+  return mappedMenus
 }
 
 export async function getUserAccess(input?: {
@@ -102,10 +158,11 @@ export async function getUserAccess(input?: {
   userEmail?: string | null
   rawRoles?: unknown
 }) {
+  const startedAt = now()
   const sessionRoles = normalizeRoles(input?.rawRoles ?? input?.session?.roles)
-  const dbRoles = await getDbRoleCodesForUser(input?.userEmail ?? input?.session?.email)
-  const roles = dbRoles.length > 0 ? dbRoles : sessionRoles
+  const roles = sessionRoles.length > 0 ? sessionRoles : await getDbRoleCodesForUser(input?.userEmail ?? input?.session?.email)
   const menus = await getDbAccessibleMenus(roles)
+  logIfSlow('getUserAccess', startedAt, 10)
   return { roles, menus }
 }
 

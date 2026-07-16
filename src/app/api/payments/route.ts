@@ -1,18 +1,11 @@
 import { NextResponse } from 'next/server';
-import { auth } from '@/lib/auth';
 import prisma from '@/lib/prisma';
-import { ROLE_GROUPS, hasAnyRole } from '@/lib/rbac/access';
+import { ROLE_GROUPS } from '@/lib/rbac/access';
+import { getAuthorizedUserIdByRoles } from '@/lib/auth-server'
 
 export async function GET() {
-  const session = await auth();
-  if (!session?.user?.email) return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
-
-  const user = await prisma.user.findUnique({
-    where: { email: session.user.email },
-    include: { roles: { include: { role: true } } },
-  });
-  const roles = (user?.roles ?? []).map((ur: any) => ur.role.code);
-  if (!hasAnyRole(roles, ROLE_GROUPS.ADMIN_STAFF))
+  const userId = await getAuthorizedUserIdByRoles(ROLE_GROUPS.ADMIN_STAFF)
+  if (!userId)
     return NextResponse.json({ message: 'Forbidden' }, { status: 403 });
 
   const payments = await prisma.payment.findMany({

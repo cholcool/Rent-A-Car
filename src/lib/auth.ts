@@ -2,7 +2,7 @@ import NextAuth, { type NextAuthConfig } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import prisma from './prisma'
 import { SessionUser } from '@/types/session';
-import { verifyPassword } from '@/rbac/auth-connects'
+import { verifyPassword } from '@/lib/auth-server'
 
 export const authConfig: NextAuthConfig = {
   providers: [
@@ -73,6 +73,8 @@ export const authConfig: NextAuthConfig = {
   },
   session: {
     strategy: 'jwt',
+    maxAge: 10 * 60 * 60, // 10 ชั่วโมง
+    updateAge: 60 * 30, // ต่ออายุเมื่อมี activity ทุก 30 นาที
   },
   pages: {
     signIn: '/signin',

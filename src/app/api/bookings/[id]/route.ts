@@ -1,20 +1,14 @@
 import { NextResponse } from 'next/server'
-import { auth } from '@/lib/auth'
 import prisma from '@/lib/prisma'
-
-async function requireUser() {
-  const session = await auth()
-  if (!session?.user?.email) return null
-  const user = await prisma.user.findUnique({ where: { email: session.user.email } })
-  return user
-}
+import { ROLE_GROUPS } from '@/lib/rbac/access'
+import { getAuthorizedUserIdByRoles } from '@/lib/auth-server'
 
 export async function PATCH(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const user = await requireUser()
-  if (!user) return NextResponse.json({ message: 'Unauthorized' }, { status: 401 })
+  const userId = await getAuthorizedUserIdByRoles(ROLE_GROUPS.EDITORS)
+  if (!userId) return NextResponse.json({ message: 'Unauthorized' }, { status: 401 })
 
   const { id } = await params
   const body = await request.json()
@@ -42,7 +36,7 @@ export async function PATCH(
       paymentImageId: body.bookingPaymentImagesId || null,
       healthCheck01ImageId: body.bookingHealthCheck01ImagesId || null,
       healthCheck02ImageId: body.bookingHealthCheck02ImagesId || null,
-      updatedBy: user.id,
+      updatedBy: userId,
     },
     include: {
       user: true,
@@ -62,13 +56,13 @@ export async function DELETE(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const user = await requireUser()
-  if (!user) return NextResponse.json({ message: 'Unauthorized' }, { status: 401 })
+  const userId = await getAuthorizedUserIdByRoles(ROLE_GROUPS.EDITORS)
+  if (!userId) return NextResponse.json({ message: 'Unauthorized' }, { status: 401 })
 
   const { id } = await params
   await prisma.booking.update({
     where: { id },
-    data: { isDeleted: true, updatedBy: user.id },
+    data: { isDeleted: true, updatedBy: userId },
   })
 
   return NextResponse.json({ ok: true })

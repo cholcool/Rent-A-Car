@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
-import { getAuthorizedUserId, hashPassword } from '@/rbac/auth-connects'
+import { getAuthorizedUserId } from '@/lib/auth-server'
+import { hashPassword } from '@/lib/auth-server'
 
 function normalize(value: unknown) {
   return typeof value === 'string' ? value.trim() : ''

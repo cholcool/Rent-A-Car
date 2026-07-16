@@ -4,7 +4,6 @@ import * as React from "react";
 import { Menu, X } from "lucide-react";
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui"
 
-
 export default function ResponsiveShell({
   children,
   sidebar,
@@ -36,7 +35,7 @@ export default function ResponsiveShell({
           </div>
         </div>
 
-        <div data-slot="sidebar-wrapper" className="flex min-h-screen">
+        <div className="flex min-h-screen" data-slot="sidebar-wrapper">
           <div className="hidden lg:flex" data-slot="sidebar" slot="desktop">
             {sidebar}
           </div>

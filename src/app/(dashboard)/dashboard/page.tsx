@@ -295,6 +295,7 @@ function TopCarsChart({ rows, maxBookings }: { rows: TopCarRow[]; maxBookings: n
 }
 
 export default async function DashboardPage({ searchParams }: PageProps) {
+  const startedAt = performance.now()
   const params = (await searchParams) ?? {}
   const activeTab = getTabValue(params)
 
@@ -330,7 +331,6 @@ export default async function DashboardPage({ searchParams }: PageProps) {
           select: {
             createdAt: true,
             netAmount: true,
-            id: true,
           },
         }),
         prisma.booking.groupBy({
@@ -389,8 +389,11 @@ export default async function DashboardPage({ searchParams }: PageProps) {
         isDeleted: false,
         id: { in: carIds },
       },
-      include: {
-        brand: true,
+      select: {
+        id: true,
+        model: true,
+        license: true,
+        brand: { select: { name: true } },
       },
     })
 
@@ -431,6 +434,9 @@ export default async function DashboardPage({ searchParams }: PageProps) {
   const revenueMax = maxBy(monthlyRows, (row) => row.revenue)
   const bookingMax = maxBy(monthlyRows, (row) => row.bookingCount)
   const topCarsMax = maxBy(topCars, (row) => row.bookings)
+  if (process.env.NODE_ENV === 'development') {
+    console.debug(`[dashboard] ${activeTab} page loaded in ${Math.round(performance.now() - startedAt)}ms`)
+  }
 
   const tabLinkClass = (tab: TabKey) =>
     cn(
@@ -534,7 +540,7 @@ export default async function DashboardPage({ searchParams }: PageProps) {
                 <p className="mt-2 text-sm font-medium text-slate-500">ดูตัวเลขแบบละเอียดพร้อมใช้ตรวจสอบย้อนหลัง</p>
 
                 <div className="mt-6 overflow-x-auto">
-                  <table className="w-full min-w-195 text-left">
+                  <table className="w-full min-w-165 text-left">
                     <thead>
                       <tr className="border-b border-slate-200 text-xs font-bold uppercase tracking-[0.18em] text-slate-500">
                         <th className="px-3 py-3">เดือน</th>

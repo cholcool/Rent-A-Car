@@ -18,7 +18,8 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
-import { Button, AlertDialogVariant } from "@/components/ui"
+import { Button } from "@/components/ui"
+import { AlertDialogVariant } from '@/lib/types'
 
 interface AlertDialogDestructiveProps {
   onClick?: (e: any) => void

@@ -1,18 +1,11 @@
 import { NextResponse } from 'next/server';
-import { auth } from '@/lib/auth';
 import prisma from '@/lib/prisma';
-import { ROLE_GROUPS, hasAnyRole } from '@/lib/rbac/access';
+import { ROLE_GROUPS } from '@/lib/rbac/access';
+import { getAuthorizedUserIdByRoles } from '@/lib/auth-server'
 
 export async function GET() {
-  const session = await auth();
-  if (!session?.user?.email) return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
-
-  const user = await prisma.user.findUnique({
-    where: { email: session.user.email },
-    include: { roles: { include: { role: true } } },
-  });
-  const roles = (user?.roles ?? []).map((ur: any) => ur.role.code);
-  if (!hasAnyRole(roles, ROLE_GROUPS.EDITORS))
+  const userId = await getAuthorizedUserIdByRoles(ROLE_GROUPS.EDITORS)
+  if (!userId)
     return NextResponse.json({ message: 'Forbidden' }, { status: 403 });
 
   const bookings = await prisma.booking.findMany({
@@ -32,11 +25,8 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-  const session = await auth();
-  if (!session?.user?.email) return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
-
-  const user = await prisma.user.findUnique({ where: { email: session.user.email } });
-  if (!user) return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+  const userId = await getAuthorizedUserIdByRoles(ROLE_GROUPS.EDITORS)
+  if (!userId) return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
 
   const body = await request.json();
   const booking = await prisma.booking.create({
@@ -58,8 +48,8 @@ export async function POST(request: Request) {
       paymentImageId: body.bookingPaymentImagesId || null,
       healthCheck01ImageId: body.bookingHealthCheck01ImagesId || null,
       healthCheck02ImageId: body.bookingHealthCheck02ImagesId || null,
-      createdBy: user.id,
-      updatedBy: user.id,
+      createdBy: userId,
+      updatedBy: userId,
     },
     include: {
       user: true,
