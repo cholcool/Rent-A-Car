@@ -13,10 +13,10 @@ export default function SignInPage() {
   const [error, setError] = useState<string | null>(null)
   const reason = searchParams.get('reason')
 
-  const reasonMessage = useMemo(() => {
-    if (reason === 'token-expired') return 'เซสชันหมดอายุ กรุณาเข้าสู่ระบบใหม่อีกครั้ง'
-    if (reason === 'missing-session') return 'กรุณาเข้าสู่ระบบก่อนใช้งาน'
-    return null
+  useMemo(() => {
+    if (reason === 'token-expired') return setError('เซสชันหมดอายุ กรุณาเข้าสู่ระบบใหม่อีกครั้ง')
+    if (reason === 'missing-session') return setError('กรุณาเข้าสู่ระบบก่อนใช้งาน')
+    setError(null)
   }, [reason])
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
@@ -57,9 +57,9 @@ export default function SignInPage() {
           <p className="mt-1 text-sm font-medium text-slate-500">ระบบจัดการเช่ารถ</p>
         </div>
 
-        {reasonMessage && (
+        {error && (
           <div className="mt-6 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-medium text-amber-900">
-            {reasonMessage}
+            {error}
           </div>
         )}
 
@@ -117,15 +117,6 @@ export default function SignInPage() {
             <span>{loading ? 'กำลังเข้าสู่ระบบ...' : 'เข้าสู่ระบบ'}</span>
           </button>
         </form>
-
-        <p
-          id="signin-error"
-          role={error ? 'alert' : undefined}
-          aria-live="polite"
-          className="mt-4 min-h-4 text-center text-xs text-slate-400"
-        >
-          {error}
-        </p>
       </section>
     </main>
   )

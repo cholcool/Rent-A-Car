@@ -73,7 +73,7 @@ export const authConfig: NextAuthConfig = {
   },
   session: {
     strategy: 'jwt',
-    maxAge: 10 * 60 * 60, // 10 ชั่วโมง
+    maxAge: 8 * 60 * 60, // 8 ชั่วโมง
     updateAge: 60 * 30, // ต่ออายุเมื่อมี activity ทุก 30 นาที
   },
   pages: {
