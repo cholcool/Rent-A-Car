@@ -181,14 +181,14 @@ export default function BookingsClient({
       {menuOpen && (
         <button
           type="button"
-          aria-label="ปิดเมนูเพิ่มรายการเช่ารถ"
-          className="fixed inset-0 z-40 cursor-default bg-transparent"
+          aria-label="Close speed dial"
+          className="fixed inset-0 z-10 cursor-default bg-transparent"
           onClick={() => setMenuOpen(false)}
         />
       )}
 
       {!drawerOpen && !driverDrawerOpen && (
-        <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-3">
+        <div className="fixed bottom-6 right-6 z-10 flex flex-col items-end gap-3">
           {menuOpen && (
             <>
               <button 

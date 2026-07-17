@@ -168,11 +168,11 @@ export default function DriverPageClient({ initialDrivers }: { initialDrivers: D
       )}
 
       {menuOpen && (
-        <button type="button" aria-label="Close menu" className="fixed inset-0 z-30 bg-transparent my-0" onClick={() => setMenuOpen(false)} /> 
+        <button type="button" aria-label="Close speed dial" className="fixed inset-0 z-10 bg-transparent my-0" onClick={() => setMenuOpen(false)} /> 
       )}
 
       {!drawerOpen && (
-        <div className="fixed bottom-6 right-6 z-40 flex flex-col items-end gap-3">
+        <div className="fixed bottom-6 right-6 z-10 flex flex-col items-end gap-3">
           {menuOpen && (
             <button type="button" onClick={openCreate} className={cn('group flex items-center gap-4 rounded-2xl border bg-white px-4 py-3 text-left shadow-lg shadow-slate-950/10 transition-all duration-200', 'min-w-47.5 max-w-55', 'border-slate-200 hover:-translate-y-0.5 hover:border-violet-200 hover:bg-violet-50/50')}>
               <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-slate-50 text-slate-600 shadow-sm transition group-hover:bg-white group-hover:text-violet-700">

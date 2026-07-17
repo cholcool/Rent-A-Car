@@ -18,10 +18,10 @@ export default function ResponsiveShell({
       <div className="min-h-screen bg-[#f6f7f9] w-full" slot="main-screen">
         <div className={`fixed inset-0 z-40 lg:hidden ${open ? "" : "pointer-events-none"}`} slot="mobile">
           <div
-            className={`absolute inset-0 bg-slate-950/50 backdrop-blur-sm transition-opacity ${open ? "opacity-100" : "opacity-0"}`}
+            className={`absolute inset-0 z-20 bg-slate-950/50 backdrop-blur-sm transition-opacity ${open ? "opacity-100" : "opacity-0"}`}
             onClick={() => setOpen(false)}
           />
-          <div className={`absolute inset-y-0 left-0 transition-transform duration-200 ${open ? "translate-x-0" : "-translate-x-full"}`}>
+          <div className={`absolute inset-y-0 z-20 left-0 transition-transform duration-200 ${open ? "translate-x-0" : "-translate-x-full"}`}>
             <button
               type="button"
               aria-label="Close sidebar"
