@@ -35,12 +35,12 @@ export default function AppSidebar({ user, menuItems }: { user?: SidebarUser | n
   const displayName = user?.name ?? user?.email ?? "Guest";
 
   return (
-    <Sidebar collapsible="icon" className="relative">
+    <Sidebar collapsible="icon" className="fixed">
       <aside className="flex flex-col h-full relative bg-linear-to-b from-[#6F3BB7] to-[#4E2788] text-white shadow-xl shadow-[#4E2788]/25">
-        <SidebarTrigger className="lg:flex hidden absolute -right-7 top-10 ml-auto text-black" />
+        <SidebarTrigger className="lg:flex hidden absolute -right-8 top-3 ml-auto bg-linear-to-b from-[#6F3BB7] to-[#4E2788] text-white shadow-xl shadow-[#4E2788]/25" slot="desktop" />
 
         <SidebarHeader>
-          <div className="border-b border-white/15 py-8">
+          <div className="border-b border-white/15 py-9">
             <div className="flex items-center gap-3">
               <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/10">
                 <Car aria-hidden="true" />
