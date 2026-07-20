@@ -5,6 +5,7 @@ import { ROLE_GROUPS } from '@/lib/rbac/access';
 import { getAuthorizedUserIdByRoles } from '@/lib/auth-server'
 import { buildCarOrderBy, buildCarWhere, parseCarListQuery } from '@/lib/cars/query'
 import { serializePrismaRows } from '@/lib/serialize'
+import { CarStatus } from '@/lib/types'
 
 function normalize(value: unknown) {
   return typeof value === 'string' ? value.trim() : ''
@@ -50,4 +51,30 @@ export async function DELETE(request: Request) {
   })
 
   return NextResponse.json({ ok: true })
+}
+
+export async function PATCH(request: Request) {
+  const userId = await getAuthorizedUserIdByRoles(ROLE_GROUPS.EDITORS)
+  if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  const body = await request.json().catch(() => ({}))
+  const id = normalize(body.id)
+  const status = String(body.status ?? '').trim() as CarStatus
+
+  if (!id) return NextResponse.json({ error: 'id is required' }, { status: 400 })
+  if (!status) return NextResponse.json({ error: 'status is required' }, { status: 400 })
+
+  const car = await prisma.car.findFirst({ where: { id, isDeleted: false }, select: { id: true } })
+  if (!car) return NextResponse.json({ error: 'Car not found' }, { status: 404 })
+
+  const updated = await prisma.car.update({
+    where: { id },
+    data: {
+      status,
+      updatedBy: userId,
+    },
+    select: { id: true, status: true },
+  })
+
+  return NextResponse.json({ car: updated })
 }

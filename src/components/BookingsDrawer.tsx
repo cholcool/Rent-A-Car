@@ -1,10 +1,12 @@
 'use client'
 
-import { Dispatch, SetStateAction, useMemo, useState, type FormEvent } from 'react'
+import { Dispatch, SetStateAction, useEffect, useMemo, useRef, useState, type FormEvent } from 'react'
 import { X } from 'lucide-react'
 import { Button, Input, Label, Select, Textarea } from '@/components/ui'
 import { useRouter } from 'next/navigation'
 import { BookingStatusOptions } from '@/lib/types'
+import { CarStatus } from '@/lib/types'
+import CardUploadImage from '@/components/CardUploadImage'
      
 function dateCount(start: string, end: string) {
   if (!start || !end) return 0
@@ -62,7 +64,7 @@ export default function BookingsDrawer({
   const empty = {
     productId: '',
     carId: '',
-    userId: currentUserId,
+    userId: currentUserId || '',
     driverId: '',
     dateStart: '',
     dateEnd: '',
@@ -76,6 +78,19 @@ export default function BookingsDrawer({
     healthCheck02ImageId: '',
   }
   const [form, setForm] = useState(formIn || empty)
+  const paymentInputRef = useRef<HTMLInputElement>(null)
+  const healthCheck01InputRef = useRef<HTMLInputElement>(null)
+  const healthCheck02InputRef = useRef<HTMLInputElement>(null)
+  const [paymentFile, setPaymentFile] = useState<File | null>(null)
+  const [healthCheck01File, setHealthCheck01File] = useState<File | null>(null)
+  const [healthCheck02File, setHealthCheck02File] = useState<File | null>(null)
+  const [uploadingPayment, setUploadingPayment] = useState(false)
+  const [uploadingHealthCheck01, setUploadingHealthCheck01] = useState(false)
+  const [uploadingHealthCheck02, setUploadingHealthCheck02] = useState(false)
+  const [paymentPreview, setPaymentPreview] = useState<string | null>(null)
+  const [healthCheck01Preview, setHealthCheck01Preview] = useState<string | null>(null)
+  const [healthCheck02Preview, setHealthCheck02Preview] = useState<string | null>(null)
+  const [lastReservedCarId, setLastReservedCarId] = useState<string | null>(null)
 
   const selectedProduct = useMemo(() => products?.find((p) => p.id === form.productId), [form.productId, products])
   const days = useMemo(() => dateCount(form.dateStart, form.dateEnd), [form.dateStart, form.dateEnd])
@@ -85,6 +100,158 @@ export default function BookingsDrawer({
   const tax = Number(form.taxAmount || 0)
   const total = Number(Math.max(gross - discount + tax, 0).toFixed(2))
   const router = useRouter()
+
+  const paymentStatusLabel = paymentFile ? 'preview' : form.paymentImageId ? 'uploaded' : null
+  const healthCheck01StatusLabel = healthCheck01File ? 'preview' : form.healthCheck01ImageId ? 'uploaded' : null
+  const healthCheck02StatusLabel = healthCheck02File ? 'preview' : form.healthCheck02ImageId ? 'uploaded' : null
+
+  useEffect(() => {
+    if (!paymentFile) {
+      setPaymentPreview(null)
+      return
+    }
+    const preview = URL.createObjectURL(paymentFile)
+    setPaymentPreview(preview)
+    return () => URL.revokeObjectURL(preview)
+  }, [paymentFile])
+
+  useEffect(() => {
+    if (!healthCheck01File) {
+      setHealthCheck01Preview(null)
+      return
+    }
+    const preview = URL.createObjectURL(healthCheck01File)
+    setHealthCheck01Preview(preview)
+    return () => URL.revokeObjectURL(preview)
+  }, [healthCheck01File])
+
+  useEffect(() => {
+    if (!healthCheck02File) {
+      setHealthCheck02Preview(null)
+      return
+    }
+    const preview = URL.createObjectURL(healthCheck02File)
+    setHealthCheck02Preview(preview)
+    return () => URL.revokeObjectURL(preview)
+  }, [healthCheck02File])
+
+  useEffect(() => {
+    setError(errorIn || '')
+    setForm(formIn || empty)
+    setPaymentFile(null)
+    setHealthCheck01File(null)
+    setHealthCheck02File(null)
+    setPaymentPreview(null)
+    setHealthCheck01Preview(null)
+    setHealthCheck02Preview(null)
+    setLastReservedCarId(null)
+  }, [errorIn, formIn])
+
+  async function setCarStatus(carId: string, status: CarStatus) {
+    if (!carId) return
+    const res = await fetch('/api/cars', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: carId, status }),
+    })
+    const data = await res.json().catch(() => ({}))
+    if (!res.ok) throw new Error(data?.error ?? 'ไม่สามารถอัปเดตสถานะรถได้')
+  }
+
+  function triggerPicker(kind: 'payment' | 'healthCheck01' | 'healthCheck02') {
+    if (kind === 'payment') paymentInputRef.current?.click()
+    else if (kind === 'healthCheck01') healthCheck01InputRef.current?.click()
+    else healthCheck02InputRef.current?.click()
+  }
+
+  async function sendImage(file: File) {
+    const formData = new FormData()
+    formData.append('file', file)
+    const res = await fetch('/api/booking-images', { method: 'POST', body: formData })
+    const data = await res.json().catch(() => ({}))
+    if (!res.ok) throw new Error(data?.error ?? 'ไม่สามารถอัปโหลดรูปภาพได้')
+    return data.image as { id: string; url: string; key: string; name: string }
+  }
+
+  async function syncBookingImage(nextForm: From) {
+    if (!editingId) return
+    const payload = {
+      ...nextForm,
+      bookingPaymentImagesId: nextForm.paymentImageId || null,
+      bookingHealthCheck01ImagesId: nextForm.healthCheck01ImageId || null,
+      bookingHealthCheck02ImagesId: nextForm.healthCheck02ImageId || null,
+      dateCount: days,
+      dailyRate: gross,
+      totalAmount: total,
+    }
+    const res = await fetch(`/api/bookings/${editingId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    })
+    const data = await res.json().catch(() => ({}))
+    if (!res.ok) throw new Error(data?.message ?? data?.error ?? 'บันทึกไม่สำเร็จ')
+    setBookings((current) => current.map((item) => (item.id === editingId ? data.booking : item)))
+  }
+
+  async function uploadImage(kind: 'payment' | 'healthCheck01' | 'healthCheck02') {
+    const file = kind === 'payment' ? paymentFile : kind === 'healthCheck01' ? healthCheck01File : healthCheck02File
+    if (!file) return
+      if (kind === 'payment') setUploadingPayment(true)
+    if (kind === 'healthCheck01') setUploadingHealthCheck01(true)
+    if (kind === 'healthCheck02') setUploadingHealthCheck02(true)
+
+    try {
+      const image = await sendImage(file)
+      const nextForm = {
+        ...form,
+        [kind === 'payment' ? 'paymentImageId' : kind === 'healthCheck01' ? 'healthCheck01ImageId' : 'healthCheck02ImageId']: image.id,
+      }
+      setForm(nextForm)
+      if (kind === 'payment') setPaymentFile(null)
+      if (kind === 'healthCheck01') setHealthCheck01File(null)
+      if (kind === 'healthCheck02') setHealthCheck02File(null)
+      if (editingId) {
+        await syncBookingImage(nextForm)
+      }
+    } catch (err: any) {
+      setError(err?.message ?? 'ไม่สามารถอัปโหลดรูปภาพได้')
+    } finally {
+      if (kind === 'payment') setUploadingPayment(false)
+      if (kind === 'healthCheck01') setUploadingHealthCheck01(false)
+      if (kind === 'healthCheck02') setUploadingHealthCheck02(false)
+    }
+  }
+
+  async function deleteImage(kind: 'payment' | 'healthCheck01' | 'healthCheck02') {
+    const nextForm = {
+      ...form,
+      [kind === 'payment' ? 'paymentImageId' : kind === 'healthCheck01' ? 'healthCheck01ImageId' : 'healthCheck02ImageId']: '',
+    }
+    setForm(nextForm)
+    if (kind === 'payment') setPaymentFile(null)
+    if (kind === 'healthCheck01') setHealthCheck01File(null)
+    if (kind === 'healthCheck02') setHealthCheck02File(null)
+    if (editingId) {
+      try {
+        await syncBookingImage(nextForm)
+      } catch (err: any) {
+        setError(err?.message ?? 'ไม่สามารถลบรูปภาพได้')
+      }
+    }
+  }
+
+  async function closeDrawer() {
+    if (saving) return
+    if (!editingId && lastReservedCarId) {
+      try {
+        await setCarStatus(lastReservedCarId, 'Available')
+      } catch {
+        // ignore rollback errors when closing
+      }
+    }
+    setDrawerOpen(false)
+  }
  
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -111,6 +278,9 @@ export default function BookingsDrawer({
       }
       const payload = {
         ...form,
+        bookingPaymentImagesId: form.paymentImageId || null,
+        bookingHealthCheck01ImagesId: form.healthCheck01ImageId || null,
+        bookingHealthCheck02ImagesId: form.healthCheck02ImageId || null,
         dateCount: days,
         dailyRate: gross,
         totalAmount: total,
@@ -123,6 +293,10 @@ export default function BookingsDrawer({
       const data = await res.json()
       if (!res.ok) throw new Error(data?.message ?? data?.error ?? 'บันทึกไม่สำเร็จ')
       const row = data.booking
+      if (!editingId && form.carId) {
+        await setCarStatus(form.carId, 'Booked')
+        setLastReservedCarId(null)
+      }
       setBookings((current) => editingId ? current.map((item) => (item.id === row.id ? row : item)) : [row, ...current])
       setDrawerOpen(false)
       router.refresh()
@@ -133,13 +307,33 @@ export default function BookingsDrawer({
     }
   }
 
+  async function handleCarChange(nextCarId: string) {
+    const prevCarId = form.carId
+    setForm((current) => ({ ...current, carId: nextCarId }))
+
+    if (editingId) return
+
+    try {
+      if (prevCarId && prevCarId !== nextCarId) {
+        await setCarStatus(prevCarId, 'Available')
+      }
+      if (nextCarId) {
+        await setCarStatus(nextCarId, 'Reserved')
+        setLastReservedCarId(nextCarId)
+      }
+    } catch (err: any) {
+      setError(err?.message ?? 'ไม่สามารถอัปเดตสถานะรถได้')
+      setForm((current) => ({ ...current, carId: prevCarId }))
+    }
+  }
+
   return (
     <>
       <button
         type="button"
         aria-label="Close drawer"
         className="fixed inset-0 z-30 bg-slate-950/30 backdrop-blur-[2px] my-0"
-        onClick={() => !saving && setDrawerOpen(false)}
+        onClick={closeDrawer}
       />
 
       <aside className="fixed right-0 top-0 z-40 h-full w-full max-w-2xl overflow-auto bg-white shadow-2xl">
@@ -148,7 +342,7 @@ export default function BookingsDrawer({
             <h2 className="text-2xl font-extrabold text-slate-950">{editingId ? 'แก้ไขรายการ' : 'เพิ่มรายการใหม่'}</h2>
             <p className="mt-2 text-sm font-medium text-slate-500">กรอกข้อมูลพื้นฐานและอัปโหลดเอกสาร</p>
           </div>
-          <button className="rounded-full border p-2" onClick={() => setDrawerOpen(false)}><X className="h-4 w-4" /></button>
+          <button type="button" className="rounded-full border p-2" onClick={closeDrawer}><X className="h-4 w-4" /></button>
         </div>
 
         <form onSubmit={submit} className="space-y-6 px-6 py-5">
@@ -165,7 +359,7 @@ export default function BookingsDrawer({
           <div className="grid gap-4 md:grid-cols-2">
             <div>
               <Label>รายการรถ <span className="text-red-600">*</span></Label>
-              <Select value={form.carId} onChange={(e) => setForm((c) => ({ ...c, carId: e.target.value }))}>
+              <Select value={form.carId} onChange={(e) => handleCarChange(e.target.value)}>
                 <option value="">เลือกรายการรถ</option>
                 {cars?.map((c) => <option key={c.id} value={c.id}>{c.label}</option>)}
               </Select>
@@ -238,23 +432,41 @@ export default function BookingsDrawer({
               <Textarea maxLength={500} value={form.bookingRemark} onChange={(e) => setForm((c) => ({ ...c, bookingRemark: e.target.value }))} />
             </div>
 
-            <div key={String('paymentImageId')} className="rounded-2xl border p-4 md:col-span-2">
-              <div className="mb-3 flex items-center justify-between">
-                <div className="font-bold text-slate-950">หลักฐานการรับเงิน</div>
-              </div>
-            </div>
+            <CardUploadImage
+              title="หลักฐานการรับเงิน"
+              preview={paymentPreview}
+              statusLabel={paymentStatusLabel}
+              inputRef={paymentInputRef}
+              onPick={() => triggerPicker('payment')}
+              onChange={(file) => setPaymentFile(file)}
+              onUpload={() => uploadImage('payment')}
+              onDelete={() => deleteImage('payment')}
+              uploading={uploadingPayment}
+            />
 
-            <div key={String('healthCheck01ImageId')} className="rounded-2xl border p-4 md:col-span-2">
-              <div className="mb-3 flex items-center justify-between">
-                <div className="font-bold text-slate-950">เอกสารสัญญาเช่ารถ</div>
-              </div>
-            </div>
+            <CardUploadImage
+              title="เอกสารสัญญาเช่ารถ"
+              preview={healthCheck01Preview}
+              statusLabel={healthCheck01StatusLabel}
+              inputRef={healthCheck01InputRef}
+              onPick={() => triggerPicker('healthCheck01')}
+              onChange={(file) => setHealthCheck01File(file)}
+              onUpload={() => uploadImage('healthCheck01')}
+              onDelete={() => deleteImage('healthCheck01')}
+              uploading={uploadingHealthCheck01}
+            />
 
-            <div key={String('healthCheck02ImageId')} className="rounded-2xl border p-4 md:col-span-2">
-              <div className="mb-3 flex items-center justify-between">
-                <div className="font-bold text-slate-950">ตรวจรับรถ</div>
-              </div>
-            </div>
+            <CardUploadImage
+              title="ตรวจรับรถ"
+              preview={healthCheck02Preview}
+              statusLabel={healthCheck02StatusLabel}
+              inputRef={healthCheck02InputRef}
+              onPick={() => triggerPicker('healthCheck02')}
+              onChange={(file) => setHealthCheck02File(file)}
+              onUpload={() => uploadImage('healthCheck02')}
+              onDelete={() => deleteImage('healthCheck02')}
+              uploading={uploadingHealthCheck02}
+            />
 
             {error && <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">{error}</div>}
 
