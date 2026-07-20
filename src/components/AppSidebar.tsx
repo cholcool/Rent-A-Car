@@ -17,6 +17,7 @@ import {
   DropdownMenuGroup,
   DropdownMenuLabel,
   DropdownMenuSeparator,
+  useSidebar
 } from "@/components/ui"
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -33,6 +34,7 @@ type SidebarUser = {
 export default function AppSidebar({ user, menuItems }: { user?: SidebarUser | null; menuItems: MenuItem[] }) {
   const pathname = usePathname();
   const displayName = user?.name ?? user?.email ?? "Guest";
+  const {  setOpenMobile } = useSidebar()
 
   return (
     <Sidebar collapsible="icon" className="fixed">
@@ -65,6 +67,7 @@ export default function AppSidebar({ user, menuItems }: { user?: SidebarUser | n
                       <Link
                         key={item.href}
                         href={item.href}
+                        onClick={() => setOpenMobile(false)}
                         className={cn(
                           "flex items-center gap-4 rounded-xl text-base font-bold transition-colors",
                           active

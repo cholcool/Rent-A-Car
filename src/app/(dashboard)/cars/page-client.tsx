@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
 import { Edit, BellRing } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
@@ -24,6 +24,27 @@ export default function PageClient({carsIn} : PageProps ) {
 
   const [error, setError] = useState('')
   const [cars, setCars] = useState<CarsRow[]>(carsIn || [])
+  const [isRefreshing, setIsRefreshing] = useState(false)
+
+  const refreshCars = useCallback(async () => {
+    setIsRefreshing(true)
+    try {
+      const params = new URLSearchParams(window.location.search)
+      const res = await fetch(`/api/cars?${params.toString()}`, {
+        cache: 'no-store',
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        setError(data?.error ?? 'ไม่สามารถโหลดข้อมูลรถได้')
+        return
+      }
+      setCars(data)
+    } catch {
+      setError('ไม่สามารถโหลดข้อมูลรถได้')
+    } finally {
+      setIsRefreshing(false)
+    }
+  }, [])
 
   async function deleteItem(id: string) {
     const res = await fetch('/api/cars', {
@@ -37,6 +58,7 @@ export default function PageClient({carsIn} : PageProps ) {
       return
     }
     setCars((current) => current.filter((item) => item.id !== id))
+    refreshCars()
   }
 
   useEffect(() => {
@@ -46,16 +68,18 @@ export default function PageClient({carsIn} : PageProps ) {
   }, [carsIn])
 
   useEffect(() => {
+    void refreshCars()
     const timer = window.setInterval(() => {
-      window.location.reload()
+      void refreshCars()
     }, 60_000)
 
     return () => window.clearInterval(timer)
-  }, [])
+  }, [refreshCars])
 
   return (
     <>
       {error ? <div className="mt-4 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-700">{error}</div> : null}
+      {isRefreshing ? <div className="mt-4 text-sm font-semibold text-slate-500">กำลังอัปเดตรายการรถ...</div> : null}
 
       <Card>
         <CardContent className="p-6 sm:p-8">

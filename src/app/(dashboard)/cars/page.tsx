@@ -4,8 +4,9 @@ import { Input, Select, Card, CardContent, Button } from '@/components/ui'
 import { formatCompactNumber } from '@/lib/ui-format'
 import SpeedDialContainer from '@/components/SpeedDialContainer'
 import PageClient from "./page-client"
-import { CarStatusOptions } from '@/lib/types'
+import { CarStatusOptions, type CarsRow } from '@/lib/types'
 import { syncMaintenanceStatuses } from '@/lib/maintenance-sync'
+import { buildCarOrderBy, buildCarWhere, parseCarListQuery } from '@/lib/cars/query'
 
 export const dynamic = 'force-dynamic'
 
@@ -15,39 +16,9 @@ type PageProps = {
 
 export default async function CarsPage({ searchParams }: PageProps) {
   const params = (await searchParams) ?? {}
-  const inputSearch = typeof params.inputSearch === 'string' ? params.inputSearch.trim() : ''
-  const statusParam = typeof params.status === 'string' ? params.status : ''
-  const status = CarStatusOptions.find(status => status.value === statusParam)?.value ?? ''
-  const brand = typeof params.brand === 'string' ? params.brand.trim() : ''
-  const vehicleType = typeof params.vehicleType === 'string' ? params.vehicleType.trim() : ''
-  const sort = typeof params.sort === 'string' ? params.sort : 'newest'
-
-  const where: any = { isDeleted: false }
-
-  if (inputSearch) {
-    where.OR = [
-      { model: { contains: inputSearch, mode: 'insensitive' } },
-      { license: { contains: inputSearch, mode: 'insensitive' } },
-      { color: { contains: inputSearch, mode: 'insensitive' } },
-      { engine: { contains: inputSearch, mode: 'insensitive' } },
-      { chassis: { contains: inputSearch, mode: 'insensitive' } },
-      { brand: { name: { contains: inputSearch, mode: 'insensitive' } } },
-      { vehicleType: { name: { contains: inputSearch, mode: 'insensitive' } } },
-    ]
-  }
-
-  if (status) where.status = status
-  if (brand) where.brand = { name: { contains: brand, mode: 'insensitive' } }
-  if (vehicleType) where.vehicleType = { name: { contains: vehicleType, mode: 'insensitive' } }
-
-  const orderBy: any =
-    sort === 'model'
-      ? { model: 'asc' }
-      : sort === 'year'
-        ? { year: 'desc' }
-        : sort === 'mileage'
-          ? { mileage: 'asc' }
-          : { createdAt: 'desc' }
+  const { inputSearch, status, brand, vehicleType, sort } = parseCarListQuery(params)
+  const where = buildCarWhere({ inputSearch, status, brand, vehicleType, sort })
+  const orderBy = buildCarOrderBy(sort)
 
   await syncMaintenanceStatuses()
 
@@ -69,7 +40,7 @@ export default async function CarsPage({ searchParams }: PageProps) {
     prisma.car.count({ where: { isDeleted: false, status: 'Available' } }),
     prisma.vehicleType.findMany({ where: { isDeleted: false } }),
     prisma.brand.findMany({ where: { isDeleted: false } }),
-  ])
+  ]) as [CarsRow[], number, { id: string; name: string }[], { id: string; name: string }[]]
 
   const totalCars = cars.length
 
@@ -104,7 +75,7 @@ export default async function CarsPage({ searchParams }: PageProps) {
           <Input name="inputSearch" defaultValue={inputSearch} placeholder="ค้นหารถ รุ่น ทะเบียน" className="pl-10" />
         </div>
         
-        <Select name="vehicleTypes" defaultValue={vehicleType}>
+        <Select name="vehicleType" defaultValue={vehicleType}>
           <option value="">ทุกประเภท</option>
           {vehicleTypes.map((type: any) => (
             <option key={type.id} value={type.name}>
