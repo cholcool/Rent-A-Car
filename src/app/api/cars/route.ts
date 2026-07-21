@@ -60,21 +60,37 @@ export async function PATCH(request: Request) {
   const body = await request.json().catch(() => ({}))
   const id = normalize(body.id)
   const status = String(body.status ?? '').trim() as CarStatus
+  const expectedStatus = normalize(body.expectedStatus) as CarStatus
 
   if (!id) return NextResponse.json({ error: 'id is required' }, { status: 400 })
   if (!status) return NextResponse.json({ error: 'status is required' }, { status: 400 })
 
-  const car = await prisma.car.findFirst({ where: { id, isDeleted: false }, select: { id: true } })
+  const car = await prisma.car.findFirst({ where: { id, isDeleted: false }, select: { id: true, status: true } })
   if (!car) return NextResponse.json({ error: 'Car not found' }, { status: 404 })
 
-  const updated = await prisma.car.update({
-    where: { id },
+  if (expectedStatus && car.status !== expectedStatus) {
+    return NextResponse.json(
+      { error: 'Car status changed by another user. Please refresh and try again.' },
+      { status: 409 }
+    )
+  }
+
+  const updated = await prisma.car.updateMany({
+    where: expectedStatus
+      ? { id, isDeleted: false, status: expectedStatus }
+      : { id, isDeleted: false },
     data: {
       status,
       updatedBy: userId,
     },
-    select: { id: true, status: true },
   })
 
-  return NextResponse.json({ car: updated })
+  if (updated.count === 0) {
+    return NextResponse.json(
+      { error: 'Car status changed by another user. Please refresh and try again.' },
+      { status: 409 }
+    )
+  }
+
+  return NextResponse.json({ car: { id, status } })
 }

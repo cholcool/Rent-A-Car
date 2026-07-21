@@ -1,7 +1,7 @@
 'use client'
 
 import { Dispatch, SetStateAction, useEffect, useMemo, useRef, useState, type FormEvent } from 'react'
-import { X } from 'lucide-react'
+import { X, Badge } from 'lucide-react'
 import { Button, Input, Label, Select, Textarea } from '@/components/ui'
 import { useRouter } from 'next/navigation'
 import { BookingStatusOptions } from '@/lib/types'
@@ -147,12 +147,12 @@ export default function BookingsDrawer({
     setLastReservedCarId(null)
   }, [errorIn, formIn])
 
-  async function setCarStatus(carId: string, status: CarStatus) {
+  async function setCarStatus(carId: string, status: CarStatus, expectedStatus?: CarStatus) {
     if (!carId) return
     const res = await fetch('/api/cars', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id: carId, status }),
+      body: JSON.stringify({ id: carId, status, expectedStatus }),
     })
     const data = await res.json().catch(() => ({}))
     if (!res.ok) throw new Error(data?.error ?? 'ไม่สามารถอัปเดตสถานะรถได้')
@@ -245,7 +245,7 @@ export default function BookingsDrawer({
     if (saving) return
     if (!editingId && lastReservedCarId) {
       try {
-        await setCarStatus(lastReservedCarId, 'Available')
+        await setCarStatus(lastReservedCarId, 'Available', 'Reserved')
       } catch {
         // ignore rollback errors when closing
       }
@@ -293,10 +293,7 @@ export default function BookingsDrawer({
       const data = await res.json()
       if (!res.ok) throw new Error(data?.message ?? data?.error ?? 'บันทึกไม่สำเร็จ')
       const row = data.booking
-      if (!editingId && form.carId) {
-        await setCarStatus(form.carId, 'Booked')
-        setLastReservedCarId(null)
-      }
+      setLastReservedCarId(null)
       setBookings((current) => editingId ? current.map((item) => (item.id === row.id ? row : item)) : [row, ...current])
       setDrawerOpen(false)
       router.refresh()
@@ -315,10 +312,10 @@ export default function BookingsDrawer({
 
     try {
       if (prevCarId && prevCarId !== nextCarId) {
-        await setCarStatus(prevCarId, 'Available')
+        await setCarStatus(prevCarId, 'Available', 'Reserved')
       }
       if (nextCarId) {
-        await setCarStatus(nextCarId, 'Reserved')
+        await setCarStatus(nextCarId, 'Reserved', 'Available')
         setLastReservedCarId(nextCarId)
       }
     } catch (err: any) {
@@ -346,6 +343,18 @@ export default function BookingsDrawer({
         </div>
 
         <form onSubmit={submit} className="space-y-6 px-6 py-5">
+        {error && <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">{error}</div>}
+
+          <div>
+            <Label>สถานะการจอง <span className="text-red-600">*</span></Label>
+            <Select value={form.bookingStatus} onChange={(e) => setForm((c) => ({ ...c, bookingStatus: e.target.value }))}>
+              {BookingStatusOptions.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
+            </Select>
+            {errorForm.bookingStatus && (
+              <p className="mt-1 text-xs font-medium text-red-600">{errorForm.bookingStatus}</p>
+            )}
+          </div>
+
           <div>
             <Label>ข้อมูลบริการ <span className="text-red-600">*</span></Label>
             <Select value={form.productId} onChange={(e) => setForm((c) => ({ ...c, productId: e.target.value, price: String(products?.find((p) => p.id === e.target.value)?.price ?? c.price) }))}>
@@ -356,6 +365,7 @@ export default function BookingsDrawer({
               <p className="mt-1 text-xs font-medium text-red-600">{errorForm.productId}</p>
             )}
           </div>
+
           <div className="grid gap-4 md:grid-cols-2">
             <div>
               <Label>รายการรถ <span className="text-red-600">*</span></Label>
@@ -395,44 +405,71 @@ export default function BookingsDrawer({
               <Label>จำนวนวัน</Label>
               <Input value={days} readOnly />
             </div>
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-2">
             <div>
               <Label>ราคาต่อวัน <span className="text-red-600">*</span></Label>
-              <Input type="number" min="0" step="0.01" value={form.price} onChange={(e) => setForm((c) => ({ ...c, price: e.target.value }))} />
+              <div className='relative'>
+                <Input type="number" className='text-right pr-8' min="0" step="0.01" value={form.price} onChange={(e) => setForm((c) => ({ ...c, price: e.target.value }))} />
+                <div className='h-fit absolute right-1 top-0 bottom-0 m-auto'>
+                  <div className='relative'>
+                    <Badge />
+                    <span className='w-fit absolute right-0 left-0 top-0 bottom-0 m-auto'>฿</span>
+                  </div>
+                </div>
+              </div>
               {errorForm.price && (
                 <p className="mt-1 text-xs font-medium text-red-600">{errorForm.price}</p>
               )}
             </div>
             <div>
-              <Label>ยอดรวมก่อนหักส่วนลด <span className="text-red-600">*</span></Label>
-              <Input value={gross} readOnly />
+              <Label>ส่วนลด</Label>
+              <div className='relative'>
+                <Input type="number" className='text-right pr-8' min="0" step="0.01" value={form.discountAmount} onChange={(e) => setForm((c) => ({ ...c, discountAmount: e.target.value }))} />
+                <div className='h-fit absolute right-1 top-0 bottom-0 m-auto'>
+                  <div className='relative'>
+                    <Badge />
+                    <span className='w-fit absolute right-0 left-0 top-0 bottom-0 m-auto'>฿</span>
+                  </div>
+                </div>
+              </div>
             </div>
             <div>
-              <Label>ส่วนลด</Label>
-              <Input type="number" min="0" step="0.01" value={form.discountAmount} onChange={(e) => setForm((c) => ({ ...c, discountAmount: e.target.value }))} />
+              <Label>ยอดรวมก่อนหักส่วนลด <span className="text-red-600">*</span></Label>
+              <div className='relative'>
+                <Input className='text-right pr-8' value={gross} readOnly />
+                <div className='h-fit absolute right-1 top-0 bottom-0 m-auto'>
+                  <div className='relative'>
+                    <Badge />
+                    <span className='w-fit absolute right-0 left-0 top-0 bottom-0 m-auto'>฿</span>
+                  </div>
+                </div>
+              </div>
             </div>
             <div className='hidden'>
               <Label>VAT / ภาษี</Label>
-              <Input type="number" min="0" step="0.01" value={form.taxAmount} onChange={(e) => setForm((c) => ({ ...c, taxAmount: e.target.value }))} />
+              <Input type="number" className='text-right' min="0" step="0.01" value={form.taxAmount} onChange={(e) => setForm((c) => ({ ...c, taxAmount: e.target.value }))} />
             </div>
             <div>
               <Label>ยอดรวมทั้งหมด <span className="text-red-600">*</span></Label>
-              <Input value={total} readOnly />
-            </div>
-            <div>
-              <Label>สถานะการจอง <span className="text-red-600">*</span></Label>
-              <Select value={form.bookingStatus} onChange={(e) => setForm((c) => ({ ...c, bookingStatus: e.target.value }))}>
-                {BookingStatusOptions.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
-              </Select>
-              {errorForm.bookingStatus && (
-                <p className="mt-1 text-xs font-medium text-red-600">{errorForm.bookingStatus}</p>
-              )}
+              <div className='relative'>
+                <Input className='text-right pr-8' value={total} readOnly />
+                <div className='h-fit absolute right-1 top-0 bottom-0 m-auto'>
+                  <div className='relative'>
+                    <Badge />
+                    <span className='w-fit absolute right-0 left-0 top-0 bottom-0 m-auto'>฿</span>
+                  </div>
+                </div>
+              </div>
             </div>
             <div className="md:col-span-2">
               <Label>หมายเหตุ</Label>
               <Textarea maxLength={500} value={form.bookingRemark} onChange={(e) => setForm((c) => ({ ...c, bookingRemark: e.target.value }))} />
             </div>
+          </div>
 
-            <CardUploadImage
+          <CardUploadImage
               title="หลักฐานการรับเงิน"
               preview={paymentPreview}
               statusLabel={paymentStatusLabel}
@@ -467,10 +504,6 @@ export default function BookingsDrawer({
               onDelete={() => deleteImage('healthCheck02')}
               uploading={uploadingHealthCheck02}
             />
-
-            {error && <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">{error}</div>}
-
-          </div>
 
           <div className="flex items-center justify-end gap-3 w-full border-t border-slate-200 pt-5">
             <Button type="submit" disabled={saving} className="gap-2 w-full" variant="save">

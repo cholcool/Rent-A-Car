@@ -146,6 +146,17 @@ export default async function CarDetailPage({ params }: PageProps) {
 
               <form id="car-form" action={saveCar} className="space-y-4">
                 <div className="space-y-2">
+                  <label className="text-sm font-semibold text-slate-700">สถานะ <span className="text-red-600">*</span></label>
+                  <Select name="status" defaultValue={car.status} required>
+                    {CarStatusOptions.map((status) => (
+                      <option key={status.value} value={status.value}>
+                        {status.label}
+                      </option>
+                    ))}
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
                   <label className="text-sm font-semibold text-slate-700">ประเภทรถ <span className="text-red-600">*</span></label>
                   <Select name="vehicleTypeId" defaultValue={car.vehicleTypeId} required>
                     <option value="">-- เลือกประเภทรถ --</option>
@@ -202,17 +213,6 @@ export default async function CarDetailPage({ params }: PageProps) {
                 <div className="space-y-2">
                   <label className="text-sm font-semibold text-slate-700">เลขไมล์</label>
                   <Input name="mileage" type="number" step="0" min="0" defaultValue={car.mileage} />
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-sm font-semibold text-slate-700">สถานะ <span className="text-red-600">*</span></label>
-                  <Select name="status" defaultValue={car.status} required>
-                    {CarStatusOptions.map((status) => (
-                      <option key={status.value} value={status.value}>
-                        {status.label}
-                      </option>
-                    ))}
-                  </Select>
                 </div>
 
                 <div className="space-y-2">
