@@ -7,8 +7,10 @@ import { useRouter } from 'next/navigation'
 import { BookingStatusOptions } from '@/lib/types'
 import { CarStatus } from '@/lib/types'
 import CardUploadImage from '@/components/CardUploadImage'
+import { DateTimePicker } from '@/components/DateTimePicker';
+
      
-function dateCount(start: string, end: string) {
+function dateCount(start: Date | undefined, end: Date | undefined) {
   if (!start || !end) return 0
   const a = new Date(start)
   const b = new Date(end)
@@ -23,8 +25,8 @@ interface From {
   carId: string
   userId: string
   driverId: string
-  dateStart: string
-  dateEnd: string
+  dateStart: Date | undefined
+  dateEnd: Date | undefined
   price: string
   discountAmount: string
   taxAmount: string
@@ -66,8 +68,8 @@ export default function BookingsDrawer({
     carId: '',
     userId: currentUserId || '',
     driverId: '',
-    dateStart: '',
-    dateEnd: '',
+    dateStart: undefined,
+    dateEnd: undefined,
     price: '0',
     discountAmount: '0',
     taxAmount: '0',
@@ -389,14 +391,28 @@ export default function BookingsDrawer({
             </div>
             <div>
               <Label>วันที่-เวลา รับรถ <span className="text-red-600">*</span></Label>
-              <Input type="date" value={form.dateStart} onChange={(e) => setForm((c) => ({ ...c, dateStart: e.target.value }))} />
+              <DateTimePicker
+                onChange={(date) => setForm((c) => ({ ...c, dateStart: date }))}
+                value={form.dateStart ? new Date(form.dateStart) : undefined}
+                timezone="Asia/Bangkok"
+                displayFormat="dd/MM/yyyy hh:mm"
+                clearable
+                required
+              />
               {errorForm.dateStart && (
                 <p className="mt-1 text-xs font-medium text-red-600">{errorForm.dateStart}</p>
               )}
             </div>
             <div>
               <Label>วันที่-เวลา ส่งคืน <span className="text-red-600">*</span></Label>
-              <Input type="date" value={form.dateEnd} onChange={(e) => setForm((c) => ({ ...c, dateEnd: e.target.value }))} />
+              <DateTimePicker
+                onChange={(date) => setForm((c) => ({ ...c, dateEnd: date }))}
+                value={form.dateEnd ? new Date(form.dateEnd) : undefined}
+                timezone="Asia/Bangkok"
+                displayFormat="dd/MM/yyyy hh:mm"
+                clearable
+                required
+              />
               {errorForm.dateEnd && (
                 <p className="mt-1 text-xs font-medium text-red-600">{errorForm.dateEnd}</p>
               )}

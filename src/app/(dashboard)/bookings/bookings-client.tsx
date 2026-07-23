@@ -5,7 +5,7 @@ import { Edit, Plus, X, ClipboardList, FileDown, UserPlus } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
-import { cn, toDateInputValue } from '@/lib/utils'
+import { cn, } from '@/lib/utils'
 import { formatBaht, formatThaiDate, getStatusBadgeClass, getStatusLabel } from '@/lib/ui-format'
 import { AlertDialogDestructive } from '@/components/AlertDialogDestructive'
 import BookingsDrawer from '@/components/BookingsDrawer'
@@ -46,8 +46,8 @@ export default function BookingsClient({
     carId: '',
     userId: currentUserId,
     driverId: '',
-    dateStart: '',
-    dateEnd: '',
+    dateStart: undefined,
+    dateEnd: undefined,
     price: '0',
     discountAmount: '0',
     taxAmount: '0',
@@ -97,8 +97,8 @@ export default function BookingsClient({
       carId: row.carId ?? '',
       userId: row.userId ?? currentUserId,
       driverId: row.driverId ?? '',
-      dateStart: toDateInputValue(row.dateStart),
-      dateEnd: toDateInputValue(row.dateEnd),
+      dateStart: row.dateStart,
+      dateEnd: row.dateEnd,
       price: String(row.price ?? row.product?.price ?? '0'),
       discountAmount: String(row.discountAmount ?? 0),
       taxAmount: String(row.taxAmount ?? 0),

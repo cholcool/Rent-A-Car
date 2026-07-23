@@ -38,7 +38,7 @@ export default async function BookingsPage({ searchParams }: PageProps) {
           ? { dateEnd: 'desc' }
           : sort === 'dateStart'
             ? { dateStart: 'asc' }
-            : { netAmount: 'desc' }
+            : { createdAt: 'desc' }
 
   const session = await auth()
   const currentUserId = session?.user?.id ?? ''
@@ -187,7 +187,7 @@ export default async function BookingsPage({ searchParams }: PageProps) {
         <form
           method="get"
           action="/bookings"
-          className="grid gap-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm shadow-slate-200/60 lg:grid-cols-3 xl:grid-cols-[200px_200px_200px_200px_200px__auto] overflow-auto"
+          className="grid gap-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm shadow-slate-200/60 lg:grid-cols-3 xl:grid-cols-[200px_200px_auto_200px_200px_150px] overflow-auto"
         >
           <Select name="drivers" defaultValue={driversParam}>
             <option value="">ลูกค้าทั้งหมด</option>
@@ -226,6 +226,7 @@ export default async function BookingsPage({ searchParams }: PageProps) {
           </Select>
 
           <Select name="sort" defaultValue={sort}>
+            <option value="newest">ล่าสุด</option>
             <option value="most">ยอดรวมสุทธิมากสุด</option>
             <option value="least">ยอดรวมสุทธิน้อยสุด</option>
             <option value="dateStart">เรียงตามวันรับรถ</option>
