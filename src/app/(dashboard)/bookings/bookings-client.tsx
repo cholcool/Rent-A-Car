@@ -22,6 +22,7 @@ interface BookingsClientProps {
   drivers: BookingOption[]
   initialDrivers: DriverRow[]
   currentUserId: string
+  displayName: string
 }
 
 export default function BookingsClient({
@@ -31,6 +32,7 @@ export default function BookingsClient({
   drivers,
   initialDrivers,
   currentUserId,
+  displayName
 }: BookingsClientProps) {
   const [bookings, setBookings] = useState<Row[]>(initialBookings)
   const [drawerOpen, setDrawerOpen] = useState(false)
@@ -139,6 +141,7 @@ export default function BookingsClient({
             <table className="mt-6 w-full min-w-275 text-left">
               <thead>
                 <tr className="border-b border-slate-200 text-sm font-extrabold text-slate-950">
+                  <th className="px-3 py-3">ผู้ใช้</th>
                   <th className="px-3 py-3">ข้อมูลลูกค้า</th>
                   <th className="px-3 py-3">รายการรถ</th>
                   <th className="px-3 py-3">ข้อมูลบริการ</th>
@@ -151,6 +154,7 @@ export default function BookingsClient({
               <tbody>
                 {bookings.map((booking) => (
                   <tr key={booking.id} className="border-b border-slate-100 text-sm font-medium text-slate-700">
+                    <td className="px-3 py-4 font-bold text-slate-950">{displayName}</td>
                     <td className="px-3 py-4 font-bold text-slate-950">{booking.driver?.fullName ?? ''}</td>
                     <td className="px-3 py-4">
                       <div>{`${booking.car?.brand?.name ?? ''} ${booking.car?.model ?? ''}`.trim()}</div>

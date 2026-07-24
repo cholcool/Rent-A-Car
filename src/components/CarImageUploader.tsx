@@ -21,9 +21,11 @@ export default function CarImageUploader({ carId, initialImages = [], onPendingF
   const [existingImages, setExistingImages] = useState<ExistingImage[]>(initialImages)
   const [isUploading, setIsUploading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-
+  
   useEffect(() => {
-    setExistingImages(initialImages)
+    setExistingImages(prev =>
+      JSON.stringify(prev) === JSON.stringify(initialImages) ? prev : initialImages
+    )
   }, [initialImages])
 
   useEffect(() => {

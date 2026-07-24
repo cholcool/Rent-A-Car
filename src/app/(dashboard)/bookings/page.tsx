@@ -42,6 +42,7 @@ export default async function BookingsPage({ searchParams }: PageProps) {
 
   const session = await auth()
   const currentUserId = session?.user?.id ?? ''
+  const displayName = session?.user?.name ?? session?.user?.email ?? "Guest";
 
   const [bookings, products, cars, drivers, summary] = await Promise.all([
     prisma.booking.findMany({
@@ -242,6 +243,7 @@ export default async function BookingsPage({ searchParams }: PageProps) {
         <BookingsClient
           initialBookings={initialBookings}
           currentUserId={currentUserId}
+          displayName={displayName}
           products={products.map((product) => ({ id: product.id, label: `${product.name} - ${product.price}` , price: Number(product.price) }))}
           cars={carsAvailable.map((car) => ({ id: car.id, label: `${car.brand.name} ${car.model} (${car.license})` }))}
           drivers={drivers.map((driver) => ({ id: driver.id, label: `${driver.fullName} (${driver.phone})` }))}

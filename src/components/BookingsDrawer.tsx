@@ -15,7 +15,7 @@ function dateCount(start: Date | undefined, end: Date | undefined) {
   const a = new Date(start)
   const b = new Date(end)
   if (Number.isNaN(a.getTime()) || Number.isNaN(b.getTime())) return 0
-  return Math.max(Math.ceil((b.getTime() - a.getTime()) / 86_400_000) + 1, 0)
+  return Math.max(Math.ceil((b.getTime() - a.getTime()) / 86_400_000), 0)
 }
 
 type Option = { id: string; label: string; price?: number }
