@@ -62,15 +62,17 @@ async function main() {
   }
 
   const menuData = [
-    { key: 'dashboard', title: 'Dashboard', icon: 'dashboard', path: '/dashboard', sequence: 1, requiredPermission: 'ADMIN,MANAGER', isActive: true, createdBy: '00000000-0000-0000-0000-000000000000', updatedBy: '00000000-0000-0000-0000-000000000000' },
-    { key: 'cars', title: 'จัดการรถ', icon: 'car', path: '/cars', sequence: 2, requiredPermission: 'ADMIN,MANAGER,AGENT,VIEWER', isActive: true, createdBy: '00000000-0000-0000-0000-000000000000', updatedBy: '00000000-0000-0000-0000-000000000000' },
-    { key: 'driver', title: 'ข้อมูลลูกค้า', icon: 'users', path: '/driver', sequence: 3, requiredPermission: 'ADMIN,MANAGER,AGENT,VIEWER', isActive: true, createdBy: '00000000-0000-0000-0000-000000000000', updatedBy: '00000000-0000-0000-0000-000000000000' },
-    { key: 'products', title: 'ข้อมูลบริการ', icon: 'tag', path: '/products', sequence: 4, requiredPermission: 'ADMIN,MANAGER,AGENT,VIEWER', isActive: true, createdBy: '00000000-0000-0000-0000-000000000000', updatedBy: '00000000-0000-0000-0000-000000000000' },
-    { key: 'bookings', title: 'บันทึกรายการ', icon: 'clipboard', path: '/bookings', sequence: 5, requiredPermission: 'ADMIN,MANAGER,AGENT,VIEWER', isActive: true, createdBy: '00000000-0000-0000-0000-000000000000', updatedBy: '00000000-0000-0000-0000-000000000000' },
-    { key: 'payments', title: 'การชำระเงิน', icon: 'creditCard', path: '/payments', sequence: 6, requiredPermission: 'UNSPECIFIED', isActive: true, createdBy: '00000000-0000-0000-0000-000000000000', updatedBy: '00000000-0000-0000-0000-000000000000' },
-    { key: 'setting-user', title: 'ตั้งค่าระบบ', icon: 'settings', path: '/setting/user', sequence: 7, requiredPermission: 'ADMIN,MANAGER', isActive: true, createdBy: '00000000-0000-0000-0000-000000000000', updatedBy: '00000000-0000-0000-0000-000000000000' },
-    { key: 'setting-roles', title: 'ตั้งค่าระบบ', icon: 'settings', path: '/setting/roles', sequence: 8, requiredPermission: 'UNSPECIFIED', isActive: true, createdBy: '00000000-0000-0000-0000-000000000000', updatedBy: '00000000-0000-0000-0000-000000000000' },
-    { key: 'setting-permissions', title: 'ตั้งค่าระบบ', icon: 'settings', path: '/setting/permissions', sequence: 9, requiredPermission: 'UNSPECIFIED', isActive: true, createdBy: '00000000-0000-0000-0000-000000000000', updatedBy: '00000000-0000-0000-0000-000000000000' },
+    { key: 'dashboard', title: 'Dashboard', icon: 'LayoutDashboard', path: '/dashboard', sequence: 1, requiredPermission: 'ADMIN', isActive: true, createdBy: '00000000-0000-0000-0000-000000000000', updatedBy: '00000000-0000-0000-0000-000000000000' },
+    { key: 'cars', title: 'จัดการรถ', icon: 'Car', path: '/cars', sequence: 2, requiredPermission: 'ADMIN,VIEWER', isActive: true, createdBy: '00000000-0000-0000-0000-000000000000', updatedBy: '00000000-0000-0000-0000-000000000000' },
+    { key: 'driver', title: 'ข้อมูลลูกค้า', icon: 'Users', path: '/driver', sequence: 3, requiredPermission: 'ADMIN,VIEWER', isActive: true, createdBy: '00000000-0000-0000-0000-000000000000', updatedBy: '00000000-0000-0000-0000-000000000000' },
+    { key: 'products', title: 'ข้อมูลบริการ', icon: 'Tag', path: '/products', sequence: 4, requiredPermission: 'ADMIN,VIEWER', isActive: true, createdBy: '00000000-0000-0000-0000-000000000000', updatedBy: '00000000-0000-0000-0000-000000000000' },
+    { key: 'bookings', title: 'บันทึกรายการ', icon: 'ClipboardList', path: '/bookings', sequence: 5, requiredPermission: 'ADMIN,VIEWER', isActive: true, createdBy: '00000000-0000-0000-0000-000000000000', updatedBy: '00000000-0000-0000-0000-000000000000' },
+    { key: 'reports', title: 'รายงาน', icon: 'Newspaper', path: '/reports', sequence: 6, requiredPermission: 'ADMIN,VIEWER', isActive: true, createdBy: '00000000-0000-0000-0000-000000000000', updatedBy: '00000000-0000-0000-0000-000000000000' },
+    { key: 'payments', title: 'การชำระเงิน', icon: 'CreditCard', path: '/payments', sequence: 7, requiredPermission: 'UNSPECIFIED', isActive: false, createdBy: '00000000-0000-0000-0000-000000000000', updatedBy: '00000000-0000-0000-0000-000000000000' },
+    { key: 'setting-user', title: 'ตั้งค่าระบบ', icon: 'Settings', path: '/setting/user', sequence: 8, requiredPermission: 'ADMIN', isActive: true, createdBy: '00000000-0000-0000-0000-000000000000', updatedBy: '00000000-0000-0000-0000-000000000000' },
+    { key: 'setting-roles', title: 'ตั้งค่าระบบ', icon: 'Settings', path: '/setting/roles', sequence: 9, requiredPermission: 'UNSPECIFIED', isActive: false, createdBy: '00000000-0000-0000-0000-000000000000', updatedBy: '00000000-0000-0000-0000-000000000000' },
+    { key: 'setting-permissions', title: 'ตั้งค่าระบบ', icon: 'Settings', path: '/setting/permissions', sequence: 10, requiredPermission: 'UNSPECIFIED', isActive: false, createdBy: '00000000-0000-0000-0000-000000000000', updatedBy: '00000000-0000-0000-0000-000000000000' },
+    { key: 'setting-menu', title: 'จัดการเมนู', icon: 'Settings', path: '/setting/menu', sequence: 11, requiredPermission: 'ADMIN', isActive: true, createdBy: '00000000-0000-0000-0000-000000000000', updatedBy: '00000000-0000-0000-0000-000000000000' },
   ];
 
   await prisma.menu.createMany({

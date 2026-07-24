@@ -236,6 +236,9 @@ model Booking {
   paymentImageId         String?        @map("booking_payment_images_id") @db.Uuid
   healthCheck01ImageId   String?        @map("booking_health_check_01_images_id") @db.Uuid
   healthCheck02ImageId   String?        @map("booking_health_check_02_images_id") @db.Uuid
+  bookingNo1             String?        @map("booking_no1") @db.VarChar(20)
+  bookingNo2             String?        @map("booking_no2") @db.VarChar(20)
+  bookingNo3             String?        @map("booking_no3") @db.VarChar(20)
   dateStart              DateTime       @map("date_start") @db.Timestamptz
   dateEnd                DateTime       @map("date_end") @db.Timestamptz
   dateReturn             DateTime?      @map("date_return") @db.Timestamptz
@@ -364,8 +367,8 @@ model Menu {
   id                 String   @id @default(uuid()) @map("menu_id") @db.Uuid
   key                String   @unique @map("menu_key") @db.VarChar(100)
   title              String   @map("menu_title") @db.VarChar(150)
-  icon               String?  @map("menu_icon") @db.VarChar(100)
-  path               String?  @map("menu_path") @db.VarChar(255)
+  icon               String  @map("menu_icon") @db.VarChar(100)
+  path               String  @map("menu_path") @db.VarChar(255)
   parentId           String?  @map("menu_parent_id") @db.Uuid
   sequence           Int      @default(0) @map("menu_sequence")
   remark             String?  @map("menu_remark") @db.VarChar(500)

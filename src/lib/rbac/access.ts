@@ -1,4 +1,5 @@
 import prisma from '@/lib/prisma'
+import { MenuAccessItem } from '@/rbac/menus'
 
 export type AuthFailureReason = 'missing-session' | 'token-expired' | 'role-denied' | 'no-access'
 
@@ -8,17 +9,6 @@ export type AccessSessionUser = {
   name?: string | null
   roles?: string[] | string | null
 }
-
-export type MenuAccessItem = {
-  title: string
-  href: string
-  iconKey: 'dashboard' | 'car' | 'users' | 'tag' | 'clipboard' | 'creditCard' | 'settings'
-  sequence: number
-  roles: string[]
-}
-
-const MENU_ICON_KEYS = ['dashboard', 'car', 'users', 'tag', 'clipboard', 'creditCard', 'settings'] as const
-const ACCESS_CACHE_TTL_MS = 60_000
 
 type CacheEntry<T> = {
   expiresAt: number
@@ -50,11 +40,11 @@ function getCacheValue<T>(cache: Map<string, CacheEntry<T>>, key: string) {
 }
 
 function setCacheValue<T>(cache: Map<string, CacheEntry<T>>, key: string, value: T) {
-  cache.set(key, { expiresAt: now() + ACCESS_CACHE_TTL_MS, value })
+  cache.set(key, { expiresAt: now() + 60_000, value })
 }
 
 function normalizeIconKey(value: string | null | undefined): MenuAccessItem['iconKey'] {
-  return MENU_ICON_KEYS.includes(value as MenuAccessItem['iconKey']) ? (value as MenuAccessItem['iconKey']) : 'settings'
+  return value?.trim() || 'Settings'
 }
 
 export const ROLE_GROUPS = {

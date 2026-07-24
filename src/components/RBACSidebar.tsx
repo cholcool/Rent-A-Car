@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
 import { Car, LogOut } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { iconByKey, type MenuItem } from "@/lib/rbac/menus";
+import { getMenuIconComponent, type MenuItem } from "@/lib/rbac/menus";
 
 type SidebarUser = {
   name?: string | null;
@@ -33,7 +33,7 @@ export default function RBACSidebar({ user, menuItems }: { user?: SidebarUser | 
       <nav className="flex-1 space-y-3 px-4 py-6">
         {menuItems.map((item) => {
           const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
-          const Icon = iconByKey[item.iconKey] ?? Car;
+          const Icon = getMenuIconComponent(item.iconKey);
 
           return (
             <Link

@@ -13,27 +13,27 @@
     "_comment_lint": "[npm run lint] : สั่งสแกนและตรวจสอบโครงสร้างโค้ด เพื่อหาจุดพิมพ์ผิดหรือจุดที่เขียนไม่ตรงตามมาตรฐานสากล",
     "typecheck": "tsc --noEmit",
     "_comment_typecheck": "[npm run typecheck] : ตรวจสอบความถูกต้องของประเภทตัวแปร (TypeScript) ทั่วทั้งโปรเจกต์โดยไม่มีการสร้างไฟล์ใหม่",
-    "prisma:generate": "prisma generate",
-    "_comment_prisma:generate": "[npm run prisma:generate] : อัปเดตและสร้างประเภทตัวแปร (Types) ของ Prisma Client ให้ตรงตามโครงสร้างสคีมาล่าสุด",
     "format": "prettier --write .",
     "_comment_format": "[npm run format] : จัดฟอร์แมตเว้นวรรคและจัดระเบียบโค้ดทุกไฟล์ในโปรเจกต์ให้สวยงามเป็นระเบียบโดยอัตต่อด้วย Prettier",
     "prepare": "husky install",
     "_comment_prepare": "[npm run prepare] : ตั้งค่าระบบ Husky เพื่อช่วยตรวจเช็กโค้ดอัตโนมัติก่อนที่คุณจะกดบันทึกโค้ด (Git Commit)",
-    "db:seed": "dotenv -e .env npx tsx prisma/seed.ts",
-    "_comment_db:seed": "[npm run db:seed] : เติมข้อมูลจำลองเข้าฐานข้อมูลผ่านสคริปต์ที่กำหนดไว้ใน prisma/seed.ts (ใช้ dotenv เพื่อโหลดค่าจาก .env ก่อนรันสคริปต์)",
+    "prisma:generate": "prisma generate",
+    "_comment_prisma:generate": "[npm run prisma:generate] : อัปเดตและสร้างประเภทตัวแปร (Types) ของ Prisma Client ให้ตรงตามโครงสร้างสคีมาล่าสุด",
+    "db:gen": "npx prisma generate",
+    "_comment_db:gen": "[npm run db:gen] : สร้าง Prisma Client ใหม่อีกครั้ง",
     "db:migrate": "prisma migrate dev",
     "_comment_db:migrate": "[npm run db:migrate] : บันทึกประวัติการเปลี่ยนแปลงและอัปเดตโครงสร้างตารางในฐานข้อมูล (ระบบจะถามหากข้อมูลเก่าขัดแย้ง)",
     "db:push": "prisma db push",
     "_comment_db:push": "[npm run db:push] : ดันโครงสร้างสคีมาล่าสุดเข้าฐานข้อมูลทันทีอย่างรวดเร็ว โดยไม่ลบข้อมูลเก่าที่บันทึกค้างไว้",
     "db:reset": "npx prisma migrate reset",
     "_comment_db:reset": "[npm run db:reset] : รีเซ็ตฐานข้อมูลทั้งหมดและดันโครงสร้างสคีมาล่าสุดเข้าฐานข้อมูลใหม่ (ข้อมูลเก่าจะถูกลบหมด)",
-    "db:gen": "npx prisma generate",
-    "_comment_db:gen": "[npm run db:gen] : สร้าง Prisma Client ใหม่อีกครั้ง"
+    "db:seed": "dotenv -e .env npx tsx prisma/seed.ts",
+    "_comment_db:seed": "[npm run db:seed] : เติมข้อมูลจำลองเข้าฐานข้อมูลผ่านสคริปต์ที่กำหนดไว้ใน prisma/seed.ts (ใช้ dotenv เพื่อโหลดค่าจาก .env ก่อนรันสคริปต์)"
   },
   "dependencies": {
     "@headlessui/react": "^1.7.0",
-    "@prisma/adapter-pg": "^7.8.0",
-    "@prisma/client": "^7.8.0",
+    "@prisma/adapter-pg": "^7.9.0",
+    "@prisma/client": "^7.9.0",
     "@radix-ui/react-icons": "^1.3.2",
     "@tailwindcss/postcss": "^4.3.0",
     "@tanstack/react-query": "^5.0.0",
@@ -72,6 +72,6 @@
     "husky": "^8.0.0",
     "lint-staged": "^13.0.0",
     "prettier": "^2.0.0",
-    "prisma": "^6.19.3"
+    "prisma": "^7.9.0"
   }
 }

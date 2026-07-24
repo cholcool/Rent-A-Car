@@ -24,7 +24,7 @@ import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
 import { Car, LogOut, ChevronsUpDown, CircleUser } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { iconByKey, type MenuItem } from "@/lib/rbac/menus";
+import { getMenuIconComponent, isSettingMenuPath, type MenuItem } from "@/lib/rbac/menus";
 
 type SidebarUser = {
   name?: string | null;
@@ -35,6 +35,8 @@ export default function AppSidebar({ user, menuItems }: { user?: SidebarUser | n
   const pathname = usePathname();
   const displayName = user?.name ?? user?.email ?? "Guest";
   const {  setOpenMobile } = useSidebar()
+  const primaryMenus = menuItems.filter((item) => !isSettingMenuPath(item.href))
+  const settingMenus = menuItems.filter((item) => isSettingMenuPath(item.href))
 
   return (
     <Sidebar collapsible="icon" className="fixed">
@@ -57,9 +59,9 @@ export default function AppSidebar({ user, menuItems }: { user?: SidebarUser | n
 
         <SidebarContent>
           <SidebarMenu className="flex-1 space-y-3 px-2">
-            {menuItems.map((item) => {
+            {primaryMenus.map((item) => {
               const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
-              const Icon = iconByKey[item.iconKey] ?? Car;
+              const Icon = getMenuIconComponent(item.iconKey);
 
               return (
                 <SidebarMenuItem key={item.title}>
@@ -99,7 +101,8 @@ export default function AppSidebar({ user, menuItems }: { user?: SidebarUser | n
                     <ChevronsUpDown className="ml-auto" />
                   </SidebarMenuButton>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="center">
+
+                <DropdownMenuContent align="center" className="py-3">
                   <DropdownMenuGroup>
                     <DropdownMenuLabel className="flex justify-between items-center gap-2">
                       <CircleUser />
@@ -111,7 +114,40 @@ export default function AppSidebar({ user, menuItems }: { user?: SidebarUser | n
                   </DropdownMenuGroup>
                   <DropdownMenuSeparator />
                   <DropdownMenuGroup>
-                    <DropdownMenuItem onClick={() => signOut({ callbackUrl: "/signin" })}>
+                    <DropdownMenuLabel className="gap-2">Setting</DropdownMenuLabel>
+                  </DropdownMenuGroup>
+                  <DropdownMenuGroup className="py-2">
+                    {settingMenus.length > 0 ? (
+                      <>
+                        {settingMenus.map((item) => {
+                          const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
+                          const Icon = getMenuIconComponent(item.iconKey);
+
+                          return (
+                            <DropdownMenuItem
+                              key={item.href}
+                              className={cn(
+                                "flex transition-colors",
+                                active
+                                  ? "bg-linear-to-b from-[#6F3BB7] to-[#4E2788] text-white shadow-lg shadow-black/10 hover:text-white"
+                                  : "text-[#000000] hover:bg-white/10 hover:text-white"
+                              )}
+                            >
+                              <SidebarMenuButton asChild className="p-0 m-0">
+                                <Link href={item.href} onClick={() => setOpenMobile(false)} className="p-0 m-0">
+                                  <Icon aria-hidden="true" />
+                                  <SidebarGroup className="group-data-[collapsible=icon]:hidden m-0 p-0">{item.title}</SidebarGroup>
+                                </Link>
+                              </SidebarMenuButton>
+                            </DropdownMenuItem>
+                          );
+                        })}
+                      </>
+                    ) : null}
+                  </DropdownMenuGroup>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuGroup>
+                    <DropdownMenuItem onClick={() => signOut({ callbackUrl: "/signin" })} className="h-10">
                       <LogOut aria-hidden="true" />
                       ออกจากระบบ
                     </DropdownMenuItem>

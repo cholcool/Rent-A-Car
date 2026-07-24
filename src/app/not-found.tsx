@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { auth } from '@/lib/auth'
 import { getUserAccess } from '@/lib/rbac/access'
-import { iconByKey, toMenuItems } from '@/lib/rbac/menus'
+import { getMenuIconComponent, toMenuItems } from '@/lib/rbac/menus'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { ArrowRight, Car, LayoutDashboard, SearchX } from 'lucide-react'
@@ -54,7 +54,7 @@ export default async function NotFound() {
             <div className="mt-6 grid gap-3">
               {visibleMenu.length > 0 ? (
                 visibleMenu.map((item) => {
-                  const Icon = iconByKey[item.iconKey] ?? LayoutDashboard
+                  const Icon = getMenuIconComponent(item.iconKey)
                   return (
                     <Card key={item.href} className="border-slate-200 bg-white/90">
                       <CardContent className="flex items-center justify-between gap-4 p-4">
