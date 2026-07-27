@@ -17,9 +17,20 @@ export async function POST(request: Request) {
   const firstName = normalize(body.user_first_name)
   const lastName = normalize(body.user_last_name)
   const phone = normalize(body.user_phone)
+  const cardNo = normalize(body.user_card_no)
+  const address = normalize(body.user_address)
   const remark = normalize(body.user_remark)
   const roleIds = Array.isArray(body.role_ids) ? body.role_ids.map((roleId: unknown) => String(roleId)).filter(Boolean) : []
-  if (!userName || !email || !password || !firstName || !lastName || !phone) return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
+  if (
+    !userName 
+    || !email 
+    || !password 
+    || !firstName 
+    || !lastName 
+    || !phone
+    || !cardNo
+    || !address
+  ) return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
 
   const user = await prisma.user.create({
     data: {
@@ -29,6 +40,8 @@ export async function POST(request: Request) {
       firstName,
       lastName,
       phone,
+      cardNo,
+      address,
       remark: remark || null,
       createdBy: userId,
       updatedBy: userId,
@@ -51,6 +64,8 @@ export async function POST(request: Request) {
       user_first_name: user.firstName,
       user_last_name: user.lastName,
       user_phone: user.phone,
+      user_card_no: user.cardNo,
+      user_address: user.address,
       user_remark: user.remark ?? '',
       role_ids: user.roles.map((entry) => entry.roleId),
       role_names: user.roles.map((entry) => entry.role.code),
@@ -72,6 +87,8 @@ export async function PATCH(request: Request) {
     firstName: normalize(body.user_first_name),
     lastName: normalize(body.user_last_name),
     phone: normalize(body.user_phone),
+    cardNo: normalize(body.user_card_no),
+    address: normalize(body.user_address),
     remark: normalize(body.user_remark) || null,
     updatedBy: userId,
   }
@@ -105,6 +122,8 @@ export async function PATCH(request: Request) {
       user_first_name: user.firstName,
       user_last_name: user.lastName,
       user_phone: user.phone,
+      user_card_no: user.cardNo,
+      user_address: user.address,
       user_remark: user.remark ?? '',
       role_ids: user.roles.map((entry) => entry.roleId),
       role_names: user.roles.map((entry) => entry.role.code),

@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import { Badge, Button, Card, CardContent, Input, Label, Textarea } from '@/components/ui'
-import { cn } from '@/lib/utils'
+import { cn, formatePhoneNumber } from '@/lib/utils'
 import { Plus, ShieldCheck, UserPlus, PenLine, X } from 'lucide-react'
 import { AlertDialogDestructive } from '@/components/AlertDialogDestructive'
 
@@ -127,14 +127,6 @@ export default function UsersPageClient({
     const timer = window.setTimeout(() => setDrawerReady(true), 20)
     return () => window.clearTimeout(timer)
   }, [drawerOpen])
-
-  function formatePhoneNumber(value: string) {
-    const digits = value.replace(/\D/g, '')
-    if (digits.length === 10) {
-      return `${digits.slice(0, 3)}-${digits.slice(3, 6)}-${digits.slice(6)}`
-    }
-    return digits
-  }
   
   function openUserCreate() {
     setTab('users')

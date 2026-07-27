@@ -12,6 +12,7 @@ import {
   GuarantorEmptyForm
 } from '@/lib/types'
 import CardUploadImage from '@/components/CardUploadImage'
+import { formatePhoneNumber } from '@/lib/utils'
 
 interface DriverDrawerProps {
   initialDrivers: DriverRow[]
@@ -300,14 +301,6 @@ export default function DriverDrawer({
   function closeDrawer() {
     if (saving) return
     setDrawerOpen?.(false)
-  }
-
-  function formatePhoneNumber(value: string) {
-    const digits = value.replace(/\D/g, '')
-    if (digits.length === 10) {
-      return `${digits.slice(0, 3)}-${digits.slice(3, 6)}-${digits.slice(6)}`
-    }
-    return digits
   }
 
   function updateField<K extends keyof DriverFormState>(key: K, value: DriverFormState[K]) {

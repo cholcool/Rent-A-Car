@@ -298,6 +298,8 @@ model User {
   lastName       String    @map("user_last_name") @db.VarChar(150)
   phone          String    @unique @map("user_phone") @db.VarChar(20)
   cardImageId    String?   @map("user_card_image_id") @db.Uuid
+  cardNo         String    @map("user_card_no") @db.VarChar(20)
+  address        String    @map("user_address") @db.VarChar(500)
   reportDownload Int       @default(0) @map("user_report_download")
   remark         String?   @map("user_remark") @db.VarChar(500)
   createdAt      DateTime  @default(now()) @map("created_date") @db.Timestamptz

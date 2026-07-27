@@ -40,8 +40,8 @@ function verifyPassword(password: string, storedHash: string) {
 async function main() {
   const roleDefinitions = [
     { code: 'ADMIN', name: 'Admin', remark: 'Full system access' },
-    { code: 'MANAGER', name: 'Manager', remark: 'Manage operations and reports' },
-    { code: 'AGENT', name: 'Agent', remark: 'Manage bookings and customer workflows' },
+    // { code: 'MANAGER', name: 'Manager', remark: 'Manage operations and reports' },
+    // { code: 'AGENT', name: 'Agent', remark: 'Manage bookings and customer workflows' },
     { code: 'VIEWER', name: 'Viewer', remark: 'Read-only system access' },
   ];
 
@@ -69,23 +69,33 @@ async function main() {
     { key: 'bookings', title: 'บันทึกรายการ', icon: 'ClipboardList', path: '/bookings', sequence: 5, requiredPermission: 'ADMIN,VIEWER', isActive: true, createdBy: '00000000-0000-0000-0000-000000000000', updatedBy: '00000000-0000-0000-0000-000000000000' },
     { key: 'reports', title: 'รายงาน', icon: 'Newspaper', path: '/reports', sequence: 6, requiredPermission: 'ADMIN,VIEWER', isActive: true, createdBy: '00000000-0000-0000-0000-000000000000', updatedBy: '00000000-0000-0000-0000-000000000000' },
     { key: 'payments', title: 'การชำระเงิน', icon: 'CreditCard', path: '/payments', sequence: 7, requiredPermission: 'UNSPECIFIED', isActive: false, createdBy: '00000000-0000-0000-0000-000000000000', updatedBy: '00000000-0000-0000-0000-000000000000' },
-    { key: 'setting-user', title: 'ตั้งค่าระบบ', icon: 'Settings', path: '/setting/user', sequence: 8, requiredPermission: 'ADMIN', isActive: true, createdBy: '00000000-0000-0000-0000-000000000000', updatedBy: '00000000-0000-0000-0000-000000000000' },
-    { key: 'setting-roles', title: 'ตั้งค่าระบบ', icon: 'Settings', path: '/setting/roles', sequence: 9, requiredPermission: 'UNSPECIFIED', isActive: false, createdBy: '00000000-0000-0000-0000-000000000000', updatedBy: '00000000-0000-0000-0000-000000000000' },
-    { key: 'setting-permissions', title: 'ตั้งค่าระบบ', icon: 'Settings', path: '/setting/permissions', sequence: 10, requiredPermission: 'UNSPECIFIED', isActive: false, createdBy: '00000000-0000-0000-0000-000000000000', updatedBy: '00000000-0000-0000-0000-000000000000' },
-    { key: 'setting-menu', title: 'จัดการเมนู', icon: 'Settings', path: '/setting/menu', sequence: 11, requiredPermission: 'ADMIN', isActive: true, createdBy: '00000000-0000-0000-0000-000000000000', updatedBy: '00000000-0000-0000-0000-000000000000' },
+    { key: 'setting-user', title: 'ตั้งค่าผู้ใช้', icon: 'Settings', path: '/setting/user', sequence: 8, requiredPermission: 'ADMIN', isActive: true, createdBy: '00000000-0000-0000-0000-000000000000', updatedBy: '00000000-0000-0000-0000-000000000000' },
+    { key: 'setting-roles', title: 'ตั้งค่าบทบาท', icon: 'Settings', path: '/setting/roles', sequence: 9, requiredPermission: 'UNSPECIFIED', isActive: false, createdBy: '00000000-0000-0000-0000-000000000000', updatedBy: '00000000-0000-0000-0000-000000000000' },
+    { key: 'setting-permissions', title: 'ตั้งค่าสิทธิ์', icon: 'Settings', path: '/setting/permissions', sequence: 10, requiredPermission: 'UNSPECIFIED', isActive: false, createdBy: '00000000-0000-0000-0000-000000000000', updatedBy: '00000000-0000-0000-0000-000000000000' },
+    { key: 'setting-menu', title: 'ตั้งค่าเมนู', icon: 'Settings', path: '/setting/menu', sequence: 11, requiredPermission: 'ADMIN', isActive: true, createdBy: '00000000-0000-0000-0000-000000000000', updatedBy: '00000000-0000-0000-0000-000000000000' },
   ];
 
-  await prisma.menu.createMany({
-    data: menuData,
-    skipDuplicates: true,
-  });
+  for (const rows of menuData) {
+    await prisma.menu.upsert({
+      where: {key: rows.key},
+      update: {...rows},
+      create: {...rows},
+    })
+  }
+
+  // await prisma.menu.createMany({
+    // data: menuData,
+    // skipDuplicates: true,
+  // });
 
   const adminEmail = process.env.SEED_ADMIN_EMAIL ?? 'admin@example.com';
   const adminUserName = process.env.SEED_ADMIN_USERNAME ?? 'admin';
   const adminPassword = process.env.SEED_ADMIN_PASSWORD ?? 'admin';
   const adminFirstName = process.env.SEED_ADMIN_FIRST_NAME ?? 'Admin';
   const adminLastName = process.env.SEED_ADMIN_LAST_NAME ?? 'User';
-  const adminPhone = process.env.SEED_ADMIN_PHONE ?? '0000000000';
+  const adminPhone = process.env.SEED_ADMIN_PHONE ?? '1234567890';
+  const adminCardNo = process.env.SEED_ADMIN_CARD_NO ?? '1234567890123';
+  const adminAddress = process.env.SEED_ADMIN_ADDRESS ?? 'address';
 
   const existingAdmin = await prisma.user.findUnique({ where: { email: adminEmail } });
   const shouldUpdatePassword =
@@ -100,6 +110,8 @@ async function main() {
       firstName: adminFirstName,
       lastName: adminLastName,
       phone: adminPhone,
+      cardNo: adminCardNo,
+      address: adminAddress,
       hashedPassword: shouldUpdatePassword
         ? hashPassword(adminPassword)
         : existingAdmin.hashedPassword,
@@ -111,6 +123,8 @@ async function main() {
       firstName: adminFirstName,
       lastName: adminLastName,
       phone: adminPhone,
+      cardNo: adminCardNo,
+      address: adminAddress,
       hashedPassword: hashPassword(adminPassword),
       createdBy: SYSTEM_USER_ID,
       updatedBy: SYSTEM_USER_ID,

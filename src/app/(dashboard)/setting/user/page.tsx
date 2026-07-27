@@ -28,6 +28,8 @@ export default async function UsersPage() {
     user_first_name: user.firstName,
     user_last_name: user.lastName,
     user_phone: user.phone,
+    user_card_no: user.cardNo,
+    user_address: user.address,
     user_remark: user.remark ?? '',
     role_ids: user.roles.map((item) => item.role.id),
     role_names: user.roles.map((item) => item.role.code),

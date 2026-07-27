@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import { Card, CardContent, Button, Badge, Input, Label, Textarea } from '@/components/ui'
-import { cn } from '@/lib/utils'
+import { cn, formatePhoneNumber, formateCardNo } from '@/lib/utils'
 import { Plus, UserPlus, Edit, X } from 'lucide-react'
 import { AlertDialogDestructive } from '@/components/AlertDialogDestructive'
 
@@ -13,6 +13,8 @@ export type UserRow = {
   user_first_name: string
   user_last_name: string
   user_phone: string
+  user_card_no: string
+  user_address: string
   user_remark: string
   role_ids: string[]
   role_names: string[]
@@ -42,6 +44,8 @@ type UserForm = {
   user_first_name: string
   user_last_name: string
   user_phone: string
+  user_card_no: string
+  user_address: string
   user_remark: string
   role_ids: string[]
 }
@@ -53,6 +57,8 @@ const emptyUserForm: UserForm = {
   user_first_name: '',
   user_last_name: '',
   user_phone: '',
+  user_card_no: '',
+  user_address: '',
   user_remark: '',
   role_ids: [],
 }
@@ -96,14 +102,6 @@ export default function UsersPageClient({
     const timer = window.setTimeout(() => setDrawerReady(true), 20)
     return () => window.clearTimeout(timer)
   }, [drawerOpen])
-
-  function formatePhoneNumber(value: string) {
-    const digits = value.replace(/\D/g, '')
-    if (digits.length === 10) {
-      return `${digits.slice(0, 3)}-${digits.slice(3, 6)}-${digits.slice(6)}`
-    }
-    return digits
-  }
   
   function openUserCreate() {
     setTab('users')
@@ -125,7 +123,9 @@ export default function UsersPageClient({
       user_password: '',
       user_first_name: user.user_first_name,
       user_last_name: user.user_last_name,
-      user_phone: user.user_phone,
+      user_phone: formatePhoneNumber(user.user_phone),
+      user_card_no: formateCardNo(user.user_card_no),
+      user_address: user.user_address,
       user_remark: user.user_remark,
       role_ids: user.role_ids,
     })
@@ -141,7 +141,15 @@ export default function UsersPageClient({
   async function submitUser(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setError('')
-    if (!userForm.user_name.trim() || !userForm.user_email.trim() || !userForm.user_first_name.trim() || !userForm.user_last_name.trim() || !userForm.user_phone.trim()) {
+    if (
+      !userForm.user_name.trim() 
+      || !userForm.user_email.trim() 
+      || !userForm.user_first_name.trim() 
+      || !userForm.user_last_name.trim() 
+      || !userForm.user_phone.trim()
+      || !userForm.user_card_no.trim()
+      || !userForm.user_address.trim()
+    ) {
       setError('กรุณากรอกข้อมูลบังคับให้ครบ')
       return
     }
@@ -269,7 +277,7 @@ export default function UsersPageClient({
             </div>
             <div className="min-w-0">
               <div className="truncate text-sm font-bold text-slate-900">เพิ่มผู้ใช้</div>
-              <div className="truncate text-xs font-medium text-slate-500">เปิด drawer สำหรับสร้างผู้ใช้ใหม่</div>
+              {/* <div className="truncate text-xs font-medium text-slate-500">เปิด drawer สำหรับสร้างผู้ใช้ใหม่</div> */}
             </div>
           </button>
         ) : null}
@@ -294,7 +302,7 @@ export default function UsersPageClient({
                 <div className="flex items-start justify-between gap-4">
                   <div>
                     <h2 className="text-2xl font-extrabold text-slate-950">{drawerTitle}</h2>
-                    <p className="mt-2 text-sm font-medium text-slate-500">ฟอร์มจะเรนเดอร์ตอน drawer เปิดสำเร็จแล้วเท่านั้น</p>
+                    <p className="mt-2 text-sm font-medium text-slate-500"></p>
                   </div>
                   <button type="button" onClick={closeDrawer} className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 hover:bg-slate-50">
                     <X className="h-5 w-5" />
@@ -329,6 +337,14 @@ export default function UsersPageClient({
                       <div className="md:col-span-2">
                         <Label htmlFor="user_phone">เบอร์โทรศัพท์ *</Label>
                         <Input id="user_phone" maxLength={10} minLength={10} value={userForm.user_phone} onChange={(e) => setUserForm((current) => ({ ...current, user_phone: formatePhoneNumber(e.target.value) }))} required />
+                      </div>
+                      <div className="md:col-span-2">
+                        <Label htmlFor="user_card_no">เลขบัตรประชาชน *</Label>
+                        <Input id="user_card_no" maxLength={13} minLength={13} value={userForm.user_card_no} onChange={(e) => setUserForm((current) => ({ ...current, user_card_no: formateCardNo(e.target.value) }))} required />
+                      </div>
+                      <div className="md:col-span-2">
+                        <Label htmlFor="user_address">ที่อยู่ *</Label>
+                        <Textarea id="user_address" maxLength={500} value={userForm.user_address} onChange={(e) => setUserForm((current) => ({ ...current, user_address: e.target.value }))} required />
                       </div>
                       <div className="md:col-span-2">
                         <Label>บทบาท</Label>

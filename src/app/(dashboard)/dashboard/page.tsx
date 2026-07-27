@@ -527,7 +527,7 @@ export default async function DashboardPage({ searchParams }: PageProps) {
           </section>
 
           <ChartShell
-            title="ภาพรวมข้อมูลรายงาน"
+            title="ภาพรวมข้อมูลสถิติ"
             description="รวมกราฟรายได้รายเดือน, จำนวนการจอง, รถยอดนิยม และสถานะการจองไว้ในที่เดียว"
           >
             <MonthlyChart rows={monthlyRows} revenueMax={revenueMax} bookingMax={bookingMax} />
