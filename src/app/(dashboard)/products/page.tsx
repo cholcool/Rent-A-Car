@@ -6,8 +6,6 @@ import { formatCompactNumber } from '@/lib/ui-format'
 import { Search } from 'lucide-react'
 import { Input, Select, Button } from '@/components/ui'
 
-export const dynamic = 'force-dynamic'
-
 type PageProps = {
   searchParams?: Promise<Record<string, string | string[] | undefined>>
 }

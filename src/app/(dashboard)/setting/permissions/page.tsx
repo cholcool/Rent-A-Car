@@ -1,8 +1,6 @@
 import prisma from '@/lib/prisma'
 import PermissionsPageClient, { type MenuRow, type PermissionRow } from './permissions-client'
 
-export const dynamic = 'force-dynamic'
-
 export default async function PermissionsPage() {
   const [permissions, menus] = await Promise.all([
     prisma.permission.findMany({ where: { isDeleted: false }, orderBy: { createdAt: 'desc' } }),

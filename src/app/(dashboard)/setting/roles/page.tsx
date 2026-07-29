@@ -1,8 +1,6 @@
 import prisma from '@/lib/prisma'
 import RolesPageClient, { type RoleRow } from './roles-client'
 
-export const dynamic = 'force-dynamic'
-
 export default async function RolesPage() {
   const roles = await prisma.role.findMany({
     where: { isDeleted: false },

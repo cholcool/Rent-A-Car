@@ -3,6 +3,7 @@ import CredentialsProvider from 'next-auth/providers/credentials';
 import prisma from './prisma'
 import { SessionUser } from '@/types/session';
 import { verifyPassword } from '@/lib/auth-server'
+import { cache } from 'react'
 
 export const authConfig: NextAuthConfig = {
   providers: [
@@ -85,3 +86,5 @@ export const authConfig: NextAuthConfig = {
 
 // Export ตัว handlers และ auth ไปใช้ที่อื่น
 export const { handlers, auth, signIn, signOut } = NextAuth(authConfig);
+
+export const getCachedSession = cache(async () => auth())

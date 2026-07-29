@@ -1,5 +1,6 @@
 import prisma from '@/lib/prisma'
 import { MenuAccessItem } from '@/rbac/menus'
+import { cache } from 'react'
 
 export type AuthFailureReason = 'missing-session' | 'token-expired' | 'role-denied' | 'no-access'
 
@@ -70,7 +71,7 @@ export function isExpired(token: { exp?: number } | null | undefined) {
   return Date.now() >= token.exp * 1000
 }
 
-async function getDbRoleCodesForUser(userEmail?: string | null) {
+const getDbRoleCodesForUser = cache(async (userEmail?: string | null) => {
   if (!userEmail) return []
   const normalizedEmail = userEmail.trim().toLowerCase()
   const cached = getCacheValue(roleCache, normalizedEmail)
@@ -95,9 +96,9 @@ async function getDbRoleCodesForUser(userEmail?: string | null) {
   setCacheValue(roleCache, normalizedEmail, roles)
   logIfSlow('getDbRoleCodesForUser', startedAt)
   return roles
-}
+})
 
-async function getDbAccessibleMenus(roleCodes: string[]) {
+const getDbAccessibleMenus = cache(async (roleCodes: string[]) => {
   const normalizedKey = [...roleCodes].map((role) => role.trim().toUpperCase()).sort().join('|')
   const cached = getCacheValue(menuCache, normalizedKey)
   if (cached) return cached
@@ -141,7 +142,7 @@ async function getDbAccessibleMenus(roleCodes: string[]) {
   setCacheValue(menuCache, normalizedKey, mappedMenus)
   logIfSlow('getDbAccessibleMenus', startedAt)
   return mappedMenus
-}
+})
 
 export async function getUserAccess(input?: {
   session?: AccessSessionUser | null

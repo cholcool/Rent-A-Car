@@ -1,8 +1,6 @@
 import prisma from '@/lib/prisma'
 import UsersPageClient, { type RoleRow, type UserRow } from './users-client'
 
-export const dynamic = 'force-dynamic'
-
 export default async function UsersPage() {
   const [users, roles] = await Promise.all([
     prisma.user.findMany({

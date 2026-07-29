@@ -1,10 +1,10 @@
 import { randomBytes, scryptSync, timingSafeEqual } from 'node:crypto';
-import { auth } from './auth';
+import { auth, getCachedSession } from './auth';
 import prisma from './prisma';
 import { ROLE_GROUPS, hasAnyRole, normalizeRoles } from '@/lib/rbac/access'
 
 export async function getSessionAndRoles() {
-  const session = await auth();
+  const session = await getCachedSession();
   if (!session?.user?.email) return { session: null, roles: [] };
   const sessionRoles = normalizeRoles((session.user as any)?.roles)
   if (sessionRoles.length > 0) return { session, roles: sessionRoles };
@@ -22,7 +22,7 @@ export async function getAuthorizedUserId() {
 }
 
 export async function getAuthorizedUserIdByRoles(allowedRoles: readonly string[]) {
-  const session = await auth()
+  const session = await getCachedSession()
   if (!session?.user?.email) return null
 
   const sessionUser = session.user as any
