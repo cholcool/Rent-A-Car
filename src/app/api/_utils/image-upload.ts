@@ -8,7 +8,7 @@ import { getAuthorizedUserIdByRoles } from '@/lib/auth-server'
 
 const UPLOAD_DIR = join(process.cwd(), 'public', 'uploads')
 
-type OwnerType = 'driver' | 'guarantor'
+type OwnerType = 'driver' | 'guarantor' | 'user'
 type UploadField = 'card' | 'license'
 
 async function getUserId() {
@@ -34,6 +34,15 @@ function validateField(field: string): field is UploadField {
 }
 
 async function resolveOwnerOrThrow(ownerType: OwnerType, ownerId: string) {
+  if (ownerType === 'user') {
+    const user = await prisma.user.findFirst({
+      where: { id: ownerId, isDeleted: false },
+      select: { id: true },
+    })
+    if (!user) return null
+    return { userId: ownerId }
+  }
+
   const driver = await prisma.driver.findFirst({
     where: { id: ownerId, isDeleted: false },
     select: { id: true },
@@ -94,6 +103,14 @@ export async function uploadImage(ownerType: OwnerType, request: Request) {
         updatedBy: userId,
       },
     })
+  } else if (ownerType === 'user') {
+    await prisma.user.update({
+      where: { id: owner.userId },
+      data: {
+        cardImageId: image.id,
+        updatedBy: userId,
+      },
+    })
   } else {
     await prisma.guarantor.update({
       where: { driverId: owner.driverId },
@@ -142,6 +159,14 @@ export async function deleteImage(ownerType: OwnerType, request: Request) {
         updatedBy: userId,
       },
     })
+  } else if (ownerType === 'user') {
+    await prisma.user.update({
+      where: { id: owner.userId },
+      data: {
+        cardImageId: null,
+        updatedBy: userId,
+      },
+    })
   } else {
     await prisma.guarantor.update({
       where: { driverId: owner.driverId },
@@ -164,3 +189,5 @@ export const createDriverImagePostRoute = () => (request: Request) => uploadImag
 export const createDriverImageDeleteRoute = () => (request: Request) => deleteImage('driver', request)
 export const createGuarantorImagePostRoute = () => (request: Request) => uploadImage('guarantor', request)
 export const createGuarantorImageDeleteRoute = () => (request: Request) => deleteImage('guarantor', request)
+export const createUserImagePostRoute = () => (request: Request) => uploadImage('user', request)
+export const createUserImageDeleteRoute = () => (request: Request) => deleteImage('user', request)

@@ -1,10 +1,11 @@
 'use client'
 
-import { useEffect, useMemo, useState, type FormEvent } from 'react'
+import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react'
 import { Card, CardContent, Button, Badge, Input, Label, Textarea } from '@/components/ui'
 import { cn, formatePhoneNumber, formateCardNo } from '@/lib/utils'
 import { Plus, UserPlus, Edit, X } from 'lucide-react'
 import { AlertDialogDestructive } from '@/components/AlertDialogDestructive'
+import CardUploadImage from '@/components/CardUploadImage'
 
 export type UserRow = {
   id: string
@@ -13,6 +14,8 @@ export type UserRow = {
   user_first_name: string
   user_last_name: string
   user_phone: string
+  user_card_image_id: string | null
+  user_card_image: { id: string; key: string; url: string; name: string; size?: number; type?: string; remark?: string } | null
   user_card_no: string
   user_address: string
   user_remark: string
@@ -44,6 +47,8 @@ type UserForm = {
   user_first_name: string
   user_last_name: string
   user_phone: string
+  user_card_image_id: string
+  user_card_image: { id: string; key: string; url: string; name: string; size?: number; type?: string; remark?: string } | null
   user_card_no: string
   user_address: string
   user_remark: string
@@ -57,6 +62,8 @@ const emptyUserForm: UserForm = {
   user_first_name: '',
   user_last_name: '',
   user_phone: '',
+  user_card_image_id: '',
+  user_card_image: null,
   user_card_no: '',
   user_address: '',
   user_remark: '',
@@ -80,6 +87,10 @@ export default function UsersPageClient({
   const [editingKind, setEditingKind] = useState<'user' | 'role' | 'permission' | null>(null)
   const [userForm, setUserForm] = useState<UserForm>(emptyUserForm)
   const [users, setUsers] = useState(initialUsers)
+  const [cardFile, setCardFile] = useState<File | null>(null)
+  const [uploadingCard, setUploadingCard] = useState(false)
+  const [cardPreview, setCardPreview] = useState<string | null>(null)
+  const cardInputRef = useRef<HTMLInputElement>(null)
 
   const roleMap = useMemo(() => new Map(initialRoles.map((role) => [role.id, role])), [initialRoles])
 
@@ -102,12 +113,23 @@ export default function UsersPageClient({
     const timer = window.setTimeout(() => setDrawerReady(true), 20)
     return () => window.clearTimeout(timer)
   }, [drawerOpen])
+
+  useEffect(() => {
+    if (!cardFile) {
+      setCardPreview(userForm.user_card_image?.url ?? null)
+      return
+    }
+    const preview = URL.createObjectURL(cardFile)
+    setCardPreview(preview)
+    return () => URL.revokeObjectURL(preview)
+  }, [cardFile, userForm.user_card_image?.url])
   
   function openUserCreate() {
     setTab('users')
     setEditingId(null)
     setEditingKind(null)
     setUserForm(emptyUserForm)
+    setCardFile(null)
     setError('')
     setMenuOpen(false)
     setDrawerOpen(true)
@@ -124,13 +146,68 @@ export default function UsersPageClient({
       user_first_name: user.user_first_name,
       user_last_name: user.user_last_name,
       user_phone: formatePhoneNumber(user.user_phone),
+      user_card_image_id: user.user_card_image_id ?? '',
+      user_card_image: user.user_card_image,
       user_card_no: formateCardNo(user.user_card_no),
       user_address: user.user_address,
       user_remark: user.user_remark,
       role_ids: user.role_ids,
     })
+    setCardFile(null)
     setError('')
     setDrawerOpen(true)
+  }
+
+  const cardStatusLabel = cardFile ? 'preview' : userForm.user_card_image_id ? 'uploaded' : null
+
+  function triggerPicker() {
+    cardInputRef.current?.click()
+  }
+
+  async function uploadImage() {
+    if (!editingId || !cardFile) return
+    setUploadingCard(true)
+    try {
+      const formData = new FormData()
+      formData.append('ownerId', editingId)
+      formData.append('field', 'card')
+      formData.append('file', cardFile)
+      const res = await fetch('/api/user-images', { method: 'POST', body: formData })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) throw new Error(data?.error ?? 'ไม่สามารถอัปโหลดรูปภาพได้')
+      setUserForm((current) => ({
+        ...current,
+        user_card_image_id: data.image.id,
+        user_card_image: data.image,
+      }))
+      setUsers((current) => current.map((row) => row.id === editingId ? { ...row, user_card_image_id: data.image.id, user_card_image: data.image } : row))
+      setCardFile(null)
+    } catch (err: any) {
+      setError(err?.message ?? 'ไม่สามารถอัปโหลดรูปภาพได้')
+    } finally {
+      setUploadingCard(false)
+    }
+  }
+
+  async function deleteImage() {
+    if (!editingId) return
+    const imageId = userForm.user_card_image_id
+    try {
+      if (imageId) {
+        const res = await fetch('/api/user-images', {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ownerId: editingId, field: 'card', imageId }),
+        })
+        const data = await res.json().catch(() => ({}))
+        if (!res.ok) throw new Error(data?.error ?? 'ไม่สามารถลบรูปภาพได้')
+      }
+      setUserForm((current) => ({ ...current, user_card_image_id: '', user_card_image: null }))
+      setUsers((current) => current.map((row) => row.id === editingId ? { ...row, user_card_image_id: null, user_card_image: null } : row))
+      setCardFile(null)
+    } catch (err: any) {
+      setError(err?.message ?? 'ไม่สามารถลบรูปภาพได้')
+    }
   }
 
   function closeDrawer() {
@@ -222,7 +299,7 @@ export default function UsersPageClient({
           {error ? <div className="mt-4 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-700">{error}</div> : null}
 
           <div className="mt-6 overflow-x-auto">
-            <table className="w-full min-w-225 text-left">
+            <table className="w-full min-w-275 text-left">
               <thead>
                 <tr className="border-b border-slate-200 text-sm font-extrabold text-slate-950">
                   <th className="px-3 py-3">ชื่อ</th>
@@ -314,11 +391,11 @@ export default function UsersPageClient({
                 {tab === 'users' ? (
                   <form className="mt-6 flex-1 space-y-5 overflow-y-auto pr-1" onSubmit={submitUser}>
                     <div className="grid gap-5 md:grid-cols-2">
-                      <div className="md:col-span-2">
+                      <div>
                         <Label htmlFor="user_name">ชื่อผู้ใช้สำหรับเข้าระบบ *</Label>
                         <Input id="user_name" maxLength={150} value={userForm.user_name} onChange={(e) => setUserForm((current) => ({ ...current, user_name: e.target.value }))} required />
                       </div>
-                      <div className="md:col-span-2">
+                      <div>
                         <Label htmlFor="user_email">อีเมล *</Label>
                         <Input id="user_email" type="email" maxLength={150} value={userForm.user_email} onChange={(e) => setUserForm((current) => ({ ...current, user_email: e.target.value }))} required />
                       </div>
@@ -334,11 +411,11 @@ export default function UsersPageClient({
                         <Label htmlFor="user_last_name">นามสกุล *</Label>
                         <Input id="user_last_name" maxLength={150} value={userForm.user_last_name} onChange={(e) => setUserForm((current) => ({ ...current, user_last_name: e.target.value }))} required />
                       </div>
-                      <div className="md:col-span-2">
+                      <div>
                         <Label htmlFor="user_phone">เบอร์โทรศัพท์ *</Label>
                         <Input id="user_phone" maxLength={10} minLength={10} value={userForm.user_phone} onChange={(e) => setUserForm((current) => ({ ...current, user_phone: formatePhoneNumber(e.target.value) }))} required />
                       </div>
-                      <div className="md:col-span-2">
+                      <div>
                         <Label htmlFor="user_card_no">เลขบัตรประชาชน *</Label>
                         <Input id="user_card_no" maxLength={13} minLength={13} value={userForm.user_card_no} onChange={(e) => setUserForm((current) => ({ ...current, user_card_no: formateCardNo(e.target.value) }))} required />
                       </div>
@@ -367,6 +444,21 @@ export default function UsersPageClient({
                             </label>
                           ))}
                         </div>
+                      </div>
+                      <div>
+                        <CardUploadImage
+                          title="รูปบัตรประชาชน"
+                          preview={cardPreview}
+                          statusLabel={cardStatusLabel}
+                          inputRef={cardInputRef}
+                          onPick={triggerPicker}
+                          onChange={(file) => setCardFile(file)}
+                          onUpload={uploadImage}
+                          onDelete={deleteImage}
+                          uploading={uploadingCard}
+                          disabled={!editingId}
+                        />
+                        {!editingId ? <p className="mt-2 text-xs font-medium text-slate-500">บันทึกผู้ใช้ก่อน แล้วค่อยอัปโหลดรูป</p> : null}
                       </div>
                       <div className="md:col-span-2">
                         <Label htmlFor="user_remark">หมายเหตุ</Label>

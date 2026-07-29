@@ -31,7 +31,7 @@ export default function CardUploadImage({
 }: CardUploadImageProps) {
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const options = {
-      maxSizeMB: 1,            // ขนาดไฟล์สูงสุดที่ต้องการ (เช่น ไม่เกิน 1MB)
+      maxSizeMB: 0.7,          // ขนาดไฟล์สูงสุดที่ต้องการ (เช่น ไม่เกิน 1MB)
       maxWidthOrHeight: 1024,  // ขนาดความกว้างหรือสูงสูงสุดไม่เกิน 1024px (รักษา Aspect Ratio อัตโนมัติ)
       useWebWorker: true,      // ใช้ Web Worker ทำงานเบื้องหลัง เพื่อไม่ให้หน้าจอค้างขณะบีบอัด
     };

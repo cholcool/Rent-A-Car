@@ -53,7 +53,7 @@ export async function POST(request: Request) {
           }
         : undefined,
     },
-    include: { roles: { where: { isDeleted: false }, include: { role: true } } },
+    include: { cardImage: true, roles: { where: { isDeleted: false }, include: { role: true } } },
   })
 
   return NextResponse.json({
@@ -65,6 +65,18 @@ export async function POST(request: Request) {
       user_last_name: user.lastName,
       user_phone: user.phone,
       user_card_no: user.cardNo,
+      user_card_image_id: user.cardImageId ?? null,
+      user_card_image: user.cardImage
+        ? {
+            id: user.cardImage.id,
+            key: user.cardImage.key,
+            url: user.cardImage.url,
+            name: user.cardImage.name,
+            size: user.cardImage.size ? Number(user.cardImage.size) : undefined,
+            type: user.cardImage.type ?? undefined,
+            remark: user.cardImage.remark ?? undefined,
+          }
+        : null,
       user_address: user.address,
       user_remark: user.remark ?? '',
       role_ids: user.roles.map((entry) => entry.roleId),
@@ -109,7 +121,7 @@ export async function PATCH(request: Request) {
 
   const user = await prisma.user.findUnique({
     where: { id },
-    include: { roles: { where: { isDeleted: false }, include: { role: true } } },
+    include: { cardImage: true, roles: { where: { isDeleted: false }, include: { role: true } } },
   })
 
   if (!user) return NextResponse.json({ error: 'User not found' }, { status: 404 })
@@ -123,6 +135,18 @@ export async function PATCH(request: Request) {
       user_last_name: user.lastName,
       user_phone: user.phone,
       user_card_no: user.cardNo,
+      user_card_image_id: user.cardImageId ?? null,
+      user_card_image: user.cardImage
+        ? {
+            id: user.cardImage.id,
+            key: user.cardImage.key,
+            url: user.cardImage.url,
+            name: user.cardImage.name,
+            size: user.cardImage.size ? Number(user.cardImage.size) : undefined,
+            type: user.cardImage.type ?? undefined,
+            remark: user.cardImage.remark ?? undefined,
+          }
+        : null,
       user_address: user.address,
       user_remark: user.remark ?? '',
       role_ids: user.roles.map((entry) => entry.roleId),

@@ -9,6 +9,7 @@ export default async function UsersPage() {
       where: { isDeleted: false },
       orderBy: { createdAt: 'desc' },
       include: {
+        cardImage: true,
         roles: {
           where: { isDeleted: false },
           include: { role: true },
@@ -29,6 +30,18 @@ export default async function UsersPage() {
     user_last_name: user.lastName,
     user_phone: user.phone,
     user_card_no: user.cardNo,
+    user_card_image_id: user.cardImageId ?? null,
+    user_card_image: user.cardImage
+      ? {
+          id: user.cardImage.id,
+          key: user.cardImage.key,
+          url: user.cardImage.url,
+          name: user.cardImage.name,
+          size: user.cardImage.size ? Number(user.cardImage.size) : undefined,
+          type: user.cardImage.type ?? undefined,
+          remark: user.cardImage.remark ?? undefined,
+        }
+      : null,
     user_address: user.address,
     user_remark: user.remark ?? '',
     role_ids: user.roles.map((item) => item.role.id),
