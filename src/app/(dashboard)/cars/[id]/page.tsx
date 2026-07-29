@@ -5,11 +5,9 @@ import prisma from '@/lib/prisma'
 import { Badge, Button, Card, CardContent, Input, Textarea, Select } from '@/components/ui'
 import { getStatusBadgeClass, getStatusLabel, formatCompactNumber, toNumber } from '@/lib/ui-format'
 import { updateCar } from '../cars-actions'
-import MaintenanceCreateDrawer from '@/components/MaintenanceCreateDrawer'
 import { MaintenanceRow, CarStatusOptions, CarStatus } from '@/lib/types'
-import { syncMaintenanceStatuses } from '@/lib/maintenance-sync'
 import { sortMaintenancesForAlert } from '@/lib/maintenance-status'
-import CarImageUploader from '@/components/CarImageUploader'
+import CarDetailInteractive from './car-detail-interactive'
 
 export const dynamic = 'force-dynamic'
 
@@ -19,7 +17,10 @@ interface PageProps {
 
 export async function generateMetadata({ params }: PageProps) {
   const { id } = await params
-  const car = await prisma.car.findUnique({ where: { id, isDeleted: false }, include: { brand: true } })
+  const car = await prisma.car.findUnique({
+    where: { id, isDeleted: false },
+    select: { model: true, brand: { select: { name: true } } },
+  })
   if (!car) return { title: 'Vehicle not found' }
   return { title: `${car.brand.name} ${car.model} | RentCar Admin` }
 }
@@ -27,15 +28,29 @@ export async function generateMetadata({ params }: PageProps) {
 export default async function CarDetailPage({ params }: PageProps) {
   const { id } = await params
 
-  await syncMaintenanceStatuses(id)
-
   const [car, vehicleTypes, brands, maintenances] = await Promise.all([
     prisma.car.findUnique({
       where: { id, isDeleted: false },
-      include: {
-        brand: true,
-        vehicleType: true,
-        images: { include: { image: true }, orderBy: { number: 'asc' } },
+      select: {
+        id: true,
+        model: true,
+        year: true,
+        color: true,
+        license: true,
+        engine: true,
+        chassis: true,
+        mileage: true,
+        status: true,
+        remark: true,
+        brandId: true,
+        vehicleTypeId: true,
+        brand: { select: { name: true } },
+        vehicleType: { select: { name: true } },
+        images: {
+          where: { isDeleted: false },
+          select: { image: { select: { id: true, url: true, name: true } } },
+          orderBy: { number: 'asc' },
+        },
       },
     }),
     prisma.vehicleType.findMany({ where: { isDeleted: false }, orderBy: { name: 'asc' } }),
@@ -47,7 +62,7 @@ export default async function CarDetailPage({ params }: PageProps) {
   ])
 
   if (!car) return notFound()
-  const images =  car.images.filter((item) => item.isDeleted !== true).map((item) => ({ id: item.image.id, url: item.image.url, name: item.image.name, alt: item.image.name }))
+  const images = car.images.map((item) => ({ id: item.image.id, url: item.image.url, name: item.image.name, alt: item.image.name }))
   const maintenanceRows: MaintenanceRow[] = (maintenances || []).map((item) => ({
     id: item.id,
     type: item.type,
@@ -123,18 +138,7 @@ export default async function CarDetailPage({ params }: PageProps) {
       </header>
 
       <div className="grid gap-6 xl:grid-cols-[minmax(0,2fr)_minmax(320px,1fr)]">
-        <div className="space-y-6 overflow-auto">
-          <CarImageUploader 
-            carId={car.id} 
-            initialImages={images} 
-          />
-
-          <MaintenanceCreateDrawer 
-            carId={car.id} 
-            carMileage={car.mileage} 
-            maintenances={maintenanceRows} 
-          />
-        </div>
+        <CarDetailInteractive carId={car.id} carMileage={car.mileage} images={images} maintenances={maintenanceRows} />
 
         <aside>
           <Card className="rounded-xl shadow-sm">
@@ -144,8 +148,8 @@ export default async function CarDetailPage({ params }: PageProps) {
                 <h2 className="text-lg font-bold text-slate-950">ข้อมูลรถ</h2>
               </div>
 
-              <form id="car-form" action={saveCar} className="space-y-4">
-                <div className="space-y-2">
+              <form id="car-form" action={saveCar} className="grid gap-2 md:grid-cols-2">
+                <div className="space-y-2 xl:col-span-2">
                   <label className="text-sm font-semibold text-slate-700">สถานะ <span className="text-red-600">*</span></label>
                   <Select name="status" defaultValue={car.status} required>
                     {CarStatusOptions.map((status) => (
@@ -156,7 +160,7 @@ export default async function CarDetailPage({ params }: PageProps) {
                   </Select>
                 </div>
 
-                <div className="space-y-2">
+                <div className="space-y-2 xl:col-span-2">
                   <label className="text-sm font-semibold text-slate-700">ประเภทรถ <span className="text-red-600">*</span></label>
                   <Select name="vehicleTypeId" defaultValue={car.vehicleTypeId} required>
                     <option value="">-- เลือกประเภทรถ --</option>
@@ -168,7 +172,7 @@ export default async function CarDetailPage({ params }: PageProps) {
                   </Select>
                 </div>
 
-                <div className="space-y-2">
+                <div className="space-y-2 xl:col-span-2">
                   <label className="text-sm font-semibold text-slate-700">แบรนด์รถ <span className="text-red-600">*</span></label>
                   <Select name="brandId" defaultValue={car.brandId} required>
                     <option value="">-- เลือกแบรนด์ --</option>
@@ -180,42 +184,42 @@ export default async function CarDetailPage({ params }: PageProps) {
                   </Select>
                 </div>
 
-                <div className="space-y-2">
+                <div className="space-y-2 xl:col-span-2">
                   <label className="text-sm font-semibold text-slate-700">รุ่น <span className="text-red-600">*</span></label>
                   <Input name="model" defaultValue={car.model} maxLength={100} required />
                 </div>
 
-                <div className="space-y-2">
+                <div className="space-y-2 xl:col-span-2">
                   <label className="text-sm font-semibold text-slate-700">ปีที่ผลิต <span className="text-red-600">*</span></label>
                   <Input name="year" defaultValue={car.year} maxLength={4} inputMode="numeric" required />
                 </div>
 
-                <div className="space-y-2">
+                <div className="space-y-2 xl:col-span-2">
                   <label className="text-sm font-semibold text-slate-700">สีรถ <span className="text-red-600">*</span></label>
                   <Input name="color" defaultValue={car.color} maxLength={50} required />
                 </div>
 
-                <div className="space-y-2">
+                <div className="space-y-2 xl:col-span-2">
                   <label className="text-sm font-semibold text-slate-700">ทะเบียน <span className="text-red-600">*</span></label>
                   <Input name="license" defaultValue={car.license} maxLength={20} required />
                 </div>
 
-                <div className="space-y-2">
+                <div className="space-y-2 xl:col-span-2">
                   <label className="text-sm font-semibold text-slate-700">เลขเครื่องยนต์</label>
                   <Input name="engine" defaultValue={car.engine ?? ''} maxLength={20} />
                 </div>
 
-                <div className="space-y-2">
+                <div className="space-y-2 xl:col-span-2">
                   <label className="text-sm font-semibold text-slate-700">เลขตัวถัง</label>
                   <Input name="chassis" defaultValue={car.chassis ?? ''} maxLength={20} />
                 </div>
 
-                <div className="space-y-2">
+                <div className="space-y-2 xl:col-span-2">
                   <label className="text-sm font-semibold text-slate-700">เลขไมล์</label>
                   <Input name="mileage" type="number" step="0" min="0" defaultValue={car.mileage} />
                 </div>
 
-                <div className="space-y-2">
+                <div className="space-y-2 md:col-span-2">
                   <label className="text-sm font-semibold text-slate-700">หมายเหตุ</label>
                   <Textarea name="remark" defaultValue={car.remark ?? ''} maxLength={500} rows={4} />
                 </div>

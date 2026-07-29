@@ -1,5 +1,5 @@
 import prisma from '@/lib/prisma'
-import { auth } from '@/lib/auth'
+import { getCachedSession } from '@/lib/auth'
 import BookingsClient from './bookings-client'
 import { formatCompactNumber, formatBaht } from '@/lib/ui-format'
 import { Select, Button } from '@/components/ui'
@@ -36,26 +36,46 @@ export default async function BookingsPage({ searchParams }: PageProps) {
         ? { netAmount: 'asc' }
         : sort === 'dateEnd'
           ? { dateEnd: 'desc' }
-          : sort === 'dateStart'
-            ? { dateStart: 'asc' }
-            : { createdAt: 'desc' }
+      : sort === 'dateStart'
+          ? { dateStart: 'asc' }
+          : { createdAt: 'desc' }
 
-  const session = await auth()
+  const session = await getCachedSession()
   const currentUserId = session?.user?.id ?? ''
   const displayName = session?.user?.name ?? session?.user?.email ?? "Guest";
+  const pageParam = typeof params.page === 'string' ? Number.parseInt(params.page, 10) : 1
+  const page = Number.isFinite(pageParam) && pageParam > 0 ? pageParam : 1
+  const pageSize = 20
 
   const [bookings, products, cars, drivers, users, summary] = await Promise.all([
     prisma.booking.findMany({
       where,
       orderBy,
+      take: pageSize,
+      skip: (page - 1) * pageSize,
       include: {
-        user: true,
-        car: { include: { brand: true } },
-        driver: true,
-        product: true,
-        paymentImage: true,
-        healthCheck01Image: true,
-        healthCheck02Image: true,
+        user: {
+          select: { id: true, firstName: true, lastName: true, phone: true },
+        },
+        car: {
+          select: {
+            id: true,
+            model: true,
+            license: true,
+            mileage: true,
+            brand: { select: { name: true } },
+          },
+        },
+        driver: {
+          select: {
+            id: true,
+            fullName: true,
+            phone: true,
+          },
+        },
+        product: {
+          select: { id: true, name: true, price: true },
+        },
       },
     }),
     prisma.product.findMany({
@@ -71,11 +91,23 @@ export default async function BookingsPage({ searchParams }: PageProps) {
     prisma.driver.findMany({
       where: { isDeleted: false },
       orderBy: { createdAt: 'desc' },
-      include: {
+      select: {
+        id: true,
+        fullName: true,
+        phone: true,
+        remark: true,
+        cardImageId: true,
+        licenseImageId: true,
         cardImage: true,
         licenseImage: true,
         guarantor: {
-          include: {
+          select: {
+            id: true,
+            fullName: true,
+            phone: true,
+            remark: true,
+            cardImageId: true,
+            licenseImageId: true,
             cardImage: true,
             licenseImage: true,
           },
@@ -83,14 +115,17 @@ export default async function BookingsPage({ searchParams }: PageProps) {
       },
     }),
     prisma.user.findMany({
-      where: { isDeleted: false, },
+      where: { isDeleted: false },
       orderBy: { createdAt: 'desc' },
+      select: { id: true, firstName: true, lastName: true, phone: true },
     }),
     prisma.booking.aggregate({
       where,
       _sum: { netAmount: true },
     }),
   ])
+  const totalCount = await prisma.booking.count({ where })
+  const totalPages = Math.max(Math.ceil(totalCount / pageSize), 1)
 
   const initialDrivers: DriverRow[] = drivers.map((driver) => ({
     id: driver.id,
@@ -155,7 +190,6 @@ export default async function BookingsPage({ searchParams }: PageProps) {
       : null,
   }))
 
-  const totalCount = bookings.length
   const initialBookings = serializePrismaRows(bookings)
   const carsOption = cars.map((rows) => ({ id: rows.id, value: rows.id, label: `${rows.brand.name} ${rows.model} (${rows.license})`.trim(), status: rows.status, mileage: rows.mileage }))
   const driversOption = drivers.map((rows) => ({ id: rows.id, value: rows.id, label: `${rows.fullName} (${rows.phone})`.trim() }))
@@ -251,6 +285,34 @@ export default async function BookingsPage({ searchParams }: PageProps) {
           drivers={driversOption}
           initialDrivers={initialDrivers}
         />
+
+        {totalPages > 1 && (
+          <div className="flex items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm shadow-slate-200/60">
+            <div className="text-sm font-semibold text-slate-600">
+              หน้า {page} จาก {totalPages}
+            </div>
+            <div className="flex items-center gap-2">
+              <Button asChild variant="outline">
+                <a
+                  aria-disabled={page <= 1}
+                  tabIndex={page <= 1 ? -1 : 0}
+                  href={`/bookings?page=${Math.max(page - 1, 1)}&status=${status}&sort=${sort}&drivers=${driversParam}&cars=${carsParam}&products=${productsParam}`}
+                >
+                  ก่อนหน้า
+                </a>
+              </Button>
+              <Button asChild variant="outline">
+                <a
+                  aria-disabled={page >= totalPages}
+                  tabIndex={page >= totalPages ? -1 : 0}
+                  href={`/bookings?page=${Math.min(page + 1, totalPages)}&status=${status}&sort=${sort}&drivers=${driversParam}&cars=${carsParam}&products=${productsParam}`}
+                >
+                  ถัดไป
+                </a>
+              </Button>
+            </div>
+          </div>
+        )}
       </div>
     </>
   )

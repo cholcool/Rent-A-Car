@@ -5,6 +5,7 @@ import { ProductRow, ProductsStatusOptions } from '@/lib/types'
 import { formatCompactNumber } from '@/lib/ui-format'
 import { Search } from 'lucide-react'
 import { Input, Select, Button } from '@/components/ui'
+import Link from 'next/link'
 
 type PageProps = {
   searchParams?: Promise<Record<string, string | string[] | undefined>>
@@ -12,17 +13,21 @@ type PageProps = {
 
 export default async function ProductsPage({ searchParams }: PageProps) {
   const params = (await searchParams) ?? {}
-  const inputSearch = typeof params.q === 'string' ? params.q.trim() : ''
+  const inputSearch = typeof params.inputSearch === 'string' ? params.inputSearch.trim() : ''
   const sort = typeof params.sort === 'string' ? params.sort : 'newest'
   const statusParam = typeof params.status === 'string' ? params.status : ''
+  const pageParam = typeof params.page === 'string' ? Number.parseInt(params.page, 10) : 1
+  const page = Number.isFinite(pageParam) && pageParam > 0 ? pageParam : 1
+  const pageSize = 20
   const status = ProductsStatusOptions.find(status => status.value === statusParam)?.value ?? ''
 
   const where: any = { isDeleted: false }
 
   if (inputSearch) {
     where.OR = [
-      { fullName: { contains: inputSearch, mode: 'insensitive' } },
-      { phone: { contains: inputSearch, mode: 'insensitive' } },
+      { name: { contains: inputSearch, mode: 'insensitive' } },
+      { description: { contains: inputSearch, mode: 'insensitive' } },
+      { remark: { contains: inputSearch, mode: 'insensitive' } },
     ]
   }
 
@@ -44,6 +49,8 @@ export default async function ProductsPage({ searchParams }: PageProps) {
   const products = await prisma.product.findMany({
     where,
     orderBy,
+    take: pageSize,
+    skip: (page - 1) * pageSize,
     select: {
       id: true,
       name: true,
@@ -56,6 +63,8 @@ export default async function ProductsPage({ searchParams }: PageProps) {
       isActive: true,
     },
   })
+  const totalCount = await prisma.product.count({ where })
+  const totalPages = Math.max(Math.ceil(totalCount / pageSize), 1)
 
   const rows: ProductRow[] = products.map((product) => ({
     id: product.id,
@@ -69,8 +78,6 @@ export default async function ProductsPage({ searchParams }: PageProps) {
     is_active: product.isActive,
   }))
 
-  const total = products.length
-
   return (
     <>
       <div className="space-y-8">
@@ -82,7 +89,7 @@ export default async function ProductsPage({ searchParams }: PageProps) {
           <div className="rounded-2xl border border-slate-200 bg-white px-5 py-4 shadow-sm shadow-slate-200/60">
             <div className="text-sm font-bold text-slate-500">ทั้งหมด</div>
             <div className="mt-2 text-3xl font-extrabold text-slate-950">
-              {formatCompactNumber(total)}
+              {formatCompactNumber(totalCount)}
             </div>
           </div>
         </header>
@@ -122,6 +129,32 @@ export default async function ProductsPage({ searchParams }: PageProps) {
         </form>
 
         <ProductsClient initialProducts={rows} />
+
+        {totalPages > 1 && (
+          <div className="flex items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm shadow-slate-200/60">
+            <div className="text-sm font-semibold text-slate-600">
+              หน้า {page} จาก {totalPages}
+            </div>
+            <div className="flex items-center gap-2">
+              <Link
+                aria-disabled={page <= 1}
+                tabIndex={page <= 1 ? -1 : 0}
+                href={`/products?inputSearch=${encodeURIComponent(inputSearch)}&status=${status}&sort=${sort}&page=${Math.max(page - 1, 1)}`}
+                className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 aria-disabled:pointer-events-none aria-disabled:opacity-40"
+              >
+                ก่อนหน้า
+              </Link>
+              <Link
+                aria-disabled={page >= totalPages}
+                tabIndex={page >= totalPages ? -1 : 0}
+                href={`/products?inputSearch=${encodeURIComponent(inputSearch)}&status=${status}&sort=${sort}&page=${Math.min(page + 1, totalPages)}`}
+                className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 aria-disabled:pointer-events-none aria-disabled:opacity-40"
+              >
+                ถัดไป
+              </Link>
+            </div>
+          </div>
+        )}
       </div>
     </>
   )
