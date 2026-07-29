@@ -39,18 +39,17 @@ function verifyPassword(password: string, storedHash: string) {
 
 async function main() {
   const roleDefinitions = [
-    { code: 'ADMIN', name: 'Admin', remark: 'Full system access' },
+    { code: 'ADMIN', name: 'Admin', remark: 'Full system access', isActive: false },
     // { code: 'MANAGER', name: 'Manager', remark: 'Manage operations and reports' },
     // { code: 'AGENT', name: 'Agent', remark: 'Manage bookings and customer workflows' },
-    { code: 'VIEWER', name: 'Viewer', remark: 'Read-only system access' },
+    { code: 'VIEWER', name: 'Viewer', remark: 'Read-only system access', isActive: true },
   ];
 
   for (const role of roleDefinitions) {
     await prisma.role.upsert({
       where: { code: role.code },
       update: {
-        name: role.name,
-        remark: role.remark,
+        ...role,
         updatedBy: SYSTEM_USER_ID,
       },
       create: {
@@ -68,8 +67,8 @@ async function main() {
     { key: 'products', title: 'ข้อมูลบริการ', icon: 'Tag', path: '/products', sequence: 4, requiredPermission: 'ADMIN,VIEWER', isActive: true, createdBy: '00000000-0000-0000-0000-000000000000', updatedBy: '00000000-0000-0000-0000-000000000000' },
     { key: 'bookings', title: 'บันทึกรายการ', icon: 'ClipboardList', path: '/bookings', sequence: 5, requiredPermission: 'ADMIN,VIEWER', isActive: true, createdBy: '00000000-0000-0000-0000-000000000000', updatedBy: '00000000-0000-0000-0000-000000000000' },
     { key: 'reports', title: 'รายงาน', icon: 'Newspaper', path: '/reports', sequence: 6, requiredPermission: 'ADMIN,VIEWER', isActive: true, createdBy: '00000000-0000-0000-0000-000000000000', updatedBy: '00000000-0000-0000-0000-000000000000' },
-    { key: 'payments', title: 'การชำระเงิน', icon: 'CreditCard', path: '/payments', sequence: 7, requiredPermission: 'UNSPECIFIED', isActive: false, createdBy: '00000000-0000-0000-0000-000000000000', updatedBy: '00000000-0000-0000-0000-000000000000' },
-    { key: 'setting-user', title: 'ตั้งค่าผู้ใช้', icon: 'Settings', path: '/setting/user', sequence: 8, requiredPermission: 'ADMIN', isActive: true, createdBy: '00000000-0000-0000-0000-000000000000', updatedBy: '00000000-0000-0000-0000-000000000000' },
+    { key: 'payments', title: 'การชำระเงิน', icon: 'CreditCard', path: '/payments', sequence: 7, requiredPermission: 'ADMIN,VIEWER', isActive: true, createdBy: '00000000-0000-0000-0000-000000000000', updatedBy: '00000000-0000-0000-0000-000000000000' },
+    { key: 'setting-user', title: 'ตั้งค่าผู้ใช้', icon: 'Settings', path: '/setting/user', sequence: 8, requiredPermission: 'ADMIN', isActive: false, createdBy: '00000000-0000-0000-0000-000000000000', updatedBy: '00000000-0000-0000-0000-000000000000' },
     { key: 'setting-roles', title: 'ตั้งค่าบทบาท', icon: 'Settings', path: '/setting/roles', sequence: 9, requiredPermission: 'UNSPECIFIED', isActive: false, createdBy: '00000000-0000-0000-0000-000000000000', updatedBy: '00000000-0000-0000-0000-000000000000' },
     { key: 'setting-permissions', title: 'ตั้งค่าสิทธิ์', icon: 'Settings', path: '/setting/permissions', sequence: 10, requiredPermission: 'UNSPECIFIED', isActive: false, createdBy: '00000000-0000-0000-0000-000000000000', updatedBy: '00000000-0000-0000-0000-000000000000' },
     { key: 'setting-menu', title: 'ตั้งค่าเมนู', icon: 'Settings', path: '/setting/menu', sequence: 11, requiredPermission: 'ADMIN', isActive: true, createdBy: '00000000-0000-0000-0000-000000000000', updatedBy: '00000000-0000-0000-0000-000000000000' },

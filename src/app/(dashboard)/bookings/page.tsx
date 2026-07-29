@@ -44,7 +44,7 @@ export default async function BookingsPage({ searchParams }: PageProps) {
   const currentUserId = session?.user?.id ?? ''
   const displayName = session?.user?.name ?? session?.user?.email ?? "Guest";
 
-  const [bookings, products, cars, drivers, summary] = await Promise.all([
+  const [bookings, products, cars, drivers, users, summary] = await Promise.all([
     prisma.booking.findMany({
       where,
       orderBy,
@@ -66,7 +66,7 @@ export default async function BookingsPage({ searchParams }: PageProps) {
     prisma.car.findMany({
       where: { isDeleted: false },
       orderBy: { createdAt: 'desc' },
-      select: { id: true, model: true, license: true, brand: { select: { name: true } }, status: true },
+      select: { id: true, model: true, license: true, brand: { select: { name: true } }, status: true, mileage: true },
     }),
     prisma.driver.findMany({
       where: { isDeleted: false },
@@ -81,6 +81,10 @@ export default async function BookingsPage({ searchParams }: PageProps) {
           },
         },
       },
+    }),
+    prisma.user.findMany({
+      where: { isDeleted: false, },
+      orderBy: { createdAt: 'desc' },
     }),
     prisma.booking.aggregate({
       where,
@@ -152,14 +156,11 @@ export default async function BookingsPage({ searchParams }: PageProps) {
   }))
 
   const totalCount = bookings.length
-  // const pendingCount = bookings.filter((rows) => rows.status === 'Pending').length
-  // const activeCount = bookings.filter((rows) => ['Confirmed', 'InProgress'].includes(rows.status)).length
-  // const completeCount = bookings.filter((rows) => rows.status === 'Completed').length
   const initialBookings = serializePrismaRows(bookings)
-  const carsAvailable = cars.filter((rows) => rows.status === 'Available')
-  const carsOption = cars.map((rows) => ({ value: rows.id, label: `${rows.brand.name} ${rows.model}`.trim() }))
-  const driversOption = drivers.map((rows) => ({ value: rows.id, label: `${rows.fullName} (${rows.phone})`.trim() }))
-  const productsOption = products.map((rows) => ({ value: rows.id, label: `${rows.name} - ${rows.price}`.trim() }))
+  const carsOption = cars.map((rows) => ({ id: rows.id, value: rows.id, label: `${rows.brand.name} ${rows.model} (${rows.license})`.trim(), status: rows.status, mileage: rows.mileage }))
+  const driversOption = drivers.map((rows) => ({ id: rows.id, value: rows.id, label: `${rows.fullName} (${rows.phone})`.trim() }))
+  const productsOption = products.map((rows) => ({ id: rows.id, value: rows.id, label: `${rows.name} - ${rows.price}`.trim(), price: Number(rows.price) }))
+  const usersOption = users.map((rows) => ({ id: rows.id, value: rows.id, label: `${rows.firstName} ${rows.lastName} (${rows.phone})` }))
 
   return (
     <>
@@ -188,7 +189,7 @@ export default async function BookingsPage({ searchParams }: PageProps) {
         <form
           method="get"
           action="/bookings"
-          className="grid gap-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm shadow-slate-200/60 lg:grid-cols-3 xl:grid-cols-[200px_200px_auto_200px_200px_150px] overflow-auto"
+          className="grid gap-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm shadow-slate-200/60 md:grid-cols-3 xl:grid-cols-[200px_200px_auto_200px_200px_150px] overflow-auto"
         >
           <Select name="drivers" defaultValue={driversParam}>
             <option value="">ลูกค้าทั้งหมด</option>
@@ -234,7 +235,7 @@ export default async function BookingsPage({ searchParams }: PageProps) {
             <option value="dateEnd">เรียงตามวันคืนรถ</option>
           </Select>
 
-          <Button type="submit" className="h-11">
+          <Button type="submit" className="h-full min-h-8 col-start-3 justify-self-end">
             <Search className="mr-2 h-4 w-4" />
             ค้นหา
           </Button>
@@ -243,10 +244,11 @@ export default async function BookingsPage({ searchParams }: PageProps) {
         <BookingsClient
           initialBookings={initialBookings}
           currentUserId={currentUserId}
+          users={usersOption}
           displayName={displayName}
-          products={products.map((product) => ({ id: product.id, label: `${product.name} - ${product.price}` , price: Number(product.price) }))}
-          cars={carsAvailable.map((car) => ({ id: car.id, label: `${car.brand.name} ${car.model} (${car.license})` }))}
-          drivers={drivers.map((driver) => ({ id: driver.id, label: `${driver.fullName} (${driver.phone})` }))}
+          products={productsOption}
+          cars={carsOption}
+          drivers={driversOption}
           initialDrivers={initialDrivers}
         />
       </div>

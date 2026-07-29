@@ -21,6 +21,7 @@ interface BookingsClientProps {
   cars: BookingOption[]
   drivers: BookingOption[]
   initialDrivers: DriverRow[]
+  users: BookingOption[]
   currentUserId: string
   displayName: string
 }
@@ -31,6 +32,7 @@ export default function BookingsClient({
   cars,
   drivers,
   initialDrivers,
+  users,
   currentUserId,
   displayName
 }: BookingsClientProps) {
@@ -58,6 +60,7 @@ export default function BookingsClient({
     paymentImageId: '',
     healthCheck01ImageId: '',
     healthCheck02ImageId: '',
+    mileage: '0'
   }
   const [form, setForm] = useState(empty)
   const [reportField, setReportField] = useState<Row[] | null>(null)
@@ -109,6 +112,7 @@ export default function BookingsClient({
       paymentImageId: row.paymentImageId ?? '',
       healthCheck01ImageId: row.healthCheck01ImageId ?? '',
       healthCheck02ImageId: row.healthCheck02ImageId ?? '',
+      mileage: row.car.mileage ?? '0'
     })
     setError('')
     setDrawerOpen(true)
@@ -252,6 +256,7 @@ export default function BookingsClient({
             products={products}
             cars={cars}
             drivers={drivers}
+            users={users}
             currentUserId={currentUserId}
             editingId={editingId}
             formIn={form}

@@ -242,7 +242,7 @@ export default function UsersPageClient({
                     <td className="px-3 py-4">{user.user_phone}</td>
                     <td className="px-3 py-4">
                       <div className="flex flex-wrap gap-2">
-                        {user.role_ids.length ? user.role_ids.map((roleId) => <Badge key={roleId}>{roleMap.get(roleId)?.role_code ?? roleId}</Badge>) : <span className="text-sm font-semibold text-slate-400">ยังไม่มีบทบาท</span>}
+                        {user.role_ids.length ? user.role_ids.map((roleId) => <Badge key={roleId}>{roleMap.get(roleId)?.role_code ?? "ADMIN"}</Badge>) : <span className="text-sm font-semibold text-slate-400">ยังไม่มีบทบาท</span>}
                       </div>
                     </td>
                     <td className="sticky right-0 bg-white p-3 border-l drop-shadow-[-4px_0_4px_rgba(0,0,0,0.05)]">
@@ -363,7 +363,7 @@ export default function UsersPageClient({
                                   }))
                                 }
                               />
-                              {role.role_name} ({role.role_code})
+                              {role.role_name}
                             </label>
                           ))}
                         </div>

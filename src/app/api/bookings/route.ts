@@ -37,6 +37,7 @@ export async function POST(request: Request) {
   const bookingUserId = String(body.userId ?? '').trim()
   const dateStart = new Date(body.dateStart)
   const dateEnd = new Date(body.dateEnd)
+  const mileage = Number(body.mileage)
 
   if (!bookingUserId) return NextResponse.json({ message: 'userId is required' }, { status: 400 })
   if (Number.isNaN(dateStart.getTime()) || Number.isNaN(dateEnd.getTime())) {
@@ -47,10 +48,13 @@ export async function POST(request: Request) {
     const booking = await prisma.$transaction(async (tx) => {
       const car = await tx.car.findFirst({
         where: { id: carId, isDeleted: false },
-        select: { id: true, status: true },
+        select: { id: true, status: true, mileage: true },
       })
       if (!car) {
         throw new Error('Car not found')
+      }
+      if (car.mileage < mileage) {
+        throw new Error('Car mileage less then now')
       }
 
       const user = await tx.user.findFirst({
@@ -120,7 +124,7 @@ export async function POST(request: Request) {
 
       const carUpdate = await tx.car.updateMany({
         where: { id: carId, isDeleted: false, status: car.status },
-        data: { status: PrismaCarStatus.Booked, updatedBy: userId },
+        data: { status: PrismaCarStatus.Booked, mileage: mileage, updatedBy: userId },
       })
 
       if (carUpdate.count === 0) {
@@ -143,6 +147,7 @@ export async function POST(request: Request) {
     if (message === 'Car status changed by another user') {
       return NextResponse.json({ message: 'รถคันนี้ถูกเปลี่ยนสถานะโดยผู้ใช้อื่น กรุณารีเฟรชข้อมูลรถ' }, { status: 409 })
     }
+    if (message === 'Car mileage less then now') return NextResponse.json({ message: 'เลขไมล์ใหม่จะต้องมากกว่าหรือเท่ากับเลขไมล์ปัจจุบัน' }, { status: 409 })
     return NextResponse.json({ message: 'Failed to create booking' }, { status: 500 })
   }
 }

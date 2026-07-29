@@ -68,7 +68,7 @@ export default async function CarsPage({ searchParams }: PageProps) {
       <form
         method="get"
         action="/cars"
-        className="grid gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm shadow-slate-200/60 lg:grid-cols-3 xl:grid-cols-[minmax(220px,1fr)_180px_160px_160px_150px_auto] overflow-auto"
+        className="grid gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm shadow-slate-200/60 md:grid-cols-3 xl:grid-cols-[minmax(220px,1fr)_180px_160px_160px_150px_auto] overflow-auto"
       >
         <div className="relative">
           <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
@@ -109,7 +109,8 @@ export default async function CarsPage({ searchParams }: PageProps) {
           <option value="mileage">ไมล์น้อยก่อน</option>
         </Select>
 
-        <Button type="submit" className="h-11">
+        <Button type="submit" className="h-full min-h-8 col-start-3 justify-self-end">
+          <Search className="mr-2 h-4 w-4" />
           ค้นหา
         </Button>
       </form>

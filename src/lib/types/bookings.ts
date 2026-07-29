@@ -3,7 +3,7 @@ import { getStatusLabel } from '@/lib/ui-format'
 
 export type PrismaBookingStatus = BookingStatus
 
-export type BookingOption = { id: string; label: string; price?: number }
+export type BookingOption = { id: string; value: string; label: string; price?: number; status?: string; mileage?: number; }
 
 export type BookingStatusOption = { value: BookingStatus; label: any; }
 

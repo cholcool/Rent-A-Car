@@ -341,7 +341,7 @@ export default function MaintenanceCreateDrawer({
                 <div className="mb-4 rounded-lg bg-red-50 p-4 text-sm font-medium text-red-700">{errors.form}</div>
               )}
 
-              {formData.status === 'Active' || formData.status === 'Overdue' && (
+              {(formData.status === 'Active') || (formData.status === 'Overdue') ? (
                 <div className="mb-4 rounded-lg bg-amber-50 p-4 text-sm font-medium text-amber-700">
                   <div className="font-bold">แจ้งเตือน: งานนี้ยังไม่เสร็จสิ้น</div>
                   <div>คุณสามารถปิดงานนี้ได้โดยคลิกที่ปุ่ม &quot;ปิดงาน&quot; ในด้านล่าง</div>
@@ -355,7 +355,7 @@ export default function MaintenanceCreateDrawer({
                     iconText={'ปิดงาน'}
                   />
                 </div>
-              )}
+              ) : null}
               
               {variant === 'modal' ? (
                 <div className="space-y-2">

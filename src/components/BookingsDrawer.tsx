@@ -1,13 +1,14 @@
 'use client'
 
-import { Dispatch, SetStateAction, useEffect, useMemo, useRef, useState, type FormEvent } from 'react'
+import { Dispatch, SetStateAction, useEffect, useMemo, useRef, useState, type FormEvent, type ChangeEvent } from 'react'
 import { X, Badge } from 'lucide-react'
 import { Button, Input, Label, Select, Textarea } from '@/components/ui'
 import { useRouter } from 'next/navigation'
-import { BookingStatusOptions } from '@/lib/types'
-import { CarStatus } from '@/lib/types'
+import { BookingStatusOptions, BookingOption, CarStatus } from '@/lib/types'
 import CardUploadImage from '@/components/CardUploadImage'
 import { DateTimePicker } from '@/components/DateTimePicker';
+import { formatCompactNumber, toNumber } from '@/lib/ui-format'
+import { cn } from '@/lib/utils'
 
      
 function dateCount(start: Date | undefined, end: Date | undefined) {
@@ -17,8 +18,6 @@ function dateCount(start: Date | undefined, end: Date | undefined) {
   if (Number.isNaN(a.getTime()) || Number.isNaN(b.getTime())) return 0
   return Math.max(Math.ceil((b.getTime() - a.getTime()) / 86_400_000), 0)
 }
-
-type Option = { id: string; label: string; price?: number }
 
 interface From {
   productId: string
@@ -35,12 +34,14 @@ interface From {
   paymentImageId: string
   healthCheck01ImageId: string
   healthCheck02ImageId: string
+  mileage: string
 }
 
 interface BookingsDrawerProps {
-  products?: Option[]
-  cars?: Option[]
-  drivers?: Option[]
+  products?: BookingOption[]
+  cars?: BookingOption[]
+  drivers?: BookingOption[]
+  users?: BookingOption[]
   currentUserId?: string
   editingId?: string | null 
   formIn?: From
@@ -53,6 +54,7 @@ export default function BookingsDrawer({
   products,
   cars,
   drivers,
+  users,
   currentUserId,
   editingId,
   formIn,
@@ -78,6 +80,7 @@ export default function BookingsDrawer({
     paymentImageId: '',
     healthCheck01ImageId: '',
     healthCheck02ImageId: '',
+    mileage: '0',
   }
   const [form, setForm] = useState(formIn || empty)
   const paymentInputRef = useRef<HTMLInputElement>(null)
@@ -106,6 +109,9 @@ export default function BookingsDrawer({
   const paymentStatusLabel = paymentFile ? 'preview' : form.paymentImageId ? 'uploaded' : null
   const healthCheck01StatusLabel = healthCheck01File ? 'preview' : form.healthCheck01ImageId ? 'uploaded' : null
   const healthCheck02StatusLabel = healthCheck02File ? 'preview' : form.healthCheck02ImageId ? 'uploaded' : null
+
+  const carsAvailable = cars?.filter((rows) => editingId ? rows.status === 'Available' || rows.id === form.carId : rows.status === 'Available')
+  const carsMileage = form.carId ? cars?.filter((rows) => rows.id === form.carId)[0].mileage : 0;
 
   useEffect(() => {
     if (!paymentFile) {
@@ -264,6 +270,7 @@ export default function BookingsDrawer({
     if (!form.driverId.trim()) newErrors.driverId = 'กรุณากรอกชื่อข้อมูลคนขับ'
     if (!form.dateStart || !form.dateEnd) newErrors.dateStart = 'กรุณาระบุวันเริ่มต้นและวันสิ้นสุด'
     if (!form.price || Number(form.price) < 0) newErrors.price = 'กรุณากรอกราคาขายต่อวันให้ถูกต้อง'
+    if (!form.mileage || Number(form.mileage) < Number(carsMileage)) newErrors.mileage = 'เลขไมล์ใหม่จะต้องมากกว่าหรือเท่ากับเลขไมล์ปัจจุบัน'
 
     if (Object.keys(newErrors).length > 0) {
       setErrorForm(newErrors)
@@ -326,6 +333,20 @@ export default function BookingsDrawer({
     }
   }
 
+  function handleCarsMileage(event: ChangeEvent<HTMLInputElement>) {
+    event.preventDefault()
+    setForm((c) => ({ ...c, mileage: event.target.value }))
+
+    const newErrors: Record<string, string> = {}
+    if (!event.target.value || Number(event.target.value) < Number(carsMileage)) newErrors.mileage = 'เลขไมล์ใหม่จะต้องมากกว่าหรือเท่ากับเลขไมล์ปัจจุบัน'
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrorForm(newErrors)
+      return
+    }
+    setErrorForm({})
+  }
+
   return (
     <>
       <button
@@ -346,6 +367,34 @@ export default function BookingsDrawer({
 
         <form onSubmit={submit} className="space-y-6 px-6 py-5">
         {error && <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">{error}</div>}
+
+          {form.carId ? (
+            <div className="mb-4 p-4 rounded-lg bg-amber-50 text-sm font-medium text-amber-700 relative">
+              <div className='md:flex justify-baseline items-center gap-4'>
+                <div className='w-full'>
+                  <div className="font-bold">แจ้งเตือน: อัพเดทเลขไมล์</div>
+                  <div className='text-xs font-medium'>กรุณาใส่ข้อมูลเลขไมล์ให้มากกว่าเลขไมล์ปัจจุบัน <b>{formatCompactNumber(toNumber(carsMileage))}</b></div>
+                </div>
+                <div className='w-full mileage'>
+                  <Input 
+                    id='mileage'
+                    type='number'
+                    step="0" 
+                    value={form.mileage}
+                    placeholder={`เลขไมล์ปัจจุบัน ${formatCompactNumber(toNumber(carsMileage))}`}
+                    onChange={handleCarsMileage}
+                    className={cn(
+                      'w-full my-2',
+                      errorForm.mileage ? 'border-2 border-red-600' : ''
+                    )}
+                  />
+                  {errorForm.mileage && (
+                    <p className="mt-1 text-xs font-medium text-red-600">{errorForm.mileage}</p>
+                  )}
+                </div>
+              </div>
+            </div>
+          ) : null}
 
           <div>
             <Label>สถานะการจอง <span className="text-red-600">*</span></Label>
@@ -373,7 +422,7 @@ export default function BookingsDrawer({
               <Label>รายการรถ <span className="text-red-600">*</span></Label>
               <Select value={form.carId} onChange={(e) => handleCarChange(e.target.value)}>
                 <option value="">เลือกรายการรถ</option>
-                {cars?.map((c) => <option key={c.id} value={c.id}>{c.label}</option>)}
+                {carsAvailable?.map((c) => <option key={c.id} value={c.id}>{c.label}</option>)}
               </Select>
               {errorForm.carId && (
                 <p className="mt-1 text-xs font-medium text-red-600">{errorForm.carId}</p>
@@ -389,6 +438,19 @@ export default function BookingsDrawer({
                 <p className="mt-1 text-xs font-medium text-red-600">{errorForm.driverId}</p>
               )}
             </div>
+            <div>
+              <Label>ผู้ให้เช่า <span className="text-red-600">*</span></Label>
+              <Select value={form.userId} onChange={(e) => setForm((c) => ({ ...c, userId: e.target.value }))}>
+                <option value="">เลือกข้อมูลผู้ให้เช่า</option>
+                {users?.map((d) => <option key={d.id} value={d.id}>{d.label}</option>)}
+              </Select>
+              {errorForm.userId && (
+                <p className="mt-1 text-xs font-medium text-red-600">{errorForm.userId}</p>
+              )}
+            </div>
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-2">
             <div>
               <Label>วันที่-เวลา รับรถ <span className="text-red-600">*</span></Label>
               <DateTimePicker

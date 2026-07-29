@@ -24,19 +24,18 @@ export async function PATCH(
     const updated = await prisma.$transaction(async (tx) => {
       const targetCar = await tx.car.findFirst({
         where: { id: nextCarId, isDeleted: false },
-        select: { id: true, status: true },
+        select: { id: true, status: true, mileage: true },
       })
       if (!targetCar) {
         throw new Error('Car not found')
       }
-
-      if (targetCar.status === 'Maintenance' || targetCar.status === 'Unavailable' || targetCar.status === 'Booked') {
-        throw new Error('Car is not available for booking')
+      if (targetCar.mileage < body.mileage) {
+        throw new Error('Car mileage less then now')
       }
 
       const targetCarUpdate = await tx.car.updateMany({
         where: { id: nextCarId, isDeleted: false, status: targetCar.status },
-        data: { status: PrismaCarStatus.Booked, updatedBy: userId },
+        data: { status: PrismaCarStatus.Booked, mileage: body.mileage, updatedBy: userId },
       })
 
       if (targetCarUpdate.count === 0) {
@@ -79,7 +78,7 @@ export async function PATCH(
       if (booking.carId !== nextCarId) {
         const releaseOld = await tx.car.updateMany({
           where: { id: booking.carId, isDeleted: false, status: PrismaCarStatus.Booked },
-          data: { status: PrismaCarStatus.Available, updatedBy: userId },
+          data: { status: PrismaCarStatus.Available, mileage: body.mileage, updatedBy: userId },
         })
         if (releaseOld.count === 0) {
           throw new Error('Car status changed by another user')
@@ -93,12 +92,10 @@ export async function PATCH(
   } catch (error: any) {
     const message = String(error?.message ?? '')
     if (message === 'Car not found') return NextResponse.json({ message }, { status: 404 })
-    if (message === 'Car is not available for booking') {
-      return NextResponse.json({ message: 'รถคันนี้ไม่พร้อมสำหรับการจองแล้ว กรุณารีเฟรชข้อมูลรถ' }, { status: 409 })
-    }
     if (message === 'Car status changed by another user') {
       return NextResponse.json({ message: 'รถคันนี้ถูกเปลี่ยนสถานะโดยผู้ใช้อื่น กรุณารีเฟรชข้อมูลรถ' }, { status: 409 })
     }
+    if (message === 'Car mileage less then now') return NextResponse.json({ message: 'เลขไมล์ใหม่จะต้องมากกว่าหรือเท่ากับเลขไมล์ปัจจุบัน' }, { status: 409 })
     return NextResponse.json({ message: 'Failed to update booking' }, { status: 500 })
   }
 }
