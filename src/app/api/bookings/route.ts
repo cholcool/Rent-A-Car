@@ -3,6 +3,7 @@ import { CarStatus as PrismaCarStatus, Prisma } from '@prisma/client'
 import prisma from '@/lib/prisma';
 import { ROLE_GROUPS } from '@/lib/rbac/access';
 import { getAuthorizedUserIdByRoles } from '@/lib/auth-server'
+import { generateMonthlyDocumentNumber } from '@/lib/document-number'
 
 export async function GET() {
   const userId = await getAuthorizedUserIdByRoles(ROLE_GROUPS.EDITORS)
@@ -53,7 +54,7 @@ export async function POST(request: Request) {
       if (!car) {
         throw new Error('Car not found')
       }
-      if (car.mileage < mileage) {
+      if (mileage < car.mileage) {
         throw new Error('Car mileage less then now')
       }
 
@@ -108,9 +109,10 @@ export async function POST(request: Request) {
           paymentImageId: body.bookingPaymentImagesId || null,
           healthCheck01ImageId: body.bookingHealthCheck01ImagesId || null,
           healthCheck02ImageId: body.bookingHealthCheck02ImagesId || null,
+          contractNo: await generateMonthlyDocumentNumber({ model: 'booking', field: 'contractNo' }),
           createdBy: userId,
           updatedBy: userId,
-        },
+        } as any,
         include: {
           user: true,
           car: { include: { brand: true } },

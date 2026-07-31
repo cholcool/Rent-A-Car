@@ -439,7 +439,7 @@ export default function BookingsDrawer({
               )}
             </div>
             <div>
-              <Label>ผู้ให้เช่า <span className="text-red-600">*</span></Label>
+              <Label>ข้อมูลผู้ให้เช่า <span className="text-red-600">*</span></Label>
               <Select value={form.userId} onChange={(e) => setForm((c) => ({ ...c, userId: e.target.value }))}>
                 <option value="">เลือกข้อมูลผู้ให้เช่า</option>
                 {users?.map((d) => <option key={d.id} value={d.id}>{d.label}</option>)}

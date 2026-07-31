@@ -66,6 +66,7 @@ export function getStatusLabel(status?: string | null) {
     Reserved: "กำลังจอง",
     Rejected: "ถูกปฏิเสธ",
     Refunded: "คืนเงิน",
+    PartialPaid: "ชำระบางส่วน",
     Tax: "ภาษี",
     Unavailable: "ไม่พร้อมใช้",
   };
@@ -89,7 +90,7 @@ export function getStatusBadgeClass(status?: string | null, className?: string) 
 
   return cn(
     "rounded-lg bg-slate-100 px-3 py-1 text-xs font-bold text-slate-700",
-    ["available", "active", "confirmed", "inprogress", "paid"].includes(normalized) &&
+    ["available", "active", "confirmed", "inprogress", "paid", "partialpaid"].includes(normalized) &&
       "bg-emerald-100 text-emerald-700",
     ["pending", "maintenance"].includes(normalized) && "bg-amber-100 text-amber-700",
     ["booked", "reserved"].includes(normalized) && "bg-[#F4E7B0] text-[#4E2788]",

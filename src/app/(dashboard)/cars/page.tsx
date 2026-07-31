@@ -109,7 +109,7 @@ export default async function CarsPage({ searchParams }: PageProps) {
           <option value="mileage">ไมล์น้อยก่อน</option>
         </Select>
 
-        <Button type="submit" className="h-full min-h-8 col-start-3 justify-self-end">
+        <Button type="submit" className="h-full min-h-8 md:col-start-3 xl:col-auto justify-self-end">
           <Search className="mr-2 h-4 w-4" />
           ค้นหา
         </Button>

@@ -53,10 +53,10 @@ export default async function BookingsPage({ searchParams }: PageProps) {
       orderBy,
       take: pageSize,
       skip: (page - 1) * pageSize,
-      include: {
-        user: {
-          select: { id: true, firstName: true, lastName: true, phone: true },
-        },
+        include: {
+          user: {
+            select: { id: true, firstName: true, lastName: true, phone: true },
+          },
         car: {
           select: {
             id: true,
@@ -75,6 +75,11 @@ export default async function BookingsPage({ searchParams }: PageProps) {
         },
         product: {
           select: { id: true, name: true, price: true },
+        },
+        payments: {
+          where: { isDeleted: false },
+          select: { id: true, amount: true, paymentStatus: true, paymentMethod: true, paymentDate: true, isDeleted: true },
+          orderBy: { paymentDate: 'desc' },
         },
       },
     }),
@@ -269,7 +274,7 @@ export default async function BookingsPage({ searchParams }: PageProps) {
             <option value="dateEnd">เรียงตามวันคืนรถ</option>
           </Select>
 
-          <Button type="submit" className="h-full min-h-8 col-start-3 justify-self-end">
+          <Button type="submit" className="h-full min-h-8 md:col-start-3 xl:col-auto justify-self-end">
             <Search className="mr-2 h-4 w-4" />
             ค้นหา
           </Button>

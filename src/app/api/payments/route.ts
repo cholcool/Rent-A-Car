@@ -9,6 +9,7 @@ export async function GET() {
     return NextResponse.json({ message: 'Forbidden' }, { status: 403 });
 
   const payments = await prisma.payment.findMany({
+    where: { isDeleted: false },
     orderBy: { createdAt: 'desc' },
     include: { booking: true },
   });

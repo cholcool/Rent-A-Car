@@ -29,7 +29,7 @@ export async function PATCH(
       if (!targetCar) {
         throw new Error('Car not found')
       }
-      if (targetCar.mileage < body.mileage) {
+      if (body.mileage < targetCar.mileage) {
         throw new Error('Car mileage less then now')
       }
 

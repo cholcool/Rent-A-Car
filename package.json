@@ -21,7 +21,7 @@
     "_comment_prisma:generate": "[npm run prisma:generate] : อัปเดตและสร้างประเภทตัวแปร (Types) ของ Prisma Client ให้ตรงตามโครงสร้างสคีมาล่าสุด",
     "db:gen": "npx prisma generate",
     "_comment_db:gen": "[npm run db:gen] : สร้าง Prisma Client ใหม่อีกครั้ง",
-    "db:migrate": "prisma migrate dev",
+    "db:migrate": "prisma migrate",
     "_comment_db:migrate": "[npm run db:migrate] : บันทึกประวัติการเปลี่ยนแปลงและอัปเดตโครงสร้างตารางในฐานข้อมูล (ระบบจะถามหากข้อมูลเก่าขัดแย้ง)",
     "db:push": "prisma db push",
     "_comment_db:push": "[npm run db:push] : ดันโครงสร้างสคีมาล่าสุดเข้าฐานข้อมูลทันทีอย่างรวดเร็ว โดยไม่ลบข้อมูลเก่าที่บันทึกค้างไว้",

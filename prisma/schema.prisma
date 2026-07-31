@@ -20,6 +20,7 @@ enum CarStatus {
 
 enum BookingStatus {
   Pending
+  PartialPaid
   Confirmed
   InProgress @map("In Progress")
   Completed
@@ -29,8 +30,6 @@ enum BookingStatus {
 
 enum PaymentMethod {
   Cash
-  CreditCard  @map("Credit Card")
-  PromptPay   @map("Prompt Pay")
   BankTransfer @map("Bank Transfer")
 }
 
@@ -38,6 +37,7 @@ enum PaymentStatus {
   Pending
   Paid
   Failed
+  Cancelled
   Refunded
 }
 
@@ -239,6 +239,7 @@ model Booking {
   bookingNo1             String?        @map("booking_no1") @db.VarChar(20)
   bookingNo2             String?        @map("booking_no2") @db.VarChar(20)
   bookingNo3             String?        @map("booking_no3") @db.VarChar(20)
+  contractNo             String?        @map("contract_no") @db.VarChar(20)
   dateStart              DateTime       @map("date_start") @db.Timestamptz
   dateEnd                DateTime       @map("date_end") @db.Timestamptz
   dateReturn             DateTime?      @map("date_return") @db.Timestamptz
@@ -273,6 +274,7 @@ model Booking {
 model Payment {
   id            String         @id @default(uuid()) @map("payments_id") @db.Uuid
   bookingId     String         @map("booking_id") @db.Uuid
+  receiptNo     String?        @map("receipt_no") @db.VarChar(20)
   paymentDate   DateTime       @default(now()) @map("payment_date") @db.Timestamptz
   amount        Decimal        @default(0) @map("amount") @db.Decimal(12, 2)
   paymentMethod PaymentMethod  @map("payment_method")
