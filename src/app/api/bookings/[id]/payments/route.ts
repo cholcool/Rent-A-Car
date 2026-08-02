@@ -1,19 +1,15 @@
 import { NextResponse } from 'next/server'
 import { Prisma, PaymentStatus } from '@prisma/client'
 import prisma from '@/lib/prisma'
-import { ROLE_GROUPS } from '@/lib/rbac/access'
-import { getAuthorizedUserIdByRoles } from '@/lib/auth-server'
 import { serializePrismaRows } from '@/lib/serialize'
 import { getPaidAmount } from '@/lib/payment-summary'
 import { generateMonthlyDocumentNumber } from '@/lib/document-number'
+import { getCachedSession } from '@/lib/auth'
 
 export async function GET(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const userId = await getAuthorizedUserIdByRoles(ROLE_GROUPS.EDITORS)
-  if (!userId) return NextResponse.json({ message: 'Unauthorized' }, { status: 401 })
-
   const { id } = await params
   const booking = await prisma.booking.findFirst({
     where: { id, isDeleted: false },
@@ -43,7 +39,8 @@ export async function POST(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const userId = await getAuthorizedUserIdByRoles(ROLE_GROUPS.EDITORS)
+  const session = await getCachedSession();
+  const userId = session?.user?.id
   if (!userId) return NextResponse.json({ message: 'Unauthorized' }, { status: 401 })
 
   const { id } = await params

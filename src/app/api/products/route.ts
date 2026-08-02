@@ -1,8 +1,7 @@
 import { Prisma } from '@prisma/client'
 import { NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
-import { ROLE_GROUPS } from '@/lib/rbac/access'
-import { getAuthorizedUserIdByRoles } from '@/lib/auth-server'
+import { getCachedSession } from '@/lib/auth'
 
 function parseDateOnly(value: unknown) {
   if (typeof value !== 'string' || !value.trim()) return null
@@ -14,13 +13,10 @@ function parseBody(body: unknown) {
   return (body ?? {}) as Record<string, unknown>
 }
 
-async function getAuthorizedUserId() {
-  return getAuthorizedUserIdByRoles(ROLE_GROUPS.EDITORS)
-}
-
 export async function POST(request: Request) {
   try {
-    const userId = await getAuthorizedUserId()
+    const session = await getCachedSession();
+    const userId = session?.user?.id
     if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
     const body = parseBody(await request.json())
@@ -83,7 +79,8 @@ export async function POST(request: Request) {
 
 export async function PATCH(request: Request) {
   try {
-    const userId = await getAuthorizedUserId()
+    const session = await getCachedSession();
+    const userId = session?.user?.id
     if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
     const body = parseBody(await request.json())
@@ -136,7 +133,8 @@ export async function PATCH(request: Request) {
 
 export async function DELETE(request: Request) {
   try {
-    const userId = await getAuthorizedUserId()
+    const session = await getCachedSession();
+    const userId = session?.user?.id
     if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
     const body = parseBody(await request.json())

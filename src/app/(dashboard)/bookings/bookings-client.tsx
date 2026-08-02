@@ -14,10 +14,8 @@ import { BookingOption, DriverEmptyForm, GuarantorEmptyForm, type DriverRow } fr
 import ReportFieldDrawer from '@/components/ReportFieldDrawer'
 import DepositDrawer from '@/components/DepositDrawer'
 
-type Row = any
-
 interface BookingsClientProps {
-  initialBookings: Row[]
+  initialBookings: any[]
   products: BookingOption[]
   cars: BookingOption[]
   drivers: BookingOption[]
@@ -37,7 +35,7 @@ export default function BookingsClient({
   currentUserId,
   displayName
 }: BookingsClientProps) {
-  const [bookings, setBookings] = useState<Row[]>(initialBookings)
+  const [bookings, setBookings] = useState<any[]>(initialBookings)
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [driverDrawerOpen, setDriverDrawerOpen] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
@@ -64,7 +62,7 @@ export default function BookingsClient({
     mileage: '0'
   }
   const [form, setForm] = useState(empty)
-  const [itemsList, setItemsList] = useState<Row[] | null>(null)
+  const [itemsList, setItemsList] = useState<any[] | null>(null)
   const [reportDrawerOpen, setReportDrawerOpen] = useState(false)
   const [depositDrawerOpen, setDepositDrawerOpen] = useState(false)
 
@@ -97,7 +95,7 @@ export default function BookingsClient({
     setMenuOpen(false)
   }
 
-  function openEdit(row: Row) {
+  function openEdit(row: any) {
     setEditingId(row.id)
     setForm({
       productId: row.productId ?? '',
@@ -120,13 +118,13 @@ export default function BookingsClient({
     setDrawerOpen(true)
   }
 
-  function openFile(row: Row) {
+  function openFile(row: any) {
     setItemsList(row)
     setReportDrawerOpen(true)
     setMenuOpen(false)
   }
 
-  function openDeposit(row: Row) {
+  function openDeposit(row: any) {
     setItemsList(row)
     setDepositDrawerOpen(true)
     setMenuOpen(false)
@@ -282,6 +280,8 @@ export default function BookingsClient({
             errorIn={error}
             setDrawerOpen={setDrawerOpen}
             setBookings={setBookings}
+            setDepositDrawerOpen={setDepositDrawerOpen}
+            setItemsList={setItemsList}
          />
         </>
       )}

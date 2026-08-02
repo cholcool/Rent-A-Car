@@ -2,15 +2,14 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { PaymentMethod, PaymentStatus } from '@prisma/client'
-import { Card, CardContent, Button, Input, Select, Badge, SkeletonTable  } from '@/components/ui'
+import { Card, CardContent, Button, Input, Select, Badge, SkeletonTable,   } from '@/components/ui'
 import { formatBaht, formatThaiDate, getStatusBadgeClass, getStatusLabel } from '@/lib/ui-format'
 import { X, HandCoinsIcon, Printer } from 'lucide-react'
 import { AlertDialogDestructive } from '@/components/AlertDialogDestructive'
-
-type BookingRow = any
+import { AlertDialogSmall } from '@/components/AlertDialogSmall'
 
 interface Props {
-  itemsList: BookingRow | null
+  itemsList: any | null
   setDrawerOpen?: (open: boolean) => void
 }
 
@@ -29,6 +28,8 @@ export default function DepositDrawer({ itemsList, setDrawerOpen }: Props) {
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>(PaymentMethod.Cash)
   const [busy, setBusy] = useState(false)
   const [loaded, setLoaded] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [alertOpen, setAlertOpen] = useState(false)
 
   const drivers = `${itemsList?.driver?.fullName ?? ''}`.trim()
   const carName = `${itemsList?.car?.brand?.name ?? ''} ${itemsList?.car?.model ?? ''} (${itemsList?.car?.license ?? '-'})`.trim()
@@ -38,7 +39,7 @@ export default function DepositDrawer({ itemsList, setDrawerOpen }: Props) {
 
   const summary = useMemo(() => {
     const totalAmount = Number(itemsList?.netAmount ?? 0)
-    const paidAmount = payments.reduce((sum, row) => sum + Number(row.amount ?? 0), 0)
+    const paidAmount = payments.reduce((sum, row) => sum + Number(row?.amount ?? 0), 0)
     return {
       totalAmount,
       paidAmount,
@@ -72,8 +73,11 @@ export default function DepositDrawer({ itemsList, setDrawerOpen }: Props) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ amount: Number(amount), paymentMethod }),
       })
-      if (!res.ok) return
       const data = await res.json()
+      setError(data.message ?? null)
+      setAlertOpen(data.message ? true : false)
+
+      if (!res.ok) return
       setPayments((current) => [data.payment, ...current])
       setAmount('')
     } finally {
@@ -93,6 +97,8 @@ export default function DepositDrawer({ itemsList, setDrawerOpen }: Props) {
 
   return (
     <>
+      <AlertDialogSmall title={error} open={alertOpen} setOpen={setAlertOpen} />
+
       <button type="button" aria-label="Close drawer" className="fixed inset-0 z-30 bg-slate-950/30 backdrop-blur-[2px] p-o m-0" onClick={closeDrawer} />
 
       <aside className="fixed right-0 top-0 z-40 h-full w-full max-w-2xl overflow-auto bg-white shadow-2xl">
@@ -100,7 +106,7 @@ export default function DepositDrawer({ itemsList, setDrawerOpen }: Props) {
           <CardContent className="flex h-full flex-col gap-4 p-6">
             <div className="flex items-start justify-between gap-4">
               <div>
-                <h2 className="text-2xl font-extrabold text-slate-950">สรุปรายการ | สรุปยอด</h2>
+                <h2 className="text-2xl font-extrabold text-slate-950">สรุปยอด ${error}</h2>
               </div>
               <button type="button" onClick={closeDrawer} className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 hover:bg-slate-50">
                 <X className="h-5 w-5" />

@@ -1,5 +1,5 @@
 import { randomBytes, scryptSync, timingSafeEqual } from 'node:crypto';
-import { auth, getCachedSession } from './auth';
+import { getCachedSession } from './auth';
 import prisma from './prisma';
 import { ROLE_GROUPS, hasAnyRole, normalizeRoles } from '@/lib/rbac/access'
 

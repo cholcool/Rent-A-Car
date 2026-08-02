@@ -1,18 +1,18 @@
 import { NextResponse } from 'next/server';
 import { Prisma } from '@prisma/client'
 import prisma from '@/lib/prisma';
-import { ROLE_GROUPS } from '@/lib/rbac/access';
-import { getAuthorizedUserIdByRoles } from '@/lib/auth-server'
 import { buildCarOrderBy, buildCarWhere, parseCarListQuery } from '@/lib/cars/query'
 import { serializePrismaRows } from '@/lib/serialize'
 import { CarStatus } from '@/lib/types'
+import { getCachedSession } from '@/lib/auth'
 
 function normalize(value: unknown) {
   return typeof value === 'string' ? value.trim() : ''
 }
 
 export async function GET(request: Request) {
-  const userId = await getAuthorizedUserIdByRoles(ROLE_GROUPS.EDITORS)
+  const session = await getCachedSession();
+  const userId = session?.user?.id
   if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const url = new URL(request.url)
@@ -35,7 +35,8 @@ export async function GET(request: Request) {
 }
 
 export async function DELETE(request: Request) {
-  const userId = await getAuthorizedUserIdByRoles(ROLE_GROUPS.EDITORS)
+  const session = await getCachedSession();
+  const userId = session?.user?.id
   if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const body = await request.json().catch(() => ({}))
@@ -54,7 +55,8 @@ export async function DELETE(request: Request) {
 }
 
 export async function PATCH(request: Request) {
-  const userId = await getAuthorizedUserIdByRoles(ROLE_GROUPS.EDITORS)
+  const session = await getCachedSession();
+  const userId = session?.user?.id
   if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const body = await request.json().catch(() => ({}))

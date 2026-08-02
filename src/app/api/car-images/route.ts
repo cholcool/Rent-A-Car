@@ -3,14 +3,9 @@ import { mkdir, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
-import { ROLE_GROUPS } from '@/lib/rbac/access'
-import { getAuthorizedUserIdByRoles } from '@/lib/auth-server'
+import { getCachedSession } from '@/lib/auth'
 
 const UPLOAD_DIR = join(process.cwd(), 'public', 'uploads')
-
-async function getAuthorizedUserId() {
-  return getAuthorizedUserIdByRoles(ROLE_GROUPS.EDITORS)
-}
 
 async function ensureUploadDir() {
   await mkdir(UPLOAD_DIR, { recursive: true })
@@ -27,7 +22,8 @@ async function saveFile(file: File) {
 }
 
 export async function POST(request: Request) {
-  const userId = await getAuthorizedUserId()
+  const session = await getCachedSession();
+  const userId = session?.user?.id
   if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const formData = await request.formData()
@@ -71,7 +67,8 @@ export async function POST(request: Request) {
 }
 
 export async function DELETE(request: Request) {
-  const userId = await getAuthorizedUserId()
+  const session = await getCachedSession();
+  const userId = session?.user?.id
   if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const body = await request.json().catch(() => ({}))

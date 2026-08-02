@@ -48,6 +48,8 @@ interface BookingsDrawerProps {
   errorIn?: string
   setDrawerOpen?: any
   setBookings: Dispatch<SetStateAction<any[]>> 
+  setDepositDrawerOpen?: any
+  setItemsList?: any
 }
 
 export default function BookingsDrawer({ 
@@ -60,7 +62,9 @@ export default function BookingsDrawer({
   formIn,
   errorIn,
   setDrawerOpen,
-  setBookings
+  setBookings,
+  setDepositDrawerOpen,
+  setItemsList
 }: BookingsDrawerProps) {
   const [errorForm, setErrorForm] = useState<Record<string, string>>({})
   const [saving, setSaving] = useState(false)
@@ -305,6 +309,8 @@ export default function BookingsDrawer({
       setLastReservedCarId(null)
       setBookings((current) => editingId ? current.map((item) => (item.id === row.id ? row : item)) : [row, ...current])
       setDrawerOpen(false)
+      setDepositDrawerOpen(true)
+      setItemsList(row ?? null)
       router.refresh()
     } catch (err: any) {
       setError(err?.message ?? 'บันทึกไม่สำเร็จ')
@@ -584,8 +590,8 @@ export default function BookingsDrawer({
             />
 
           <div className="flex items-center justify-end gap-3 w-full border-t border-slate-200 pt-5">
-            <Button type="submit" disabled={saving} className="gap-2 w-full" variant="save">
-              {saving ? 'กำลังบันทึก...' : 'บันทึกข้อมูล'}
+            <Button type="submit" disabled={saving} className={cn("gap-2 w-full", error && "bg-red-700 hover:bg-red-400")} variant="save">
+              {saving ? 'กำลังบันทึก...' : error ? "กรุณากรอกข้อมูลให้ครบถ้วน" : 'บันทึกข้อมูล'}
             </Button>
           </div>
         </form>

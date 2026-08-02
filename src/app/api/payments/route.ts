@@ -1,10 +1,10 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
-import { ROLE_GROUPS } from '@/lib/rbac/access';
-import { getAuthorizedUserIdByRoles } from '@/lib/auth-server'
+import { getCachedSession } from '@/lib/auth'
 
 export async function GET() {
-  const userId = await getAuthorizedUserIdByRoles(ROLE_GROUPS.ADMIN_STAFF)
+  const session = await getCachedSession();
+  const userId = session?.user?.id
   if (!userId)
     return NextResponse.json({ message: 'Forbidden' }, { status: 403 });
 

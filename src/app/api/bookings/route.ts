@@ -1,12 +1,12 @@
 import { NextResponse } from 'next/server';
 import { CarStatus as PrismaCarStatus, Prisma } from '@prisma/client'
 import prisma from '@/lib/prisma';
-import { ROLE_GROUPS } from '@/lib/rbac/access';
-import { getAuthorizedUserIdByRoles } from '@/lib/auth-server'
 import { generateMonthlyDocumentNumber } from '@/lib/document-number'
+import { getCachedSession } from '@/lib/auth'
 
 export async function GET() {
-  const userId = await getAuthorizedUserIdByRoles(ROLE_GROUPS.EDITORS)
+  const session = await getCachedSession();
+  const userId = session?.user?.id
   if (!userId)
     return NextResponse.json({ message: 'Forbidden' }, { status: 403 });
 
@@ -27,8 +27,9 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-  const userId = await getAuthorizedUserIdByRoles(ROLE_GROUPS.EDITORS)
-  if (!userId) return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+  const session = await getCachedSession();
+  const userId = session?.user?.id
+  if (!userId) return NextResponse.json({ message: 'Unauthorized' }, { status: 401 })
 
   const body = await request.json();
   const carId = String(body.carId ?? '').trim()
