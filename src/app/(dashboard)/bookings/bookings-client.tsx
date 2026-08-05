@@ -300,7 +300,6 @@ export default function BookingsClient({
 
       {reportDrawerOpen && (
         <ReportFieldDrawer 
-          itemsList={itemsList}
           setDrawerOpen={setReportDrawerOpen}
         />
       )}

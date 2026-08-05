@@ -4,11 +4,10 @@ import { Card, CardContent, Button } from '@/components/ui'
 import { Printer, X } from 'lucide-react'
 
 interface Props {
-  itemsList: any | null
   setDrawerOpen?: (open: boolean) => void
 }
 
-export default function ReportFieldDrawer({ itemsList, setDrawerOpen }: Props) {
+export default function ReportFieldDrawer({ setDrawerOpen }: Props) {
   function closeDrawer() {
     setDrawerOpen?.(false)
   }

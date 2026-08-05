@@ -236,9 +236,6 @@ model Booking {
   paymentImageId         String?        @map("booking_payment_images_id") @db.Uuid
   healthCheck01ImageId   String?        @map("booking_health_check_01_images_id") @db.Uuid
   healthCheck02ImageId   String?        @map("booking_health_check_02_images_id") @db.Uuid
-  bookingNo1             String?        @map("booking_no1") @db.VarChar(20)
-  bookingNo2             String?        @map("booking_no2") @db.VarChar(20)
-  bookingNo3             String?        @map("booking_no3") @db.VarChar(20)
   contractNo             String?        @map("contract_no") @db.VarChar(20)
   dateStart              DateTime       @map("date_start") @db.Timestamptz
   dateEnd                DateTime       @map("date_end") @db.Timestamptz
