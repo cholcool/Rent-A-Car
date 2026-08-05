@@ -4,7 +4,7 @@ export const appSurfaceClass =
   "rounded-2xl border border-slate-200 bg-white shadow-sm shadow-slate-200/60";
 
 export const appInputClass =
-  "h-11 rounded-xl border border-slate-200 bg-white px-3.5 text-sm font-medium text-slate-900 shadow-sm shadow-slate-200/50 outline-none transition-colors placeholder:text-slate-400 focus-visible:border-blue-600 focus-visible:ring-2 focus-visible:ring-blue-600/20";
+  "h-11 rounded-xl border border-slate-200 bg-white px-3.5 text-sm font-medium text-slate-900 shadow-sm shadow-slate-200/50 outline-none transition-colors placeholder:text-slate-400 focus-visible:border-[#6F3BB7] focus-visible:ring-2 focus-visible:ring-[#6F3BB7]/20";
 
 export function toNumber(value: unknown) {
   if (typeof value === "number") return value;
@@ -50,22 +50,36 @@ export function formatThaiDate(value?: Date | string | null) {
 
 export function getStatusLabel(status?: string | null) {
   const labels: Record<string, string> = {
+    Active: "ใช้งาน",
     Available: "พร้อมให้เช่า",
     Booked: "จองแล้ว",
-    Maintenance: "บำรุงรักษา",
-    Unavailable: "ไม่พร้อมใช้",
-    Reserved: "จองสำรอง",
-    Pending: "รอดำเนินการ",
-    Confirmed: "กำลังดำเนินการ",
-    InProgress: "กำลังดำเนินการ",
-    Completed: "เสร็จสิ้น",
     Cancelled: "ยกเลิก",
-    Rejected: "ปฏิเสธ",
-    Paid: "ชำระเงินแล้ว",
+    Confirmed: "ยืนยันแล้ว",
+    Completed: "เสร็จสิ้น",
     Failed: "ล้มเหลว",
+    InActive: "ไม่ใช้งาน",
+    InProgress: "กำลังดำเนินการ",
+    Insurance: "ประกันภัย",
+    Maintenance: "บำรุงรักษา",
+    Paid: "ชำระเงินแล้ว",
+    Pending: "รอดำเนินการ",
+    Reserved: "กำลังจอง",
+    Rejected: "ถูกปฏิเสธ",
     Refunded: "คืนเงิน",
-    Active: "ใช้งาน",
+    PartialPaid: "ชำระบางส่วน",
+    Tax: "ภาษี",
+    Unavailable: "ไม่พร้อมใช้",
+  };
+
+  return status ? labels[status] ?? status : "Unknown";
+}
+
+export function getNotificationLabel(status?: string | null) {
+  const labels: Record<string, string> = {
+    Active: "แจ้งเตือน",
     Complete: "เสร็จสิ้น",
+    Pending: "รอแจ้งเตือน",
+    Overdue: "เกินกำหนด",
   };
 
   return status ? labels[status] ?? status : "Unknown";
@@ -76,11 +90,11 @@ export function getStatusBadgeClass(status?: string | null, className?: string) 
 
   return cn(
     "rounded-lg bg-slate-100 px-3 py-1 text-xs font-bold text-slate-700",
-    ["available", "active", "confirmed", "inprogress", "paid"].includes(normalized) &&
+    ["available", "active", "confirmed", "inprogress", "paid", "partialpaid"].includes(normalized) &&
       "bg-emerald-100 text-emerald-700",
     ["pending", "maintenance"].includes(normalized) && "bg-amber-100 text-amber-700",
-    ["booked", "reserved"].includes(normalized) && "bg-blue-100 text-blue-700",
-    ["completed", "complete", "refunded"].includes(normalized) && "bg-blue-100 text-blue-700",
+    ["booked", "reserved"].includes(normalized) && "bg-[#F4E7B0] text-[#4E2788]",
+    ["completed", "complete", "refunded"].includes(normalized) && "bg-[#F4E7B0] text-[#4E2788]",
     ["cancelled", "rejected", "failed", "unavailable"].includes(normalized) &&
       "bg-red-100 text-red-700",
     className

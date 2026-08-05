@@ -2,12 +2,11 @@
 
 import { useState } from 'react'
 import { Loader2, Save } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
+import { Button, Label, Input, Textarea } from '@/components/ui'
 import { createCar } from '@/app/(dashboard)/cars/cars-actions'
 import { useRouter } from 'next/navigation'
+import { CarStatusOptions, CarStatus } from '@/lib/types'
+import CarImageUploader from '@/components/CarImageUploader'
 
 interface VehicleType {
   id: string
@@ -25,17 +24,10 @@ interface CarFormProps {
   onSuccess: () => void
 }
 
-const carStatuses = [
-  { value: 'Available', label: 'พร้อมให้เช่า' },
-  { value: 'Booked', label: 'จองแล้ว' },
-  { value: 'Maintenance', label: 'บำรุงรักษา' },
-  { value: 'Unavailable', label: 'ไม่พร้อมใช้' },
-  { value: 'Reserved', label: 'จองสำรอง' },
-]
-
 export default function CarForm({ vehicleTypes, brands, onSuccess }: CarFormProps) {
   const [isLoading, setIsLoading] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
+  const [pendingFiles, setPendingFiles] = useState<File[]>([])
   const [formData, setFormData] = useState({
     vehicleTypeId: '',
     brandId: '',
@@ -43,6 +35,8 @@ export default function CarForm({ vehicleTypes, brands, onSuccess }: CarFormProp
     year: new Date().getFullYear().toString(),
     color: '',
     license: '',
+    engine: '',
+    chassis: '',
     mileage: '0',
     status: 'Available',
     remark: '',
@@ -74,6 +68,7 @@ export default function CarForm({ vehicleTypes, brands, onSuccess }: CarFormProp
     if (!formData.brandId) newErrors.brandId = 'แบรนด์รถเป็นข้อมูลบังคับ'
     if (!formData.model.trim()) newErrors.model = 'รุ่นรถเป็นข้อมูลบังคับ'
     if (!formData.year || !/^\d{4}$/.test(formData.year)) newErrors.year = 'ปีต้องเป็นตัวเลข 4 หลัก'
+    if (!formData.color.trim()) newErrors.color = 'สีรถเป็นข้อมูลบังคับ'
     if (!formData.license.trim()) newErrors.license = 'ทะเบียนรถเป็นข้อมูลบังคับ'
     const mileageNum = parseFloat(formData.mileage)
     if (isNaN(mileageNum) || mileageNum < 0) newErrors.mileage = 'เลขไมล์ต้องเป็นตัวเลขและไม่เป็นลบ'
@@ -94,15 +89,26 @@ export default function CarForm({ vehicleTypes, brands, onSuccess }: CarFormProp
         year: formData.year,
         color: formData.color,
         license: formData.license.trim(),
+        engine: formData.engine || null,
+        chassis: formData.chassis || null,
         mileage: parseFloat(formData.mileage),
-        status: formData.status as 'Available' | 'Booked' | 'Maintenance' | 'Unavailable' | 'Reserved',
+        status: formData.status as CarStatus,
         remark: formData.remark || null,
       })
 
       if (result.success) {
-        onSuccess()
-
+        const carId = result.data?.id
+        if (carId && pendingFiles.length > 0) {
+          const formData = new FormData()
+          formData.append('carId', carId)
+          pendingFiles.forEach((file) => formData.append('files', file))
+          await fetch('/api/car-images', { method: 'POST', body: formData })
+        }
         router.refresh()
+
+        setTimeout(() => {
+          onSuccess() 
+        }, 60)
       } else {
         setErrors({ form: result.error || 'เกิดข้อผิดพลาดในการสร้างรถ' })
       }
@@ -215,7 +221,7 @@ export default function CarForm({ vehicleTypes, brands, onSuccess }: CarFormProp
 
           <div>
             <Label htmlFor="color" className="font-bold text-slate-900">
-              สีรถ
+              สีรถ <span className="text-red-600">*</span>
             </Label>
             <Input
               id="color"
@@ -226,6 +232,9 @@ export default function CarForm({ vehicleTypes, brands, onSuccess }: CarFormProp
               onChange={handleChange}
               className="mt-2"
             />
+            {errors.color && (
+              <p className="mt-1 text-xs font-medium text-red-600">{errors.color}</p>
+            )}
           </div>
         </div>
 
@@ -246,6 +255,38 @@ export default function CarForm({ vehicleTypes, brands, onSuccess }: CarFormProp
             {errors.license && (
               <p className="mt-1 text-xs font-medium text-red-600">{errors.license}</p>
             )}
+          </div>
+
+          <div>
+            <Label htmlFor="engine" className="font-bold text-slate-900">
+              เลขเครื่องยนต์
+            </Label>
+            <Input
+              id="engine"
+              name="engine"
+              type="text"
+              placeholder="เช่น R20A1 - 1234567"
+              value={formData.engine}
+              onChange={handleChange}
+              className="mt-2"
+            />
+          </div>
+        </div>
+
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div>
+            <Label htmlFor="chassis" className="font-bold text-slate-900">
+              เลขตัวถัง 
+            </Label>
+            <Input
+              id="chassis"
+              name="chassis"
+              type="text"
+              placeholder="เช่น MRHFC26A0E0123456"
+              value={formData.chassis}
+              onChange={handleChange}
+              className="mt-2"
+            />
           </div>
 
           <div>
@@ -279,7 +320,7 @@ export default function CarForm({ vehicleTypes, brands, onSuccess }: CarFormProp
             onChange={handleChange}
             className="mt-2 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
           >
-            {carStatuses.map((status) => (
+            {CarStatusOptions.map((status) => (
               <option key={status.value} value={status.value}>
                 {status.label}
               </option>
@@ -303,6 +344,8 @@ export default function CarForm({ vehicleTypes, brands, onSuccess }: CarFormProp
         </div>
 
       </section>
+
+      <CarImageUploader onPendingFilesChange={setPendingFiles} />
 
       <div className="sticky bottom-0 left-0 right-0 border-t border-slate-200 bg-white pt-4">
         <div className="flex gap-3">

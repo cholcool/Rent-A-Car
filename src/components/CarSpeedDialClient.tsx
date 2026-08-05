@@ -8,7 +8,8 @@ import { cn } from '@/lib/utils'
 import CarCreateDrawer from '@/components/CarCreateDrawer'
 import BrandCreateDrawer from '@/components/BrandCreateDrawer'
 import VehicleTypeCreateDrawer from '@/components/VehicleTypeCreateDrawer'
-import MaintenanceCreateDrawer, { type MaintenanceRow } from '@/components/MaintenanceCreateDrawer'
+import MaintenanceCreateDrawer from '@/components/MaintenanceCreateDrawer'
+import type { MaintenanceRow } from '@/lib/types'
 
 interface VehicleType {
   id: string
@@ -41,25 +42,25 @@ type SpeedDialItem = {
 
 const items: SpeedDialItem[] = [
   { 
-    title: 'สร้างรถ', 
+    title: 'เพิ่มรถ', 
     description: '', 
     key: 'cars', 
     icon: Car,
   },
   {
-    title: 'สร้างประเภทรถ',
+    title: 'เพิ่มประเภทรถ',
     description: '',
     key: 'vehicle-types',
     icon: Shapes,
   },
   { 
-    title: 'สร้างแบรนด์รถ', 
+    title: 'เพิ่มแบรนด์รถ', 
     description: '', 
     key: 'brands', 
     icon: BadgePlus,
   },
   {
-    title: 'สร้างการบำรุงรักษา',
+    title: 'เพิ่มการบำรุงรักษา',
     description: '',
     key: 'maintenance',
     icon: Wrench,
@@ -127,12 +128,12 @@ export default function CarSpeedDial({ vehicleTypes, brands, cars }: CarSpeedDia
         <button
           type="button"
           aria-label="Close speed dial"
-          className="fixed inset-0 z-30 bg-transparent"
+          className="fixed inset-0 z-10 bg-transparent"
           onClick={() => setOpen(false)}
         />
       )}
 
-      <div className="fixed bottom-6 right-6 z-40 flex flex-col items-end gap-3">
+      <div className="fixed bottom-6 right-6 z-10 flex flex-col items-end gap-3">
         {open && (
           <div className="flex flex-col items-end gap-3">
             {items.map((item) => {

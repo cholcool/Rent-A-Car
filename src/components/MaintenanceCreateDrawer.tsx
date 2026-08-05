@@ -3,73 +3,17 @@
 import { useMemo, useState, useTransition, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Edit, Wrench, Settings2, X } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
-import Select from '@/components/ui/select'
-import { Badge } from '@/components/ui/badge'
-import { createMaintenance, deleteMaintenance, updateMaintenance } from '@/app/(dashboard)/cars/maintenance-actions'
+import { Button, Card, CardContent, Input, Textarea, Select, Badge } from '@/components/ui'
+import { formatThaiDate, formatCompactNumber, toNumber, getStatusLabel, getNotificationLabel } from '@/lib/ui-format'
+import { completeMaintenance, createMaintenance, deleteMaintenance, updateMaintenance } from '@/app/(dashboard)/cars/maintenance-actions'
 import { AlertDialogDestructive } from '@/components/AlertDialogDestructive'
+import { MaintenanceStatus, MaintenanceProps, MaintenanceRow, MaintenanceType } from '@/lib/types'
+import { resolveMaintenanceStatus } from '@/lib/maintenance-status'
 
-type MaintenanceType = 'Maintenance' | 'Tax' | 'Insurance'
-
-const MaintenanceType = [
-  { value: 'Maintenance', label: 'บำรุงรักษา' },
-  { value: 'Tax', label: 'ภาษี' },
-  { value: 'Insurance', label: 'ประกันภัย' },
-] as const
-
-type MaintenanceStatus = 'Pending' | 'Active' | 'Complete'
-
-const MaintenanceStatus = [
-  { value: 'Pending', label: 'รอดำเนินการ' },
-  { value: 'Active', label: 'กำลังดำเนินการ' },
-  { value: 'Complete', label: 'เสร็จสิ้น' },
-] as const
-
-export type MaintenanceRow = {
-  id: string
-  type: MaintenanceType | null
-  name: string | null
-  description: string | null
-  remark: string | null
-  status: MaintenanceStatus
-  mileage: number
-  mileageTarget: number
-  mileageAlert: number
-  dateAlert: string | null
-  dateStart: string
-  dateEnd: string
-  dateCount: number
-}
-
-type  MaintenanceProps = {
-  carId?: string
-  carOptions?: Array<{ id: string; label: string }>
-  maintenances: MaintenanceRow[]
-  variant?: 'page' | 'modal'
-  showList?: boolean
-  onClose?: () => void
-}
-
-const emptyForm = {
-  maintenanceId: '',
-  type: 'Maintenance' as MaintenanceType,
-  name: '',
-  description: '',
-  remark: '',
-  status: 'Pending' as MaintenanceStatus,
-  mileage: '0',
-  mileageTarget: '0',
-  mileageAlert: '0',
-  dateAlert: '',
-  dateStart: '',
-  dateEnd: '',
-  dateCount: 0,
-}
+// const todayStr = new Date().toISOString().split('T')[0];
 
 function statusClass(status: MaintenanceStatus) {
+  if (status === 'Overdue') return 'bg-rose-100 text-rose-700'
   if (status === 'Active') return 'bg-blue-100 text-blue-700'
   if (status === 'Complete') return 'bg-emerald-100 text-emerald-700'
   return 'bg-amber-100 text-amber-700'
@@ -77,6 +21,7 @@ function statusClass(status: MaintenanceStatus) {
 
 export default function MaintenanceCreateDrawer({
   carId,
+  carMileage,
   carOptions = [],
   maintenances,
   variant = 'page',
@@ -87,17 +32,33 @@ export default function MaintenanceCreateDrawer({
   const [isOpen, setIsOpen] = useState(variant === 'modal')
   const [isPending, startTransition] = useTransition()
   const [errors, setErrors] = useState<Record<string, string>>({})
-  const [formData, setFormData] = useState(emptyForm)
+  const [selectCarMileage, setSelectCarMileage] = useState(carMileage ?? 0)
   const [selectedCarId, setSelectedCarId] = useState(carId ?? '')
+  const emptyForm = {
+    maintenanceId: '',
+    type: 'Maintenance' as MaintenanceType,
+    name: '',
+    description: '',
+    remark: '',
+    status: 'Pending' as MaintenanceStatus,
+    mileage: String(selectCarMileage ?? 0),
+    mileageTarget: '0',
+    mileageAlert: '0',
+    dateAlert: '',
+    dateStart: '',
+    dateEnd: '',
+    dateCount: 0,
+  }
+  const [formData, setFormData] = useState(emptyForm)
 
   const isEdit = Boolean(formData.maintenanceId)
 
-  const title = useMemo(() => (isEdit ? 'แก้ไขการบำรุงรักษา' : 'สร้างการบำรุงรักษา'), [isEdit])
+  const title = useMemo(() => (isEdit ? 'แก้ไขการบำรุงรักษา' : 'เพิ่มการบำรุงรักษา'), [isEdit])
 
   const openCreate = () => {
     handleClose(true)
   }
-
+  
   function calculateDateCount(startStr: string, endStr: string): number {
     if (!startStr || !endStr) return 0;
   
@@ -140,6 +101,7 @@ export default function MaintenanceCreateDrawer({
       dateCount: Number(calculateDateCount(formattedStart, formattedEnd) ?? 0),
     })
     setSelectedCarId(carId ?? '')
+    setSelectCarMileage(carMileage ?? 0)
     setIsOpen(true)
   }
 
@@ -150,9 +112,20 @@ export default function MaintenanceCreateDrawer({
     
     setFormData((prev) => {
       const updatedForm = { ...prev, [name]: value };
-  
+
       if (name === 'dateStart' || name === 'dateEnd') {
         updatedForm.dateCount = calculateDateCount(updatedForm.dateStart, updatedForm.dateEnd);
+      }
+
+      if (name === 'dateStart' || name === 'dateEnd' || name === 'mileageAlert' || name === 'mileageTarget') {
+        updatedForm.status = resolveMaintenanceStatus({
+          status: updatedForm.status,
+          dateStart: updatedForm.dateStart,
+          dateEnd: updatedForm.dateEnd,
+          mileageAlert: Number(updatedForm.mileageAlert || 0),
+          mileageTarget: Number(updatedForm.mileageTarget || 0),
+          currentMileage: Number(updatedForm.mileage || 0),
+        })
       }
   
       return updatedForm;
@@ -166,34 +139,20 @@ export default function MaintenanceCreateDrawer({
     })
   }
 
-  const syncDateDefaults = (next: typeof formData) => {
-    const today = new Date().toISOString().slice(0, 10)
-    if (next.status === 'Active' && !next.dateStart) next.dateStart = today
-    if (next.status === 'Complete' && !next.dateEnd) next.dateEnd = today
-    return next
-  }
-
-  const handleStatusChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const value = e.target.value as MaintenanceStatus
-    setFormData((prev) => {
-      const next = syncDateDefaults({ ...prev, status: value })
-      return next
-    })
-  }
-
   const validate = () => {
     const next: Record<string, string> = {}
     if (!formData.type) next.type = 'ประเภทงานเป็นข้อมูลบังคับ'
     if (!formData.name.trim()) next.name = 'ชื่อรายการเป็นข้อมูลบังคับ'
     if (!formData.status) next.status = 'สถานะเป็นข้อมูลบังคับ'
-    if (!formData.dateStart) next.dateStart = 'วันที่เริ่มต้นเป็นข้อมูลบังคับ'
-    if (!formData.dateEnd) next.dateEnd = 'วันที่สิ้นสุดเป็นข้อมูลบังคับ'
+    // if (!formData.dateStart) next.dateStart = 'วันที่เริ่มต้นเป็นข้อมูลบังคับ'
+    // if (!formData.dateEnd) next.dateEnd = 'วันที่สิ้นสุดเป็นข้อมูลบังคับ'
     return next
   }
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     const nextErrors = validate()
+
     if (variant === 'modal' && !selectedCarId) nextErrors.carId = 'กรุณาเลือกรถ'
     if (Object.keys(nextErrors).length > 0) {
       setErrors(nextErrors)
@@ -211,7 +170,14 @@ export default function MaintenanceCreateDrawer({
         name: formData.name.trim(),
         description: formData.description.trim() || null,
         remark: formData.remark.trim() || null,
-        status: formData.status,
+        status: resolveMaintenanceStatus({
+          status: formData.status,
+          dateStart: formattedStart,
+          dateEnd: formattedEnd,
+          mileageAlert: Number(formData.mileageAlert || 0),
+          mileageTarget: Number(formData.mileageTarget || 0),
+          currentMileage: Number(formData.mileage || 0),
+        }),
         mileage: Number(formData.mileage || 0),
         mileageTarget: Number(formData.mileageTarget || 0),
         mileageAlert: Number(formData.mileageAlert || 0),
@@ -220,6 +186,7 @@ export default function MaintenanceCreateDrawer({
         dateEnd: formattedEnd,
         dateCount: Number(calculateDateCount(formattedStart, formattedEnd) || 0),
       }
+
       const result = formData.maintenanceId
         ? await updateMaintenance(payload)
         : await createMaintenance(payload)
@@ -245,6 +212,17 @@ export default function MaintenanceCreateDrawer({
     })
   }
 
+  const handleComplete = (maintenanceId: string) => {
+    startTransition(async () => {
+      const result = await completeMaintenance(maintenanceId)
+      if (!result.success) {
+        setErrors({ form: result.error || 'ปิดการแจ้งเตือนไม่สำเร็จ' })
+        return
+      }
+      router.refresh()
+    })
+  }
+
   const handleClose = (force: boolean) => {
     setIsOpen(force)
     setFormData(emptyForm)
@@ -264,51 +242,64 @@ export default function MaintenanceCreateDrawer({
     <>
       {showList ? (
         <Card className="rounded-xl shadow-sm">
-          <CardContent className="p-6">
-            <div className="mb-4 flex items-center justify-between gap-3">
+          <CardContent className="px-0 md:px-6">
+            <div className="mb-4 flex items-center justify-between gap-3 px-3 md:px-0">
               <div className="flex items-center gap-2">
                 <Settings2 className="h-5 w-5 text-blue-700" />
                 <h2 className="text-lg font-bold text-slate-950">ประวัติการบำรุงรักษา</h2>
               </div>
               <Button type="button" onClick={openCreate} className="flex items-center gap-1">
                 <Wrench className="h-4 w-4" />
-                สร้างการบำรุงรักษา
+                เพิ่มการบำรุงรักษา
               </Button>
             </div>
 
-            <div className="overflow-hidden rounded-xl border border-slate-200">
-              <table className="w-full table-fixed">
+            <div className="overflow-x-auto rounded-xl md:border border-slate-200">
+              <table className="w-full min-w-max text-left border-collapse">
                 <thead className="bg-slate-50">
                   <tr className="text-left text-sm font-semibold text-slate-600">
-                    <th className="w-30 px-4 py-3">วันที่</th>
-                    <th className="w-45 px-4 py-3">ประเภทการบำรุงรักษา</th>
+                    <th className="px-4 py-3">สถานะ</th>
+                    <th className="px-4 py-3">ประเภทการบำรุงรักษา</th>
                     <th className="px-4 py-3">รายละเอียด</th>
-                    <th className="w-30 px-4 py-3">สถานะ</th>
-                    <th className="w-35 px-4 py-3">จัดการ</th>
+                    <th className="px-4 py-3">วันที่แจ้งเตือน</th>
+                    <th className="px-4 py-3">กำหนดเลขไมล์</th>
+                    <th className="px-4 py-3">แจ้งเตือนเลขไมล์</th>
+                    <th className="w-10 text-center sticky right-0 bg-muted p-3 drop-shadow-[-4px_0_4px_rgba(0,0,0,0.05)]">จัดการ</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                   {maintenances.length > 0 ? (
                     maintenances.map((row) => (
                       <tr key={row.id} className="align-top text-sm text-slate-700">
-                        <td className="px-4 py-3">{row.dateStart}</td>
                         <td className="px-4 py-3">
-                          <div className="font-medium text-slate-900">{row.name ?? '-'}</div>
-                          <div className="text-xs text-slate-500">{row.type ?? '-'}</div>
+                          <Badge className={statusClass(row.status)}>{getNotificationLabel(row.status)}</Badge>
                         </td>
                         <td className="px-4 py-3">
-                          {row.description ?? '-'}
-                          {row.remark ? <span className="text-slate-500"> - {row.remark}</span> : null}
+                          <div className="font-medium text-slate-900">{getStatusLabel(row.type) ?? '-'}</div>
+                          <div className="text-xs text-slate-500">{row.name ?? '-'}</div>
                         </td>
                         <td className="px-4 py-3">
-                          <Badge className={statusClass(row.status)}>{MaintenanceStatus.find(status => status.value === row.status)?.label}</Badge>
+                          <div className='overflow-hidden text-nowrap'>{row.description ?? '-'}</div>
                         </td>
-                        <td className="px-4 py-3">
-                          <div className="flex gap-2">
+                        <td className="px-4 py-3">{row.dateStart ? `${formatThaiDate(row.dateStart)} ถึง ${formatThaiDate(row.dateEnd)}` : '-'}</td>
+                        <td className="px-4 py-3">{formatCompactNumber(toNumber(row.mileageTarget))}</td>
+                        <td className="px-4 py-3">{formatCompactNumber(toNumber(row.mileageAlert))}</td>
+                        <td className="sticky right-0 bg-white p-3 border-l drop-shadow-[-4px_0_4px_rgba(0,0,0,0.05)]">
+                          <div className="flex gap-2 justify-end">
+                            {row.status === 'Active' || row.status === 'Overdue' ? (
+                              <>
+                                <AlertDialogDestructive 
+                                  onClick={() => handleComplete(row.id)} 
+                                  title='ต้องการปิดงานนี้ใช่หรือไม่?' 
+                                  description='คุณแน่ใจหรือไม่ว่าต้องการปิดงานนี้? การกระทำนี้ไม่สามารถย้อนกลับได้.'
+                                  variant={'notification'} 
+                                />
+                              </>
+                            ) : null}
                             <Button type="button" size="icon-sm" variant="outline" onClick={() => openEdit(row)}>
                               <Edit className="h-4 w-4" />
                             </Button>
-                            <AlertDialogDestructive onClick={() => handleDelete(row.id)} />
+                            <AlertDialogDestructive onClick={() => handleDelete(row.id)} variant={'destructive'} />
                           </div>
                         </td>
                       </tr>
@@ -323,21 +314,22 @@ export default function MaintenanceCreateDrawer({
                 </tbody>
               </table>
             </div>
-            {errors.form ? (
-              <div className="mt-4 rounded-lg bg-red-50 p-4 text-sm font-medium text-red-700">{errors.form}</div>
-            ) : null}
           </CardContent>
         </Card>
       ) : null}
 
       {isOpen ? (
-        <div className="fixed inset-0 z-50 my-0">
-          <button type="button" className="absolute inset-0 bg-slate-950/30 my-0" onClick={() => handleClose(false)} />
-          <aside className="absolute right-0 top-0 h-full w-full max-w-xl overflow-y-auto bg-white shadow-2xl">
+        <div className="fixed inset-0 z-50 overflow-hidden">
+          <button
+            type="button"
+            className="fixed inset-0 bg-slate-950/30"
+            onClick={() => handleClose(false)}
+          />
+          <aside className="fixed right-0 top-0 h-dvh w-full max-w-full overflow-y-auto overflow-x-hidden bg-white shadow-2xl sm:max-w-xl">
             <div className="flex items-start justify-between border-b border-slate-200 p-6">
               <div>
                 <h3 className="text-2xl font-extrabold text-slate-950">{title}</h3>
-                <p className="mt-1 text-sm text-slate-500">กรอกข้อมูลการบำรุงรักษาให้ครบก่อนบันทึก</p>
+                <p className="mt-1 text-sm text-slate-500">การแจ้งเตือนจะเลียงลำดับจากวันที่แจ้งเตือนขึ้นก่อนเลขไมล์</p>
               </div>
               <button type="button" onClick={() => handleClose(false)} className="rounded-full border border-slate-200 p-2">
                 <X className="h-5 w-5" />
@@ -345,10 +337,30 @@ export default function MaintenanceCreateDrawer({
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-4 p-6">
+              {errors.form && (
+                <div className="mb-4 rounded-lg bg-red-50 p-4 text-sm font-medium text-red-700">{errors.form}</div>
+              )}
+
+              {(formData.status === 'Active') || (formData.status === 'Overdue') ? (
+                <div className="mb-4 rounded-lg bg-amber-50 p-4 text-sm font-medium text-amber-700">
+                  <div className="font-bold">แจ้งเตือน: งานนี้ยังไม่เสร็จสิ้น</div>
+                  <div>คุณสามารถปิดงานนี้ได้โดยคลิกที่ปุ่ม &quot;ปิดงาน&quot; ในด้านล่าง</div>
+                  <br />
+                  <AlertDialogDestructive 
+                    onClick={() => handleComplete(formData.maintenanceId)} 
+                    title='ต้องการปิดงานนี้ใช่หรือไม่?' 
+                    description='คุณแน่ใจหรือไม่ว่าต้องการปิดงานนี้? การกระทำนี้ไม่สามารถย้อนกลับได้.'
+                    variant={'notification'} 
+                    size={'lg'}
+                    iconText={'ปิดงาน'}
+                  />
+                </div>
+              ) : null}
+              
               {variant === 'modal' ? (
                 <div className="space-y-2">
                   <label className="text-sm font-semibold text-slate-700">เลือกรถ <span className="text-red-600">*</span></label>
-                  <Select value={selectedCarId} onChange={(e) => setSelectedCarId(e.target.value)} required>
+                  <Select value={selectedCarId} onChange={(event: any) => setSelectedCarId(event.target.value)}>
                     <option value="">-- เลือกรถ --</option>
                     {carOptions.map((car) => (
                       <option key={car.id} value={car.id}>
@@ -363,7 +375,7 @@ export default function MaintenanceCreateDrawer({
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
                   <label className="text-sm font-semibold text-slate-700">ประเภทงาน <span className="text-red-600">*</span></label>
-                  <Select name="type" value={formData.type} onChange={handleChange} required>
+                  <Select name="type" value={formData.type} onChange={handleChange}>
                     {MaintenanceType.map((type) => (
                       <option key={type.value} value={type.value}>
                         {type.label}
@@ -374,63 +386,74 @@ export default function MaintenanceCreateDrawer({
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-semibold text-slate-700">สถานะ <span className="text-red-600">*</span></label>
-                  <Select name="status" value={formData.status} onChange={handleStatusChange} required>
-                    {MaintenanceStatus.map((status) => (
-                      <option key={status.value} value={status.value}>
-                        {status.label}
-                      </option>
-                    ))}
-                  </Select>
+                  <Input name="status" value={getNotificationLabel(formData.status)} readOnly />
                   {errors.status ? <p className="text-xs text-red-600">{errors.status}</p> : null}
                 </div>
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-semibold text-slate-700">ชื่อรายการ <span className="text-red-600">*</span></label>
-                <Input name="name" value={formData.name} onChange={handleChange} maxLength={255} required />
+                <Input name="name" value={formData.name} onChange={handleChange} maxLength={255} />
                 {errors.name ? <p className="text-xs text-red-600">{errors.name}</p> : null}
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-semibold text-slate-700">รายละเอียด</label>
                 <Input name="description" value={formData.description} onChange={handleChange} maxLength={255} />
               </div>
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="space-y-2">
-                  <label className="text-sm font-semibold text-slate-700">เลขไมล์ปัจจุบัน</label>
-                  <Input name="mileage" type="number" min="0" step="0.01" value={formData.mileage} onChange={handleChange} />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-semibold text-slate-700">เป้าหมายเลขไมล์ครั้งถัดไป</label>
-                  <Input name="mileageTarget" type="number" min="0" step="0.01" value={formData.mileageTarget} onChange={handleChange} />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-semibold text-slate-700">แจ้งเตือนเลขไมล์</label>
-                  <Input name="mileageAlert" type="number" min="0" step="0.01" value={formData.mileageAlert} onChange={handleChange} />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-semibold text-slate-700">วันที่แจ้งเตือน</label>
-                  <Input name="dateAlert" type="date" value={formData.dateAlert} onChange={handleChange} />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-semibold text-slate-700">วันที่เริ่มต้น <span className="text-red-600">*</span></label>
-                  <Input name="dateStart" type="date" value={formData.dateStart} onChange={handleChange} required />
-                  {errors.dateStart ? <p className="text-xs text-red-600">{errors.dateStart}</p> : null}
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-semibold text-slate-700">วันที่สิ้นสุด <span className="text-red-600">*</span></label>
-                  <Input name="dateEnd" type="date" value={formData.dateEnd} onChange={handleChange} required />
-                  {errors.dateEnd ? <p className="text-xs text-red-600">{errors.dateEnd}</p> : null}
-                </div>
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-semibold text-slate-700">จำนวนวัน</label>
-                <Input name="dateCount" type="number" min="0" value={formData.dateCount} onChange={handleChange} readOnly />
-              </div>
+
               <div className="space-y-2">
                 <label className="text-sm font-semibold text-slate-700">หมายเหตุ</label>
                 <Textarea name="remark" value={formData.remark} onChange={handleChange} maxLength={500} rows={3} />
               </div>
 
-              <div className="flex gap-3 border-t border-slate-200 pt-4">
+              <br />
+              <b>การแจ้งเตือนด้วยวันที่</b>
+              <hr />
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-2 hidden">
+                  <label className="text-sm font-semibold text-slate-700">วันที่แจ้งเตือน</label>
+                  <Input name="dateAlert" type="date" value={formData.dateAlert} onChange={handleChange} />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-slate-700">วันที่เริ่มต้นแจ้งเตือน</label>
+                  <Input name="dateStart" type="date" value={formData.dateStart} onChange={handleChange} />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-slate-700">วันที่สิ้นสุดแจ้งเตือน</label>
+                  <Input name="dateEnd" type="date" value={formData.dateEnd} onChange={handleChange} />
+                </div>
+              </div>
+
+              <div className="space-y-2 hidden">
+                <label className="text-sm font-semibold text-slate-700">จำนวนวันที่แจ้งเตือน</label>
+                <Input name="dateCount" type="number" min="0" value={formData.dateCount} onChange={handleChange} readOnly />
+              </div>
+
+              <br />
+              <b>การแจ้งเตือนด้วยเลขไมล์</b>
+              <hr />
+
+              <div className='rounded-2xl border border-slate-200 p-4'>
+                <div className="flex items-center justify-between">
+                  <div className="text-sm font-medium text-slate-500">
+                    <div className="font-bold text-slate-950">เลขไมล์ล่าสุดของรถ</div>
+                    <div>{formatCompactNumber(toNumber(formData.mileage))}</div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-slate-700">กำหนดเช็กระยะที่เลขไมล์</label>
+                  <Input name="mileageTarget" type="number" step="0" value={formData.mileageTarget} onChange={handleChange} />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-slate-700">แจ้งเตือนเลขไมล์ล่วงหน้า</label>
+                  <Input name="mileageAlert" type="number" step="0" value={formData.mileageAlert} onChange={handleChange} />
+                </div>
+              </div>
+
+              <div className="flex gap-3 pt-4">
                 <Button type="submit" variant="save" className="flex-1" disabled={isPending}>
                   บันทึก
                 </Button>

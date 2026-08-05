@@ -2,6 +2,7 @@
 
 import prisma from '@/lib/prisma'
 import { getSessionAndRoles } from '@/lib/auth-server'
+import { CarStatus } from '@/lib/types'
 
 interface CreateCarInput {
   vehicleTypeId: string
@@ -10,8 +11,10 @@ interface CreateCarInput {
   year: string
   color: string
   license: string
+  engine: string | null
+  chassis: string | null
   mileage: number
-  status: 'Available' | 'Booked' | 'Maintenance' | 'Unavailable' | 'Reserved'
+  status: CarStatus
   remark: string | null
 }
 
@@ -52,6 +55,8 @@ export async function createCar(input: CreateCarInput) {
         year: input.year,
         color: input.color,
         license: input.license.trim(),
+        engine: input.engine || null,
+        chassis: input.chassis || null,
         mileage: input.mileage,
         status: input.status,
         remark: input.remark,
@@ -130,6 +135,8 @@ export async function updateCar(input: UpdateCarInput) {
         year: input.year,
         color: input.color,
         license: input.license.trim(),
+        engine: input.engine || null,
+        chassis: input.chassis|| null,
         mileage: Math.max(0, Math.floor(input.mileage)),
         status: input.status,
         remark: input.remark,

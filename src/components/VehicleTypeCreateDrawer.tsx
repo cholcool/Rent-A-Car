@@ -32,7 +32,7 @@ export default function VehicleTypeCreateModal({ onClose }: VehicleTypeCreateMod
           <CardContent className="flex h-full flex-col p-6">
             <div className="flex items-start justify-between gap-4">
               <div>
-                <h2 className="text-2xl font-extrabold text-slate-950">สร้างประเภทรถ</h2>
+                <h2 className="text-2xl font-extrabold text-slate-950">เพิ่มประเภทรถ</h2>
                 <p className="mt-2 text-sm font-medium text-slate-500">
                   เพิ่มประเภทรถใหม่เข้าไปในระบบ
                 </p>

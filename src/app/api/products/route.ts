@@ -1,7 +1,7 @@
 import { Prisma } from '@prisma/client'
 import { NextResponse } from 'next/server'
-import { auth } from '@/lib/auth'
 import prisma from '@/lib/prisma'
+import { getCachedSession } from '@/lib/auth'
 
 function parseDateOnly(value: unknown) {
   if (typeof value !== 'string' || !value.trim()) return null
@@ -13,24 +13,10 @@ function parseBody(body: unknown) {
   return (body ?? {}) as Record<string, unknown>
 }
 
-async function getAuthorizedUserId() {
-  const session = await auth()
-  if (!session?.user?.email) return null
-
-  const user = await prisma.user.findUnique({
-    where: { email: session.user.email },
-    select: { id: true, roles: { select: { role: { select: { code: true } } } } },
-  })
-
-  const roles = (user?.roles ?? []).map((entry) => entry.role.code)
-  const allowed = ['ADMIN', 'MANAGER', 'AGENT']
-  if (!user?.id || !roles.some((role) => allowed.includes(role))) return null
-  return user.id
-}
-
 export async function POST(request: Request) {
   try {
-    const userId = await getAuthorizedUserId()
+    const session = await getCachedSession();
+    const userId = session?.user?.id
     if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
     const body = parseBody(await request.json())
@@ -93,7 +79,8 @@ export async function POST(request: Request) {
 
 export async function PATCH(request: Request) {
   try {
-    const userId = await getAuthorizedUserId()
+    const session = await getCachedSession();
+    const userId = session?.user?.id
     if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
     const body = parseBody(await request.json())
@@ -146,7 +133,8 @@ export async function PATCH(request: Request) {
 
 export async function DELETE(request: Request) {
   try {
-    const userId = await getAuthorizedUserId()
+    const session = await getCachedSession();
+    const userId = session?.user?.id
     if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
     const body = parseBody(await request.json())

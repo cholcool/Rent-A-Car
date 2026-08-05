@@ -32,7 +32,7 @@ export default function BrandCreateDrawer({ onClose }: BrandCreateDrawerProps) {
           <CardContent className="flex h-full flex-col p-6">
             <div className="flex items-start justify-between gap-4">
               <div>
-                <h2 className="text-2xl font-extrabold text-slate-950">สร้างแบรนด์รถ</h2>
+                <h2 className="text-2xl font-extrabold text-slate-950">เพิ่มแบรนด์รถ</h2>
                 <p className="mt-2 text-sm font-medium text-slate-500">
                   เพิ่มแบรนด์รถใหม่เข้าไปในระบบ
                 </p>

@@ -20,6 +20,7 @@ enum CarStatus {
 
 enum BookingStatus {
   Pending
+  PartialPaid
   Confirmed
   InProgress @map("In Progress")
   Completed
@@ -29,8 +30,6 @@ enum BookingStatus {
 
 enum PaymentMethod {
   Cash
-  CreditCard  @map("Credit Card")
-  PromptPay   @map("Prompt Pay")
   BankTransfer @map("Bank Transfer")
 }
 
@@ -38,6 +37,7 @@ enum PaymentStatus {
   Pending
   Paid
   Failed
+  Cancelled
   Refunded
 }
 
@@ -51,6 +51,7 @@ enum MaintenanceStatus {
   Pending
   Active
   Complete
+  Overdue
 }
 
 // ==========================================
@@ -66,6 +67,8 @@ model Car {
   year         String     @map("cars_years") @db.VarChar(4)
   color        String     @map("cars_color") @db.VarChar(50)
   license      String     @unique @map("cars_license") @db.VarChar(20)
+  engine       String?    @unique @map("cars_engine") @db.VarChar(20)
+  chassis      String?    @unique @map("cars_chassis") @db.VarChar(20)
   status       CarStatus  @default(Available) @map("cars_status")
   remark       String?    @map("cars_remark") @db.VarChar(500)
   createdAt    DateTime   @default(now()) @map("created_date") @db.Timestamptz
@@ -132,8 +135,30 @@ model Driver {
   cardImage    Image?   @relation("DriverCardImage", fields: [cardImageId], references: [id])
   licenseImage Image?   @relation("DriverLicenseImage", fields: [licenseImageId], references: [id])
   bookings     Booking[]
+  guarantor    Guarantor?
 
   @@map("driver")
+}
+
+model Guarantor {
+  id             String   @id @default(uuid()) @map("guarantor_id") @db.Uuid
+  driverId       String   @unique @map("driver_id") @db.Uuid 
+  fullName       String   @map("guarantor_full_name") @db.VarChar(150)
+  phone          String   @unique @map("guarantor_phone") @db.VarChar(20)
+  cardImageId    String?  @map("guarantor_card_images_id") @db.Uuid
+  licenseImageId String?  @map("guarantor_license_images_id") @db.Uuid
+  remark         String?  @map("guarantor_remark") @db.VarChar(500)
+  createdAt      DateTime @default(now()) @map("created_date") @db.Timestamptz
+  createdBy      String   @map("created_by") @db.Uuid
+  updatedAt      DateTime @updatedAt @map("updated_date") @db.Timestamptz
+  updatedBy      String   @map("updated_by") @db.Uuid
+  isDeleted      Boolean  @default(false) @map("is_deleted")
+
+  driver         Driver   @relation(fields: [driverId], references: [id])
+  cardImage      Image?   @relation("GuarantorCardImage", fields: [cardImageId], references: [id])
+  licenseImage   Image?   @relation("GuarantorLicenseImage", fields: [licenseImageId], references: [id])
+
+  @@map("Guarantor")
 }
 
 model Image {
@@ -152,6 +177,8 @@ model Image {
 
   driverCardImages           Driver[] @relation("DriverCardImage")
   driverLicenseImages        Driver[] @relation("DriverLicenseImage")
+  GuarantorCardImages        Guarantor[] @relation("GuarantorCardImage")
+  GuarantorLicenseImages     Guarantor[] @relation("GuarantorLicenseImage")
   userCards                  User[]   @relation("UserCardImage")
   carImages                  MapCarImage[]
   bookingPaymentImages       Booking[] @relation("BookingPaymentImage")
@@ -209,6 +236,7 @@ model Booking {
   paymentImageId         String?        @map("booking_payment_images_id") @db.Uuid
   healthCheck01ImageId   String?        @map("booking_health_check_01_images_id") @db.Uuid
   healthCheck02ImageId   String?        @map("booking_health_check_02_images_id") @db.Uuid
+  contractNo             String?        @map("contract_no") @db.VarChar(20)
   dateStart              DateTime       @map("date_start") @db.Timestamptz
   dateEnd                DateTime       @map("date_end") @db.Timestamptz
   dateReturn             DateTime?      @map("date_return") @db.Timestamptz
@@ -243,6 +271,7 @@ model Booking {
 model Payment {
   id            String         @id @default(uuid()) @map("payments_id") @db.Uuid
   bookingId     String         @map("booking_id") @db.Uuid
+  receiptNo     String?        @map("receipt_no") @db.VarChar(20)
   paymentDate   DateTime       @default(now()) @map("payment_date") @db.Timestamptz
   amount        Decimal        @default(0) @map("amount") @db.Decimal(12, 2)
   paymentMethod PaymentMethod  @map("payment_method")
@@ -268,6 +297,8 @@ model User {
   lastName       String    @map("user_last_name") @db.VarChar(150)
   phone          String    @unique @map("user_phone") @db.VarChar(20)
   cardImageId    String?   @map("user_card_image_id") @db.Uuid
+  cardNo         String    @map("user_card_no") @db.VarChar(20)
+  address        String    @map("user_address") @db.VarChar(500)
   reportDownload Int       @default(0) @map("user_report_download")
   remark         String?   @map("user_remark") @db.VarChar(500)
   createdAt      DateTime  @default(now()) @map("created_date") @db.Timestamptz
@@ -337,8 +368,8 @@ model Menu {
   id                 String   @id @default(uuid()) @map("menu_id") @db.Uuid
   key                String   @unique @map("menu_key") @db.VarChar(100)
   title              String   @map("menu_title") @db.VarChar(150)
-  icon               String?  @map("menu_icon") @db.VarChar(100)
-  path               String?  @map("menu_path") @db.VarChar(255)
+  icon               String  @map("menu_icon") @db.VarChar(100)
+  path               String  @map("menu_path") @db.VarChar(255)
   parentId           String?  @map("menu_parent_id") @db.Uuid
   sequence           Int      @default(0) @map("menu_sequence")
   remark             String?  @map("menu_remark") @db.VarChar(500)
@@ -382,13 +413,14 @@ model Maintenance {
   remark         String?           @map("maintenances_remark") @db.VarChar(500)
   type           MaintenanceType?  @map("maintenances_type")
   status         MaintenanceStatus @default(Pending) @map("maintenances_status")
-  mileage        Int               @default(0) @map("mileage")
-  mileageTarget  Int               @default(0) @map("mileage_target")
-  mileageAlert   Int               @default(0) @map("mileage_alert")
+  is_active      Boolean           @default(false) @map("is_active")
+  mileage        Int?              @default(0) @map("mileage")
+  mileageTarget  Int?              @default(0) @map("mileage_target")
+  mileageAlert   Int?              @default(0) @map("mileage_alert")
   dateAlert      DateTime?         @map("date_alert") @db.Timestamptz
-  dateStart      DateTime          @map("date_start") @db.Timestamptz
-  dateEnd        DateTime          @map("date_end") @db.Timestamptz
-  dateCount      Int               @default(0) @map("date_count")
+  dateStart      DateTime?         @map("date_start") @db.Timestamptz
+  dateEnd        DateTime?         @map("date_end") @db.Timestamptz
+  dateCount      Int?              @default(0) @map("date_count")
   createdAt      DateTime          @default(now()) @map("created_date") @db.Timestamptz
   createdBy      String            @map("created_by") @db.Uuid
   updatedAt      DateTime          @updatedAt @map("updated_date") @db.Timestamptz

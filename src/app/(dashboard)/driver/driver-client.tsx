@@ -1,66 +1,31 @@
 'use client'
 
-import { useEffect, useMemo, useState, type FormEvent } from 'react'
-import { CreditCard, FileText, Plus, Contact, X, Edit } from 'lucide-react'
-import { Badge } from '@/components/ui/badge'
+import { useEffect, useState } from 'react'
+import { Plus, Contact, X, Edit } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
-import Input from '@/components/ui/input'
-import Label from '@/components/ui/label'
-import Textarea from '@/components/ui/textarea'
 import { cn } from '@/lib/utils'
 import { AlertDialogDestructive } from '@/components/AlertDialogDestructive'
-import { UploadButton } from "@uploadthing/react";
-import type { OurFileRouter } from "@/app/api/uploadthing/core";
+import DriverDrawer from '@/components/DriverDrawer'
+import { 
+  DriverFormState, 
+  DriverRow, 
+  DriverEmptyForm,
+  GuarantorFormState,
+  GuarantorEmptyForm,
+} from '@/lib/types'
 
-type UploadedImage = {
-  id: string
-  url: string
-  name: string
-}
-
-export type DriverRow = {
-  id: string
-  driver_full_name: string
-  driver_phone: string
-  driver_remark: string
-  driver_card_images_id: string
-  driver_license_images_id: string
-  cardImage: UploadedImage | null
-  licenseImage: UploadedImage | null
-}
-
-type DriverFormState = {
-  driver_full_name: string
-  driver_phone: string
-  driver_remark: string
-  driver_card_images_id: string
-  driver_license_images_id: string
-}
-
-const emptyForm: DriverFormState = {
-  driver_full_name: '',
-  driver_phone: '',
-  driver_remark: '',
-  driver_card_images_id: '',
-  driver_license_images_id: '',
-}
 
 export default function DriverPageClient({ initialDrivers }: { initialDrivers: DriverRow[] }) {
   const [drivers, setDrivers] = useState(initialDrivers)
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
-  const [saving, setSaving] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [error, setError] = useState('')
-  const [form, setForm] = useState<DriverFormState>(emptyForm)
+  const [form, setForm] = useState<DriverFormState>(DriverEmptyForm)
+  const [formGuarantor, setFormGuarantor] = useState<GuarantorFormState>(GuarantorEmptyForm)
   const [cardFile, setCardFile] = useState<File | null>(null)
   const [licenseFile, setLicenseFile] = useState<File | null>(null)
-
-  const editingDriver = useMemo(
-    () => drivers.find((driver) => driver.id === editingId) ?? null,
-    [drivers, editingId]
-  )
 
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
@@ -74,17 +39,10 @@ export default function DriverPageClient({ initialDrivers }: { initialDrivers: D
     return () => document.removeEventListener('keydown', onKeyDown)
   }, [])
 
-  function formatePhoneNumber(value: string) {
-    const digits = value.replace(/\D/g, '')
-    if (digits.length === 10) {
-      return `${digits.slice(0, 3)}-${digits.slice(3, 6)}-${digits.slice(6)}`
-    }
-    return digits
-  }
-
   function openCreate() {
     setEditingId(null)
-    setForm(emptyForm)
+    setForm(DriverEmptyForm)
+    setFormGuarantor(GuarantorEmptyForm)
     setCardFile(null)
     setLicenseFile(null)
     setError('')
@@ -94,83 +52,31 @@ export default function DriverPageClient({ initialDrivers }: { initialDrivers: D
   function openEdit(driver: DriverRow) {
     setEditingId(driver.id)
     setForm({
-      driver_full_name: driver.driver_full_name,
-      driver_phone: driver.driver_phone,
-      driver_remark: driver.driver_remark,
-      driver_card_images_id: driver.driver_card_images_id,
-      driver_license_images_id: driver.driver_license_images_id,
+      fullName: driver.fullName,
+      phone: driver.phone,
+      remark: driver.remark,
+      cardImageId: driver.cardImageId,
+      licenseImageId: driver.licenseImageId,
     })
+  
+    if (driver.guarantor) {
+      setFormGuarantor({
+        fullName: driver.guarantor.fullName,
+        phone: driver.guarantor.phone,
+        remark: driver.guarantor.remark,
+        cardImageId: driver.guarantor.cardImageId,
+        licenseImageId: driver.guarantor.licenseImageId,
+      })
+    } else {
+      setFormGuarantor(GuarantorEmptyForm) 
+    }
+  
     setCardFile(null)
     setLicenseFile(null)
     setError('')
     setDrawerOpen(true)
   }
-
-  function closeDrawer() {
-    if (saving) return
-    setDrawerOpen(false)
-  }
-
-  async function persistImage(payload: {
-    key: string
-    url: string
-    name: string
-    size?: number
-    type?: string
-  }) {
-    const res = await fetch('/api/driver-images', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    })
-    const data = await res.json()
-    if (!res.ok) throw new Error(data?.error ?? 'upload failed')
-    return data.image as UploadedImage
-  }
-
-  function updateField<K extends keyof DriverFormState>(key: K, value: DriverFormState[K]) {
-    if (key === 'driver_phone') {
-      value = formatePhoneNumber(value as string) as DriverFormState[K]
-    }
-
-    setForm((current) => ({ ...current, [key]: value }))
-  }
-
-  async function submitForm(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault()
-    setError('')
-
-    if (!form.driver_full_name.trim()) {
-      setError('กรุณากรอกชื่อ-นามสกุลคนขับ')
-      return
-    }
-    if (!form.driver_phone.trim()) {
-      setError('กรุณากรอกเบอร์โทรศัพท์')
-      return
-    }
-
-    setSaving(true)
-    try {
-      const res = await fetch('/api/drivers', {
-        method: editingId ? 'PATCH' : 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(editingId ? { id: editingId, ...form } : form),
-      })
-      const data = await res.json()
-      if (!res.ok) {
-        setError(data?.error ?? 'ไม่สามารถบันทึกข้อมูลได้')
-        return
-      }
-
-      const row: DriverRow = data.driver
-      setDrivers((current) => (editingId ? current.map((item) => (item.id === row.id ? row : item)) : [row, ...current]))
-      setDrawerOpen(false)
-    } catch {
-      setError('ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้')
-    } finally {
-      setSaving(false)
-    }
-  }
+  
 
   async function deleteDriver(id: string) {
     const res = await fetch('/api/drivers', {
@@ -186,202 +92,87 @@ export default function DriverPageClient({ initialDrivers }: { initialDrivers: D
     setDrivers((current) => current.filter((item) => item.id !== id))
   }
 
-  const total = drivers.length
-  const uploadedCardCount = drivers.filter((driver) => Boolean(driver.cardImage)).length
-  const uploadedLicenseCount = drivers.filter((driver) => Boolean(driver.licenseImage)).length
-
   return (
-    <div className="space-y-8">
-      <header className="flex flex-col gap-3">
-        <h1 className="text-4xl font-extrabold tracking-tight text-slate-950">ข้อมูลลูกค้า / ผู้ขับขี่</h1>
-        <p className="max-w-3xl text-lg font-semibold text-slate-500">
-          จัดการข้อมูลคนขับ เอกสาร และรูปบัตรประชาชน/ใบขับขี่
-        </p>
-      </header>
-
-      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <Card><CardContent className="p-6"><div className="text-sm font-semibold text-slate-500">รายการทั้งหมด</div><div className="mt-2 text-3xl font-extrabold text-slate-950">{total}</div></CardContent></Card>
-        <Card><CardContent className="p-6"><div className="text-sm font-semibold text-slate-500">รูปบัตร</div><div className="mt-2 text-3xl font-extrabold text-emerald-600">{uploadedCardCount}</div></CardContent></Card>
-        <Card><CardContent className="p-6"><div className="text-sm font-semibold text-slate-500">รูปใบขับขี่</div><div className="mt-2 text-3xl font-extrabold text-emerald-600">{uploadedLicenseCount}</div></CardContent></Card>
-        <Card><CardContent className="p-6"><div className="text-sm font-semibold text-slate-500">สถานะหน้า</div><div className="mt-2 text-3xl font-extrabold text-slate-950">Ready</div></CardContent></Card>
-      </section>
-
-      <Card>
-        <CardContent className="p-6 sm:p-8">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <h2 className="text-2xl font-extrabold text-slate-950">รายการล่าสุด</h2>
+    <>
+      {drivers.length === 0 ? (
+        <Card>
+          <CardContent className="py-14 text-center">
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 text-slate-400">
+              <Contact className="h-7 w-7" aria-hidden="true" />
             </div>
-          </div>
+            <h2 className="mt-5 text-xl font-extrabold text-slate-950">ไม่พบข้อมูลที่ตรงกับเงื่อนไข</h2>
+            <p className="mt-2 text-sm font-semibold text-slate-500">ลองเปลี่ยนคำค้นหาหรือตัวกรองอีกครั้ง</p>
+          </CardContent>
+        </Card>
+      ) : (
+        <Card>
+          <CardContent className="p-6 sm:p-8">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <h2 className="text-2xl font-extrabold text-slate-950">รายการล่าสุด</h2>
+              </div>
+            </div>
 
-          <div className="mt-6 overflow-x-auto">
-            <table className="w-full min-w-250 text-left">
-              <thead>
-                <tr className="border-b border-slate-200 text-sm font-extrabold text-slate-950">
-                  <th className="px-3 py-3">ชื่อ-นามสกุล</th>
-                  <th className="px-3 py-3">เบอร์โทรศัพท์</th>
-                  <th className="px-3 py-3">เอกสาร</th>
-                  <th className="px-3 py-3">หมายเหตุ</th>
-                  <th className="px-3 py-3">จัดการ</th>
-                </tr>
-              </thead>
-              <tbody>
-                {drivers.map((driver) => (
-                  <tr key={driver.id} className="border-b border-slate-100 text-sm font-medium text-slate-700">
-                    <td className="px-3 py-4 font-bold text-slate-950">{driver.driver_full_name}</td>
-                    <td className="px-3 py-4">{driver.driver_phone}</td>
-                    <td className="px-3 py-4">
-                      <div className="flex flex-wrap gap-2">
-                        <Badge variant={driver.cardImage ? 'success' : 'destructive'} className="gap-1.5">
-                          <CreditCard className="h-3.5 w-3.5" />
-                          {driver.cardImage ? 'บัตรประชาชน' : 'ยังไม่อัปโหลดบัตร'}
-                        </Badge>
-                        <Badge variant={driver.licenseImage ? 'success' : 'destructive'} className="gap-1.5">
-                          <FileText className="h-3.5 w-3.5" />
-                          {driver.licenseImage ? 'ใบขับขี่' : 'ยังไม่อัปโหลดใบขับขี่'}
-                        </Badge>
-                      </div>
-                    </td>
-                    <td className="px-3 py-4">{driver.driver_remark || '-'}</td>
-                    <td className="px-3 py-4">
-                      <div className="flex items-center gap-2">
-                        <Button type="button" variant="outline" size="sm" className="gap-2" onClick={() => openEdit(driver)}>
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <AlertDialogDestructive onClick={() => deleteDriver(driver.id)} />
-                      </div>
-                    </td>
+            <div className="mt-6 overflow-x-auto">
+              <table className="w-full min-w-250 text-left">
+                <thead>
+                  <tr className="border-b border-slate-200 text-sm font-extrabold text-slate-950">
+                    <th className="px-3 py-3">ชื่อ-นามสกุล (ผู้เช่า)</th>
+                    <th className="px-3 py-3">เบอร์โทรศัพท์ (ผู้เช่า)</th>
+                    <th className="px-3 py-3">ชื่อ-นามสกุล (ผู้ค้ำ)</th>
+                    <th className="px-3 py-3">เบอร์โทรศัพท์ (ผู้ค้ำ)</th>
+                    <th className="px-3 py-3">หมายเหตุ</th>
+                    <th className="w-10 text-center sticky bg-white right-0 p-3 drop-shadow-[-4px_0_4px_rgba(0,0,0,0.05)]">จัดการ</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </CardContent>
-      </Card>
+                </thead>
+                <tbody>
+                  {drivers.map((driver) => (
+                    <tr key={driver.id} className="border-b border-slate-100 text-sm font-medium text-slate-700">
+                      <td className="px-3 py-4 font-bold text-slate-950">{driver.fullName}</td>
+                      <td className="px-3 py-4">{driver.phone}</td>
+                      <td className="px-3 py-4">{driver.guarantor?.fullName || '-'}</td>
+                      <td className="px-3 py-4">{driver.guarantor?.phone || '-'}</td>
+                      <td className="px-3 py-4">{driver.remark || '-'}</td>
+                      <td className="sticky right-0 bg-white p-3 border-l drop-shadow-[-4px_0_4px_rgba(0,0,0,0.05)]">
+                        <div className="flex items-center gap-2">
+                          <Button type="button" variant="outline" size="sm" className="gap-2" onClick={() => openEdit(driver)}>
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <AlertDialogDestructive onClick={() => deleteDriver(driver.id)} variant={'destructive'} />
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+      
 
       {drawerOpen && (
-        <>
-          <button type="button" aria-label="Close drawer" className="fixed inset-0 z-30 bg-slate-950/30 backdrop-blur-[2px] my-0" onClick={closeDrawer} />
-
-          <aside className="fixed right-0 top-0 z-40 h-full w-full max-w-2xl overflow-auto bg-white shadow-2xl">
-            <Card className="h-full rounded-none border-0">
-              <CardContent className="flex h-full flex-col p-6">
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <h2 className="text-2xl font-extrabold text-slate-950">{editingDriver ? 'แก้ไขข้อมูลลูกค้า' : 'เพิ่มข้อมูลลูกค้าใหม่'}</h2>
-                    <p className="mt-2 text-sm font-medium text-slate-500">กรอกข้อมูลพื้นฐานและอัปโหลดเอกสารผ่าน UploadThing</p>
-                  </div>
-                  <button type="button" onClick={closeDrawer} className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 hover:bg-slate-50">
-                    <X className="h-5 w-5" />
-                  </button>
-                </div>
-
-                <form className="mt-6 flex-1 space-y-6 overflow-auto pr-1" onSubmit={submitForm}>
-                  <div className="grid gap-5 md:grid-cols-2">
-                    <div className="md:col-span-2">
-                      <Label htmlFor="driver_full_name">ชื่อ-นามสกุลคนขับ *</Label>
-                      <Input id="driver_full_name" maxLength={150} value={form.driver_full_name} onChange={(e) => updateField('driver_full_name', e.target.value)} required />
-                    </div>
-                    <div className="md:col-span-2">
-                      <Label htmlFor="driver_phone">เบอร์โทรศัพท์ *</Label>
-                      <Input id="driver_phone" maxLength={10} value={form.driver_phone} onChange={(e) => updateField('driver_phone', e.target.value)} required />
-                    </div>
-                    <div className="md:col-span-2">
-                      <Label htmlFor="driver_remark">หมายเหตุ</Label>
-                      <Textarea id="driver_remark" maxLength={500} value={form.driver_remark} onChange={(e) => updateField('driver_remark', e.target.value)} />
-                    </div>
-
-                    <div className="rounded-2xl border border-slate-200 p-4">
-                      <div className="mb-3 flex items-center justify-between">
-                        <div>
-                          <div className="text-sm font-bold text-slate-950">รูปบัตรประชาชน</div>
-                        </div>
-                        {form.driver_card_images_id ? <Badge variant="success">อัปโหลดแล้ว</Badge> : <Badge variant="destructive">ยังไม่มี</Badge>}
-                      </div>
-                      <div className="overflow-hidden rounded-lg border bg-slate-300 text-start flex items-start justify-start text-sm font-medium text-black/50 px-2">
-                        <UploadButton<OurFileRouter, "driverImage">
-                          endpoint="driverImage"
-                          className="ut-button text-slate-950"
-                          onChange={(files: File[]) => setCardFile(files[0] ?? null)}
-                          onClientUploadComplete={async (res: { url: string; name: string; size?: number; type?: string }[]) => {
-                            if (!res?.[0]) return
-                            const uploaded = res[0]
-                            const image = await persistImage({
-                              key: uploaded.url.split('/').pop() ?? uploaded.url,
-                              url: uploaded.url,
-                              name: uploaded.name,
-                              size: cardFile?.size ?? uploaded.size,
-                              type: cardFile?.type ?? uploaded.type,
-                            })
-                            updateField('driver_card_images_id', image.id)
-                          }}
-                          onUploadError={(err: any) => setError(err.message || 'อัปโหลดรูปบัตรไม่สำเร็จ')} 
-                        />
-                      </div>
-                    </div>
-
-                    <div className="rounded-2xl border border-slate-200 p-4">
-                      <div className="mb-3 flex items-center justify-between">
-                        <div>
-                          <div className="text-sm font-bold text-slate-950">รูปใบขับขี่</div>
-                        </div>
-                        {form.driver_license_images_id ? <Badge variant="success">อัปโหลดแล้ว</Badge> : <Badge variant="destructive">ยังไม่มี</Badge>}
-                      </div>
-                      <div className="overflow-hidden rounded-lg border bg-slate-300 text-start flex items-start justify-start text-sm font-medium text-black/50 px-2">
-                        <UploadButton<OurFileRouter, "driverImage">
-                          endpoint="driverImage"
-                          className="ut-button text-slate-950"
-                          onChange={(files: File[]) => setLicenseFile(files[0] ?? null)}
-                          onClientUploadComplete={async (res: { url: string; name: string; size?: number; type?: string }[]) => {
-                            if (!res?.[0]) return
-                            const uploaded = res[0] 
-                            const image = await persistImage({
-                              key: uploaded.url.split('/').pop() ?? uploaded.url,
-                              url: uploaded.url,
-                              name: uploaded.name,
-                              size: licenseFile?.size ?? uploaded.size,
-                              type: licenseFile?.type ?? uploaded.type,
-                            })
-                            updateField('driver_license_images_id', image.id)
-                          }}
-                          onUploadError={(err: any) => setError(err.message || 'อัปโหลดรูปใบขับขี่ไม่สำเร็จ')}
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className='rounded-2xl border border-slate-200 p-4'>
-                    <div className="flex items-center justify-between">
-                      <div className="text-sm font-medium text-slate-500">
-                        <div className="font-bold text-slate-950">สถานะเอกสาร</div>
-                        <div>อัปโหลดไฟล์ครบแล้วค่อยบันทึกข้อมูล</div>
-                      </div>
-                      <div className="flex gap-2">
-                        <Badge variant={form.driver_card_images_id ? 'success' : 'destructive'}>Card</Badge>
-                        <Badge variant={form.driver_license_images_id ? 'success' : 'destructive'}>License</Badge>
-                      </div>
-                    </div>
-                    {error ? <div className="mt-4 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-700">{error}</div> : null}
-                  </div>
-
-                  <div className="flex items-center justify-end gap-3 border-t border-slate-200 pt-5">
-                    <Button type="submit" disabled={saving} className="gap-2 w-full" variant="save">
-                      {saving ? 'กำลังบันทึก...' : 'บันทึกข้อมูล'}
-                    </Button>
-                  </div>
-                </form>
-              </CardContent>
-            </Card>
-          </aside>
-        </>
+        <DriverDrawer
+          initialDrivers={drivers}
+          formIn={form}
+          formGuarantorIn={formGuarantor}
+          errorIn={error}
+          editingId={editingId}
+          licenseFile={licenseFile}
+          setLicenseFile={setLicenseFile}
+          cardFile={cardFile}
+          setCardFile={setCardFile}
+          setDrawerOpen={setDrawerOpen}
+          setDrivers={setDrivers}
+        />
       )}
 
       {menuOpen && (
-        <button type="button" aria-label="Close menu" className="fixed inset-0 z-30 bg-transparent my-0" onClick={() => setMenuOpen(false)} /> 
+        <button type="button" aria-label="Close speed dial" className="fixed inset-0 z-10 bg-transparent my-0" onClick={() => setMenuOpen(false)} /> 
       )}
 
       {!drawerOpen && (
-        <div className="fixed bottom-6 right-6 z-40 flex flex-col items-end gap-3">
+        <div className="fixed bottom-6 right-6 z-10 flex flex-col items-end gap-3">
           {menuOpen && (
             <button type="button" onClick={openCreate} className={cn('group flex items-center gap-4 rounded-2xl border bg-white px-4 py-3 text-left shadow-lg shadow-slate-950/10 transition-all duration-200', 'min-w-47.5 max-w-55', 'border-slate-200 hover:-translate-y-0.5 hover:border-violet-200 hover:bg-violet-50/50')}>
               <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-slate-50 text-slate-600 shadow-sm transition group-hover:bg-white group-hover:text-violet-700">
@@ -403,6 +194,6 @@ export default function DriverPageClient({ initialDrivers }: { initialDrivers: D
           </Button>
         </div>
       )}
-    </div>
+    </>
   )
 }

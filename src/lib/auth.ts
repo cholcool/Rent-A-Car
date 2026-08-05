@@ -1,21 +1,9 @@
-import { scryptSync, timingSafeEqual } from 'node:crypto';
 import NextAuth, { type NextAuthConfig } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import prisma from './prisma'
 import { SessionUser } from '@/types/session';
-
-function verifyPassword(password: string, storedHash: string | null) {
-  if (!storedHash) return false;
-
-  const [algorithm, salt, hash] = storedHash.split(':');
-  if (algorithm !== 'scrypt' || !salt || !hash) return false;
-
-  const hashBuffer = Buffer.from(hash, 'hex');
-  const candidateBuffer = scryptSync(password, salt, hashBuffer.length);
-  return (
-    hashBuffer.length === candidateBuffer.length && timingSafeEqual(hashBuffer, candidateBuffer)
-  );
-}
+import { verifyPassword } from '@/lib/auth-server'
+import { cache } from 'react'
 
 export const authConfig: NextAuthConfig = {
   providers: [
@@ -86,6 +74,8 @@ export const authConfig: NextAuthConfig = {
   },
   session: {
     strategy: 'jwt',
+    maxAge: 8 * 60 * 60, // 8 ชั่วโมง
+    updateAge: 60 * 30, // ต่ออายุเมื่อมี activity ทุก 30 นาที
   },
   pages: {
     signIn: '/signin',
@@ -96,3 +86,5 @@ export const authConfig: NextAuthConfig = {
 
 // Export ตัว handlers และ auth ไปใช้ที่อื่น
 export const { handlers, auth, signIn, signOut } = NextAuth(authConfig);
+
+export const getCachedSession = cache(async () => auth())

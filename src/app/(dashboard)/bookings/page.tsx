@@ -1,0 +1,324 @@
+import prisma from '@/lib/prisma'
+import { getCachedSession } from '@/lib/auth'
+import BookingsClient from './bookings-client'
+import { formatCompactNumber, formatBaht } from '@/lib/ui-format'
+import { Select, Button } from '@/components/ui'
+import { Search } from 'lucide-react'
+import { BookingStatusOptions, type DriverRow } from '@/lib/types'
+import { serializePrismaRows } from '@/lib/serialize'
+
+export const dynamic = 'force-dynamic'
+
+type PageProps = {
+  searchParams?: Promise<Record<string, string | string[] | undefined>>
+}
+
+export default async function BookingsPage({ searchParams }: PageProps) {
+  const params = (await searchParams) ?? {}
+  const statusParam = typeof params.status === 'string' ? params.status : ''
+  const driversParam = typeof params.drivers === 'string' ? params.drivers.trim() : ''
+  const carsParam = typeof params.cars === 'string' ? params.cars.trim() : ''
+  const productsParam = typeof params.products === 'string' ? params.products.trim() : ''
+  const status = BookingStatusOptions.find(status => status.value === statusParam)?.value ?? ''
+  const sort = typeof params.sort === 'string' ? params.sort : 'newest'
+
+  const where: any = { isDeleted: false }
+
+  if (status) where.status = status
+  if (driversParam) where.driver = { id: driversParam }
+  if (carsParam) where.car = { id: carsParam }
+  if (productsParam) where.product = { id: productsParam }
+
+  const orderBy: any =
+    sort === 'most'
+      ? { netAmount: 'desc' }
+      : sort === 'least'
+        ? { netAmount: 'asc' }
+        : sort === 'dateEnd'
+          ? { dateEnd: 'desc' }
+      : sort === 'dateStart'
+          ? { dateStart: 'asc' }
+          : { createdAt: 'desc' }
+
+  const session = await getCachedSession()
+  const currentUserId = session?.user?.id ?? ''
+  const displayName = session?.user?.name ?? session?.user?.email ?? "Guest";
+  const pageParam = typeof params.page === 'string' ? Number.parseInt(params.page, 10) : 1
+  const page = Number.isFinite(pageParam) && pageParam > 0 ? pageParam : 1
+  const pageSize = 20
+
+  const [bookings, products, cars, drivers, users, summary] = await Promise.all([
+    prisma.booking.findMany({
+      where,
+      orderBy,
+      take: pageSize,
+      skip: (page - 1) * pageSize,
+        include: {
+          user: {
+            select: { id: true, firstName: true, lastName: true, phone: true },
+          },
+        car: {
+          select: {
+            id: true,
+            model: true,
+            license: true,
+            mileage: true,
+            brand: { select: { name: true } },
+          },
+        },
+        driver: {
+          select: {
+            id: true,
+            fullName: true,
+            phone: true,
+          },
+        },
+        product: {
+          select: { id: true, name: true, price: true },
+        },
+        payments: {
+          where: { isDeleted: false },
+          select: { id: true, amount: true, paymentStatus: true, paymentMethod: true, paymentDate: true, isDeleted: true },
+          orderBy: { paymentDate: 'desc' },
+        },
+      },
+    }),
+    prisma.product.findMany({
+      where: { isDeleted: false, isActive: true },
+      orderBy: { createdAt: 'desc' },
+      select: { id: true, name: true, price: true },
+    }),
+    prisma.car.findMany({
+      where: { isDeleted: false },
+      orderBy: { createdAt: 'desc' },
+      select: { id: true, model: true, license: true, brand: { select: { name: true } }, status: true, mileage: true },
+    }),
+    prisma.driver.findMany({
+      where: { isDeleted: false },
+      orderBy: { createdAt: 'desc' },
+      select: {
+        id: true,
+        fullName: true,
+        phone: true,
+        remark: true,
+        cardImageId: true,
+        licenseImageId: true,
+        cardImage: true,
+        licenseImage: true,
+        guarantor: {
+          select: {
+            id: true,
+            fullName: true,
+            phone: true,
+            remark: true,
+            cardImageId: true,
+            licenseImageId: true,
+            cardImage: true,
+            licenseImage: true,
+          },
+        },
+      },
+    }),
+    prisma.user.findMany({
+      where: { isDeleted: false },
+      orderBy: { createdAt: 'desc' },
+      select: { id: true, firstName: true, lastName: true, phone: true },
+    }),
+    prisma.booking.aggregate({
+      where,
+      _sum: { netAmount: true },
+    }),
+  ])
+  const totalCount = await prisma.booking.count({ where })
+  const totalPages = Math.max(Math.ceil(totalCount / pageSize), 1)
+
+  const initialDrivers: DriverRow[] = drivers.map((driver) => ({
+    id: driver.id,
+    fullName: driver.fullName,
+    phone: driver.phone,
+    remark: driver.remark ?? null,
+    cardImageId: driver.cardImageId ?? null,
+    licenseImageId: driver.licenseImageId ?? null,
+    cardImage: driver.cardImage
+      ? {
+          id: driver.cardImage.id,
+          key: driver.cardImage.key,
+          url: driver.cardImage.url,
+          name: driver.cardImage.name,
+          size: driver.cardImage.size ? Number(driver.cardImage.size) : undefined,
+          type: driver.cardImage.type ?? undefined,
+          remark: driver.cardImage.remark ?? undefined,
+        }
+      : null,
+    licenseImage: driver.licenseImage
+      ? {
+          id: driver.licenseImage.id,
+          key: driver.licenseImage.key,
+          url: driver.licenseImage.url,
+          name: driver.licenseImage.name,
+          size: driver.licenseImage.size ? Number(driver.licenseImage.size) : undefined,
+          type: driver.licenseImage.type ?? undefined,
+          remark: driver.licenseImage.remark ?? undefined,
+        }
+      : null,
+    guarantor: driver.guarantor
+      ? {
+          id: driver.guarantor.id,
+          fullName: driver.guarantor.fullName,
+          phone: driver.guarantor.phone,
+          remark: driver.guarantor.remark ?? null,
+          cardImageId: driver.guarantor.cardImageId ?? null,
+          licenseImageId: driver.guarantor.licenseImageId ?? null,
+          cardImage: driver.guarantor.cardImage
+            ? {
+                id: driver.guarantor.cardImage.id,
+                key: driver.guarantor.cardImage.key,
+                url: driver.guarantor.cardImage.url,
+                name: driver.guarantor.cardImage.name,
+                size: driver.guarantor.cardImage.size ? Number(driver.guarantor.cardImage.size) : undefined,
+                type: driver.guarantor.cardImage.type ?? undefined,
+                remark: driver.guarantor.cardImage.remark ?? undefined,
+              }
+            : null,
+          licenseImage: driver.guarantor.licenseImage
+            ? {
+                id: driver.guarantor.licenseImage.id,
+                key: driver.guarantor.licenseImage.key,
+                url: driver.guarantor.licenseImage.url,
+                name: driver.guarantor.licenseImage.name,
+                size: driver.guarantor.licenseImage.size ? Number(driver.guarantor.licenseImage.size) : undefined,
+                type: driver.guarantor.licenseImage.type ?? undefined,
+                remark: driver.guarantor.licenseImage.remark ?? undefined,
+              }
+            : null,
+        }
+      : null,
+  }))
+
+  const initialBookings = serializePrismaRows(bookings)
+  const carsOption = cars.map((rows) => ({ id: rows.id, value: rows.id, label: `${rows.brand.name} ${rows.model} (${rows.license})`.trim(), status: rows.status, mileage: rows.mileage }))
+  const driversOption = drivers.map((rows) => ({ id: rows.id, value: rows.id, label: `${rows.fullName} (${rows.phone})`.trim() }))
+  const productsOption = products.map((rows) => ({ id: rows.id, value: rows.id, label: `${rows.name} - ${rows.price}`.trim(), price: Number(rows.price) }))
+  const usersOption = users.map((rows) => ({ id: rows.id, value: rows.id, label: `${rows.firstName} ${rows.lastName} (${rows.phone})` }))
+
+  return (
+    <>
+      <div className="space-y-8">
+        <header className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <div>
+            <h1 className="text-4xl font-extrabold tracking-normal text-slate-950">บันทึกรายการ</h1>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div className="rounded-2xl border border-slate-200 bg-white px-5 py-4 shadow-sm shadow-slate-200/60">
+              <div className="text-sm font-bold text-slate-500">ทั้งหมด</div>
+              <div className="mt-2 text-3xl font-extrabold text-slate-950">
+                {formatCompactNumber(totalCount)}
+              </div>
+            </div>
+            <div className="rounded-2xl border border-slate-200 bg-white px-5 py-4 shadow-sm shadow-slate-200/60">
+              <div className="text-sm font-bold text-slate-500">ยอดรวม</div>
+              <div className="mt-2 text-3xl font-extrabold text-emerald-600">
+                {formatBaht(summary._sum.netAmount ?? 0)}
+              </div>
+            </div>
+          </div>
+        </header>
+
+        <form
+          method="get"
+          action="/bookings"
+          className="grid gap-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm shadow-slate-200/60 md:grid-cols-3 xl:grid-cols-[200px_200px_auto_200px_200px_150px] overflow-auto"
+        >
+          <Select name="drivers" defaultValue={driversParam}>
+            <option value="">ลูกค้าทั้งหมด</option>
+            {driversOption.map((rows: any) => (
+              <option key={rows.value} value={rows.value}>
+                {rows.label}
+              </option>
+            ))}
+          </Select>
+
+          <Select name="cars" defaultValue={carsParam}>
+            <option value="">รถทั้งหมด</option>
+            {carsOption.map((rows: any) => (
+              <option key={rows.value} value={rows.value}>
+                {rows.label}
+              </option>
+            ))}
+          </Select>
+
+          <Select name="products" defaultValue={productsParam}>
+            <option value="">บริการทั้งหมด</option>
+            {productsOption.map((rows: any) => (
+              <option key={rows.value} value={rows.value}>
+                {rows.label}
+              </option>
+            ))}
+          </Select>
+
+          <Select name="status" defaultValue={status}>
+            <option value="">ทุกสถานะ</option>
+            {BookingStatusOptions.map((status) => (
+              <option key={status.value} value={status.value}>
+                {status.label}
+              </option>
+            ))}
+          </Select>
+
+          <Select name="sort" defaultValue={sort}>
+            <option value="newest">ล่าสุด</option>
+            <option value="most">ยอดรวมสุทธิมากสุด</option>
+            <option value="least">ยอดรวมสุทธิน้อยสุด</option>
+            <option value="dateStart">เรียงตามวันรับรถ</option>
+            <option value="dateEnd">เรียงตามวันคืนรถ</option>
+          </Select>
+
+          <Button type="submit" className="h-full min-h-8 md:col-start-3 xl:col-auto justify-self-end">
+            <Search className="mr-2 h-4 w-4" />
+            ค้นหา
+          </Button>
+        </form>
+
+        <BookingsClient
+          initialBookings={initialBookings}
+          currentUserId={currentUserId}
+          users={usersOption}
+          displayName={displayName}
+          products={productsOption}
+          cars={carsOption}
+          drivers={driversOption}
+          initialDrivers={initialDrivers}
+        />
+
+        {totalPages > 1 && (
+          <div className="flex items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm shadow-slate-200/60">
+            <div className="text-sm font-semibold text-slate-600">
+              หน้า {page} จาก {totalPages}
+            </div>
+            <div className="flex items-center gap-2">
+              <Button asChild variant="outline">
+                <a
+                  aria-disabled={page <= 1}
+                  tabIndex={page <= 1 ? -1 : 0}
+                  href={`/bookings?page=${Math.max(page - 1, 1)}&status=${status}&sort=${sort}&drivers=${driversParam}&cars=${carsParam}&products=${productsParam}`}
+                >
+                  ก่อนหน้า
+                </a>
+              </Button>
+              <Button asChild variant="outline">
+                <a
+                  aria-disabled={page >= totalPages}
+                  tabIndex={page >= totalPages ? -1 : 0}
+                  href={`/bookings?page=${Math.min(page + 1, totalPages)}&status=${status}&sort=${sort}&drivers=${driversParam}&cars=${carsParam}&products=${productsParam}`}
+                >
+                  ถัดไป
+                </a>
+              </Button>
+            </div>
+          </div>
+        )}
+      </div>
+    </>
+  )
+}
