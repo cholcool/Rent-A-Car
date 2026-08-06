@@ -2,14 +2,26 @@ import { randomBytes, scryptSync, timingSafeEqual } from 'node:crypto';
 import { PrismaClient } from '@prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
 
-const connectionString = process.env.DATABASE_URL;
+const connectionString =
+  process.env.SEED_DATABASE_URL ??
+  process.env.DATABASE_URL;
 
 if (!connectionString) {
-  throw new Error('DATABASE_URL is required to run the Prisma seed');
+  throw new Error('SEED_DATABASE_URL or DATABASE_URL is required to run the Prisma seed');
+}
+
+const seedUrl = new URL(connectionString);
+
+if (seedUrl.searchParams.get('sslmode') === 'verify-full') {
+  seedUrl.searchParams.set('sslmode', 'require');
+}
+
+if (!seedUrl.searchParams.has('uselibpqcompat')) {
+  seedUrl.searchParams.set('uselibpqcompat', 'true');
 }
 
 const prisma = new PrismaClient({
-  adapter: new PrismaPg({ connectionString }),
+  adapter: new PrismaPg({ connectionString: seedUrl.toString() }),
 });
 
 const SYSTEM_USER_ID = '00000000-0000-0000-0000-000000000000';

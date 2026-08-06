@@ -1,6 +1,6 @@
 "use client"
 
-import { type FormEvent, useMemo, useState } from 'react'
+import { type FormEvent, useEffect, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { signIn } from 'next-auth/react'
 import { Car, Loader2 } from 'lucide-react'
@@ -13,9 +13,15 @@ export default function SignInPage() {
   const [error, setError] = useState<string | null>(null)
   const reason = searchParams.get('reason')
 
-  useMemo(() => {
-    if (reason === 'token-expired') return setError('เซสชันหมดอายุ กรุณาเข้าสู่ระบบใหม่อีกครั้ง')
-    if (reason === 'missing-session') return setError('กรุณาเข้าสู่ระบบก่อนใช้งาน')
+  useEffect(() => {
+    if (reason === 'token-expired') {
+      setError('เซสชันหมดอายุ กรุณาเข้าสู่ระบบใหม่อีกครั้ง')
+      return
+    }
+    if (reason === 'missing-session') {
+      setError('กรุณาเข้าสู่ระบบก่อนใช้งาน')
+      return
+    }
     setError(null)
   }, [reason])
 
@@ -38,10 +44,18 @@ export default function SignInPage() {
 
     setLoading(false)
 
-    if (res?.error) {
+    const resultError = res?.error ?? new URL(res?.url ?? '', window.location.origin).searchParams.get('error')
+
+    if (!res?.ok && resultError === 'CredentialsSignin') {
       setError('ชื่อผู้ใช้หรืออีเมลหรือรหัสผ่านไม่ถูกต้อง')
+    } else if (!res?.ok && resultError === 'AUTH_DATABASE_ERROR') {
+      setError('ระบบเชื่อมต่อฐานข้อมูลหรือยืนยันตัวตนขัดข้อง กรุณาลองใหม่อีกครั้ง')
+    } else if (!res?.ok && resultError) {
+      setError(`ไม่สามารถเข้าสู่ระบบได้: ${resultError}`)
+    } else if (res?.ok && res?.url) {
+      window.location.assign(res.url)
     } else if (res?.url) {
-      window.location.href = res.url
+      window.location.assign(res.url)
     }
   }
 

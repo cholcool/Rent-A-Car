@@ -42,8 +42,7 @@ export const authConfig: NextAuthConfig = {
           };
         } catch (error) {
           console.error('Error during authentication:', error);
-
-          throw new Error('An error occurred during authentication. Please try again later.');
+          throw new Error('AUTH_DATABASE_ERROR');
         }
       },
     }),
@@ -81,6 +80,7 @@ export const authConfig: NextAuthConfig = {
     signIn: '/signin',
   },
   secret: process.env.NEXTAUTH_SECRET,
+  trustHost: true,
   debug: process.env.NODE_ENV === 'development',
 };
 
