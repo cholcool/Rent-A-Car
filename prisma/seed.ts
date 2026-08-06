@@ -2,14 +2,26 @@ import { randomBytes, scryptSync, timingSafeEqual } from 'node:crypto';
 import { PrismaClient } from '@prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
 
-const connectionString = process.env.DATABASE_URL;
+const connectionString =
+  process.env.SEED_DATABASE_URL ??
+  process.env.DATABASE_URL;
 
 if (!connectionString) {
-  throw new Error('DATABASE_URL is required to run the Prisma seed');
+  throw new Error('SEED_DATABASE_URL or DATABASE_URL is required to run the Prisma seed');
+}
+
+const seedUrl = new URL(connectionString);
+
+if (seedUrl.searchParams.get('sslmode') === 'verify-full') {
+  seedUrl.searchParams.set('sslmode', 'require');
+}
+
+if (!seedUrl.searchParams.has('uselibpqcompat')) {
+  seedUrl.searchParams.set('uselibpqcompat', 'true');
 }
 
 const prisma = new PrismaClient({
-  adapter: new PrismaPg({ connectionString }),
+  adapter: new PrismaPg({ connectionString: seedUrl.toString() }),
 });
 
 const SYSTEM_USER_ID = '00000000-0000-0000-0000-000000000000';
@@ -67,12 +79,12 @@ async function main() {
     { key: 'products', title: 'ข้อมูลบริการ', icon: 'Tag', path: '/products', sequence: 4, requiredPermission: 'ADMIN,VIEWER', isActive: true, createdBy: '00000000-0000-0000-0000-000000000000', updatedBy: '00000000-0000-0000-0000-000000000000' },
     { key: 'bookings', title: 'บันทึกรายการ', icon: 'ClipboardList', path: '/bookings', sequence: 5, requiredPermission: 'ADMIN,VIEWER', isActive: true, createdBy: '00000000-0000-0000-0000-000000000000', updatedBy: '00000000-0000-0000-0000-000000000000' },
     { key: 'reports', title: 'รายงาน', icon: 'Newspaper', path: '/reports', sequence: 6, requiredPermission: 'ADMIN,VIEWER', isActive: true, createdBy: '00000000-0000-0000-0000-000000000000', updatedBy: '00000000-0000-0000-0000-000000000000' },
-    { key: 'documents', title: 'เอกสารพิมพ์', icon: 'Printer', path: '/documents', sequence: 7, requiredPermission: 'ADMIN,VIEWER', isActive: true, createdBy: '00000000-0000-0000-0000-000000000000', updatedBy: '00000000-0000-0000-0000-000000000000' },
-    { key: 'payments', title: 'การชำระเงิน', icon: 'CreditCard', path: '/payments', sequence: 8, requiredPermission: 'ADMIN,VIEWER', isActive: true, createdBy: '00000000-0000-0000-0000-000000000000', updatedBy: '00000000-0000-0000-0000-000000000000' },
-    { key: 'setting-user', title: 'ตั้งค่าผู้ใช้', icon: 'Settings', path: '/setting/user', sequence: 9, requiredPermission: 'ADMIN', isActive: false, createdBy: '00000000-0000-0000-0000-000000000000', updatedBy: '00000000-0000-0000-0000-000000000000' },
+    { key: 'documents', title: 'เอกสารพิมพ์', icon: 'Printer', path: '/documents', sequence: 7, requiredPermission: 'ADMIN,VIEWER', isActive: false, createdBy: '00000000-0000-0000-0000-000000000000', updatedBy: '00000000-0000-0000-0000-000000000000' },
+    { key: 'payments', title: 'การชำระเงิน', icon: 'CreditCard', path: '/payments', sequence: 8, requiredPermission: 'ADMIN,VIEWER', isActive: false, createdBy: '00000000-0000-0000-0000-000000000000', updatedBy: '00000000-0000-0000-0000-000000000000' },
+    { key: 'setting-user', title: 'ตั้งค่าผู้ใช้', icon: 'Settings', path: '/setting/user', sequence: 9, requiredPermission: 'ADMIN', isActive: true, createdBy: '00000000-0000-0000-0000-000000000000', updatedBy: '00000000-0000-0000-0000-000000000000' },
     { key: 'setting-roles', title: 'ตั้งค่าบทบาท', icon: 'Settings', path: '/setting/roles', sequence: 10, requiredPermission: 'UNSPECIFIED', isActive: false, createdBy: '00000000-0000-0000-0000-000000000000', updatedBy: '00000000-0000-0000-0000-000000000000' },
     { key: 'setting-permissions', title: 'ตั้งค่าสิทธิ์', icon: 'Settings', path: '/setting/permissions', sequence: 11, requiredPermission: 'UNSPECIFIED', isActive: false, createdBy: '00000000-0000-0000-0000-000000000000', updatedBy: '00000000-0000-0000-0000-000000000000' },
-    { key: 'setting-menu', title: 'ตั้งค่าเมนู', icon: 'Settings', path: '/setting/menu', sequence: 12, requiredPermission: 'ADMIN', isActive: true, createdBy: '00000000-0000-0000-0000-000000000000', updatedBy: '00000000-0000-0000-0000-000000000000' },
+    { key: 'setting-menu', title: 'ตั้งค่าเมนู', icon: 'Settings', path: '/setting/menu', sequence: 12, requiredPermission: 'ADMIN', isActive: false, createdBy: '00000000-0000-0000-0000-000000000000', updatedBy: '00000000-0000-0000-0000-000000000000' },
   ];
 
   for (const rows of menuData) {

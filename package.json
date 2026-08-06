@@ -7,7 +7,7 @@
     "_comment_dev": "[npm run dev] : รันแอปพลิเคชันในโหมดพัฒนา (Development) เปิดหน้าเว็บดูที่ localhost พร้อมอัปเดตโค้ดสดใหม่ทันที",
     "build": "prisma generate && next build",
     "_comment_build": "[npm run build] : คอมไพล์และอัปติไมซ์โค้ดทั้งหมด เพื่อเตรียมไฟล์สำหรับเอาไปเปิดใช้งานจริงบน Production",
-    "start": "next build && next start",
+    "start": "next start",
     "_comment_start": "[npm run start] : เปิดรันเซิร์ฟเวอร์ด้วยไฟล์ที่คอมไพล์เสร็จแล้ว (ต้องกดรัน build ก่อนใช้งานคำสั่งนี้)",
     "lint": "next lint",
     "_comment_lint": "[npm run lint] : สั่งสแกนและตรวจสอบโครงสร้างโค้ด เพื่อหาจุดพิมพ์ผิดหรือจุดที่เขียนไม่ตรงตามมาตรฐานสากล",
