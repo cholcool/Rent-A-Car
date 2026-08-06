@@ -44,14 +44,18 @@ export default function SignInPage() {
 
     setLoading(false)
 
-    if (res?.error === 'CredentialsSignin') {
+    const resultError = res?.error ?? new URL(res?.url ?? '', window.location.origin).searchParams.get('error')
+
+    if (!res?.ok && resultError === 'CredentialsSignin') {
       setError('ชื่อผู้ใช้หรืออีเมลหรือรหัสผ่านไม่ถูกต้อง')
-    } else if (res?.error === 'AUTH_DATABASE_ERROR') {
+    } else if (!res?.ok && resultError === 'AUTH_DATABASE_ERROR') {
       setError('ระบบเชื่อมต่อฐานข้อมูลหรือยืนยันตัวตนขัดข้อง กรุณาลองใหม่อีกครั้ง')
-    } else if (res?.error) {
-      setError(`ไม่สามารถเข้าสู่ระบบได้: ${res.error}`)
+    } else if (!res?.ok && resultError) {
+      setError(`ไม่สามารถเข้าสู่ระบบได้: ${resultError}`)
+    } else if (res?.ok && res?.url) {
+      window.location.assign(res.url)
     } else if (res?.url) {
-      window.location.href = res.url
+      window.location.assign(res.url)
     }
   }
 
