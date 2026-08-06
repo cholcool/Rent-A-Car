@@ -15,8 +15,6 @@
     "_comment_typecheck": "[npm run typecheck] : ตรวจสอบความถูกต้องของประเภทตัวแปร (TypeScript) ทั่วทั้งโปรเจกต์โดยไม่มีการสร้างไฟล์ใหม่",
     "format": "prettier --write .",
     "_comment_format": "[npm run format] : จัดฟอร์แมตเว้นวรรคและจัดระเบียบโค้ดทุกไฟล์ในโปรเจกต์ให้สวยงามเป็นระเบียบโดยอัตต่อด้วย Prettier",
-    "prepare": "husky install",
-    "_comment_prepare": "[npm run prepare] : ตั้งค่าระบบ Husky เพื่อช่วยตรวจเช็กโค้ดอัตโนมัติก่อนที่คุณจะกดบันทึกโค้ด (Git Commit)",
     "prisma:generate": "prisma generate",
     "_comment_prisma:generate": "[npm run prisma:generate] : อัปเดตและสร้างประเภทตัวแปร (Types) ของ Prisma Client ให้ตรงตามโครงสร้างสคีมาล่าสุด",
     "db:gen": "npx prisma generate",
