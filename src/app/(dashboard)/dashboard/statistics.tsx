@@ -15,7 +15,8 @@ import {
   ListOrdered,
   TrendingUp,
 } from 'lucide-react'
-import { TabKey, StatCard } from './page'
+import { cn } from '@/lib/utils'
+import { TabKey } from './page'
 
 type MonthlyRow = {
   monthKey: string
@@ -370,22 +371,36 @@ export async function StatisticsPage({ activeTab }: { activeTab: TabKey }) {
     {activeTab === 'reports' && reportStats && (
         <div className="space-y-8">
           <section className="grid gap-6 md:grid-cols-2">
-            <StatCard
-              title="รายได้สะสมทั้งหมด"
-              value={formatBaht(reportStats.totalRevenue)}
-              unit="บาท"
-              icon={TrendingUp}
-              iconClassName="h-6 w-6 text-[#6F3BB7]"
-              valueClassName="text-[#4E2788]"
-            />
-            <StatCard
-              title="จำนวนการจองทั้งหมด"
-              value={formatCompactNumber(reportStats.totalBookings)}
-              unit="รายการ"
-              icon={ListOrdered}
-              iconClassName="h-6 w-6 text-emerald-600"
-              valueClassName="text-emerald-700"
-            />
+            <Card className="border-slate-200/80 bg-white/90 shadow-lg shadow-slate-200/60 backdrop-blur">
+              <CardContent className="flex h-full flex-col justify-between p-6">
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <p className="text-sm font-semibold uppercase tracking-wide text-slate-500">รายได้สะสมทั้งหมด</p>
+                  </div>
+                  <TrendingUp className="h-6 w-6 text-[#6F3BB7]" aria-hidden="true" />
+                </div>
+      
+                <div className="mt-6">
+                  <div className={cn('text-4xl font-black leading-none tracking-tight', 'text-[#4E2788]')}>{formatBaht(reportStats.totalRevenue)}</div>
+                  <div className="mt-2 text-sm font-semibold text-slate-500">บาท</div>
+                </div>
+              </CardContent>
+            </Card>
+            <Card className="border-slate-200/80 bg-white/90 shadow-lg shadow-slate-200/60 backdrop-blur">
+              <CardContent className="flex h-full flex-col justify-between p-6">
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <p className="text-sm font-semibold uppercase tracking-wide text-slate-500">จำนวนการจองทั้งหมด</p>
+                  </div>
+                  <ListOrdered className="h-6 w-6 text-emerald-600" aria-hidden="true" />
+                </div>
+      
+                <div className="mt-6">
+                  <div className={cn('text-4xl font-black leading-none tracking-tight', 'text-emerald-700')}>{formatCompactNumber(reportStats.totalBookings)}</div>
+                  <div className="mt-2 text-sm font-semibold text-slate-500">รายการ</div>
+                </div>
+              </CardContent>
+            </Card>
           </section>
 
           <ChartShell

@@ -1,18 +1,52 @@
-
+import Link from 'next/link'
 import {
   Car,
   Users,
   ClipboardList,
   Tag,
+  LucideIcon
 } from 'lucide-react'
 import prisma from '@/lib/prisma'
 import {
   formatCompactNumber,
 } from '@/lib/ui-format'
-import { TabKey, StatCard } from './page'
+import { Card, CardContent } from '@/components/ui'
+import { cn } from '@/lib/utils'
+import { TabKey } from './page'
+
+type StatCardProps = {
+  href?: string
+  title: string
+  value: string
+  unit: string
+  icon: LucideIcon
+  iconClassName: string
+  valueClassName?: string
+}
+
+export function StatCard({ href = '/dashboard', title, value, unit, icon: Icon, iconClassName, valueClassName = 'text-slate-950' }: StatCardProps) {
+  return (
+    <Link href={href}>
+      <Card className="border-slate-200/80 bg-white/90 shadow-lg shadow-slate-200/60 backdrop-blur">
+        <CardContent className="flex h-full flex-col justify-between p-6">
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <p className="text-sm font-semibold uppercase tracking-wide text-slate-500">{title}</p>
+            </div>
+            <Icon className={iconClassName} aria-hidden="true" />
+          </div>
+
+          <div className="mt-6">
+            <div className={cn('text-4xl font-black leading-none tracking-tight', valueClassName)}>{value}</div>
+            <div className="mt-2 text-sm font-semibold text-slate-500">{unit}</div>
+          </div>
+        </CardContent>
+      </Card>
+    </Link>
+  )
+}
 
 export async function OverviewPage({ activeTab }: { activeTab: TabKey }) {
-
   const overviewPromise = activeTab === 'overview'
     ? Promise.all([
         prisma.car.count({ where: { isDeleted: false } }),
