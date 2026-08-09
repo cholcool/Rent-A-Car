@@ -26,7 +26,7 @@ function now() {
 function logIfSlow(label: string, startedAt: number, thresholdMs = 25) {
   const duration = now() - startedAt
   if (process.env.NODE_ENV === 'development' && duration >= thresholdMs) {
-    console.debug(`[auth/access] ${label} took ${duration}ms`)
+    console.debug(`logs : [auth/access] ${label} took ${duration}ms`)
   }
 }
 
@@ -50,8 +50,7 @@ function normalizeIconKey(value: string | null | undefined): MenuAccessItem['ico
 
 export const ROLE_GROUPS = {
   ADMIN_STAFF: ['ADMIN', 'MANAGER'] as const,
-  EDITORS: ['ADMIN', 'MANAGER', 'AGENT'] as const,
-  VIEW_ALL: ['ADMIN', 'MANAGER', 'AGENT', 'VIEWER'] as const,
+  EDITORS: ['ADMIN', 'MANAGER', 'STAFF'] as const,
 } as const
 
 export function hasAnyRole(userRoles: string[] | undefined, allowed: readonly string[]) {
@@ -94,7 +93,7 @@ const getDbRoleCodesForUser = cache(async (userEmail?: string | null) => {
     .map((role) => role.code.toUpperCase())
 
   setCacheValue(roleCache, normalizedEmail, roles)
-  logIfSlow('getDbRoleCodesForUser', startedAt)
+  logIfSlow('getDbRoleCodesForUser : ', startedAt)
   return roles
 })
 
@@ -140,7 +139,7 @@ const getDbAccessibleMenus = cache(async (roleCodes: string[]) => {
     .filter((menu) => menu.href && (!menu.roles.length || menu.roles.some((role) => roleCodes.includes(role))))
 
   setCacheValue(menuCache, normalizedKey, mappedMenus)
-  logIfSlow('getDbAccessibleMenus', startedAt)
+  logIfSlow('getDbAccessibleMenus : ', startedAt)
   return mappedMenus
 })
 
@@ -153,7 +152,7 @@ export async function getUserAccess(input?: {
   const sessionRoles = normalizeRoles(input?.rawRoles ?? input?.session?.roles)
   const roles = sessionRoles.length > 0 ? sessionRoles : await getDbRoleCodesForUser(input?.userEmail ?? input?.session?.email)
   const menus = await getDbAccessibleMenus(roles)
-  logIfSlow('getUserAccess', startedAt, 10)
+  logIfSlow('getUserAccess : ', startedAt, 10)
   return { roles, menus }
 }
 

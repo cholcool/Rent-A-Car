@@ -35,25 +35,25 @@ export default function SignInPage() {
     setError(null)
 
     const res = await signIn('credentials', {
+      identifier: credential,
       username: credential,
       email: credential,
       password,
       redirect: false,
-      callbackUrl: '/post-login',
+      callbackUrl: '/dashboard',
     })
 
     setLoading(false)
 
     const resultError = res?.error ?? new URL(res?.url ?? '', window.location.origin).searchParams.get('error')
-
-    if (!res?.ok && resultError === 'CredentialsSignin') {
+    const resultCode = res?.code ?? null
+    
+    if (resultError === 'CredentialsSignin' || resultCode === 'credentials') {
       setError('ชื่อผู้ใช้หรืออีเมลหรือรหัสผ่านไม่ถูกต้อง')
-    } else if (!res?.ok && resultError === 'AUTH_DATABASE_ERROR') {
+    } else if (resultError === 'AUTH_DATABASE_ERROR') {
       setError('ระบบเชื่อมต่อฐานข้อมูลหรือยืนยันตัวตนขัดข้อง กรุณาลองใหม่อีกครั้ง')
-    } else if (!res?.ok && resultError) {
+    } else if (resultError) {
       setError(`ไม่สามารถเข้าสู่ระบบได้: ${resultError}`)
-    } else if (res?.ok && res?.url) {
-      window.location.assign(res.url)
     } else if (res?.url) {
       window.location.assign(res.url)
     }

@@ -299,7 +299,7 @@ export default function MenuPageClient({
                 <Input
                   value={form.requiredPermission}
                   onChange={(e) => setForm((c) => ({ ...c, requiredPermission: e.target.value }))}
-                  placeholder="เช่น ADMIN,VIEWER"
+                  placeholder="เช่น ADMIN,STAFF"
                 />
               </div>
 

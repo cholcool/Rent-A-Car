@@ -68,7 +68,7 @@ export default function ResponsiveShell({
   // const [open, setOpen] = React.useState(false);
 
   return (
-    <SidebarProvider className="bg-[#f6f7f9]" defaultOpen={false}>
+    <SidebarProvider className="bg-[#f6f7f9]" defaultOpen={true}>
       <div className="min-h-screen bg-[#f6f7f9] w-full" slot="main-screen">
         <ResponsiveHeader sidebar={sidebar} />
 

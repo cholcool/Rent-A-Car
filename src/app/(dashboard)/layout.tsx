@@ -3,8 +3,8 @@ import ResponsiveShell from "@/components/ResponsiveShell";
 import { getUserAccess } from "@/lib/rbac/access";
 import { toMenuItems } from "@/lib/rbac/menus";
 import { redirect } from "next/navigation";
-// import RBACSidebar from "@/components/RBACSidebar";
-import AppSidebar from "@/components/AppSidebar"
+// import MenuRBACSidebar from "@/components/MenuRBACSidebar";
+import MenuAppSidebar from "@/components/MenuAppSidebar"
 
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -15,7 +15,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
   const menuItems = toMenuItems(menus);
 
   return (
-    <ResponsiveShell sidebar={<AppSidebar user={session?.user ?? null} menuItems={menuItems} />}>
+    <ResponsiveShell sidebar={<MenuAppSidebar user={session?.user ?? null} menuItems={menuItems} />}>
       {children}
     </ResponsiveShell>
   );

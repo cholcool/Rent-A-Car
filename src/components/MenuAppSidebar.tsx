@@ -31,7 +31,7 @@ type SidebarUser = {
   email?: string | null;
 };
 
-export default function AppSidebar({ user, menuItems }: { user?: SidebarUser | null; menuItems: MenuItem[] }) {
+export default function MenuAppSidebar({ user, menuItems }: { user?: SidebarUser | null; menuItems: MenuItem[] }) {
   const pathname = usePathname();
   const displayName = user?.name ?? user?.email ?? "Guest";
   const {  setOpenMobile } = useSidebar()

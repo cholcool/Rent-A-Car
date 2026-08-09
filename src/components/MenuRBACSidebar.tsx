@@ -12,7 +12,7 @@ type SidebarUser = {
   email?: string | null;
 };
 
-export default function RBACSidebar({ user, menuItems }: { user?: SidebarUser | null; menuItems: MenuItem[] }) {
+export default function MenuRBACSidebar({ user, menuItems }: { user?: SidebarUser | null; menuItems: MenuItem[] }) {
   const pathname = usePathname();
   const displayName = user?.name ?? user?.email ?? "Guest";
 

@@ -10,6 +10,7 @@ export const authConfig: NextAuthConfig = {
     CredentialsProvider({
       name: 'Credentials',
       credentials: {
+        identifier: { label: 'Username or email', type: 'text' },
         username: { label: 'Username', type: 'text' },
         email: { label: 'Email', type: 'text' },
         password: { label: 'Password', type: 'password' },
@@ -17,16 +18,26 @@ export const authConfig: NextAuthConfig = {
         remember: { label: 'Remember', type: 'boolean' },
       },
       async authorize(credentials) {
-        const username = typeof credentials?.username === 'string' ? credentials.username : '';
-        const email = typeof credentials?.email === 'string' ? credentials.email : '';
+        const identifier =
+          typeof credentials?.identifier === 'string'
+            ? credentials.identifier
+            : typeof credentials?.username === 'string'
+              ? credentials.username
+              : typeof credentials?.email === 'string'
+                ? credentials.email
+                : '';
+        const normalizedIdentifier = identifier.trim();
+        const normalizedEmail = normalizedIdentifier.toLowerCase();
         const password = typeof credentials?.password === 'string' ? credentials.password : '';
-        const identifier = username || email;
-        if (!identifier || !password) return null;
+        if (!normalizedIdentifier || !password) return null;
 
         try {
           const user = await prisma.user.findFirst({
             where: {
-              OR: [{ userName: identifier }, { email: identifier }],
+              OR: [
+                { userName: { equals: normalizedIdentifier, mode: 'insensitive' } },
+                { email: { equals: normalizedEmail, mode: 'insensitive' } },
+              ],
             },
             include: { roles: { include: { role: true } } },
           });
